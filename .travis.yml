@@ -13,4 +13,4 @@ script:
 after_success:
   - yarn coverage:coveralls
   - bash deploy.sh
-  - bin/ecs_deploy.sh
+  - bash ecs_deploy.sh
