@@ -10,10 +10,7 @@ branches:
 script:
   - yarn lint
   - yarn test
-deploy:
-  provider: script
-  script: bash deploy.sh
-  on:
-    branch: master
 after_success:
   - yarn coverage:coveralls
+  - bash deploy.sh
+  - bin/ecs_deploy.sh
