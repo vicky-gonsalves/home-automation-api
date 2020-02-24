@@ -13,8 +13,8 @@ eval $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
 # Build and push
 docker build -t $IMAGE_NAME .
 echo "Pushing $IMAGE_NAME:latest"
-docker tag $IMAGE_NAME:latest "$IMAGE_REPO_URL:latest"
-docker push "$IMAGE_REPO_URL:latest"
+docker tag $IMAGE_NAME:latest $IMAGE_REPO_URL:latest
+docker push $IMAGE_REPO_URL:latest
 echo "Pushed $IMAGE_NAME:latest"
 else
 echo "Skipping deploy because branch is not 'master'"
