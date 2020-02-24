@@ -13,9 +13,7 @@ const envVarsSchema = Joi.object()
     MONGODB_URL: Joi.string()
       .required()
       .description('Mongo DB url'),
-    SEED_DB: Joi.boolean()
-      .required()
-      .description('Seed Database'),
+    SEED_DB: Joi.required().description('Seed Database'),
     JWT_SECRET: Joi.string()
       .required()
       .description('JWT secret key'),
@@ -30,6 +28,18 @@ const envVarsSchema = Joi.object()
     SMTP_USERNAME: Joi.string().description('username for email server'),
     SMTP_PASSWORD: Joi.string().description('password for email server'),
     EMAIL_FROM: Joi.string().description('the from field in the emails sent by the app'),
+    DEFAULT_ADMIN_EMAIL: Joi.string()
+      .required()
+      .description('default email of admin'),
+    DEFAULT_ADMIN_PASS: Joi.string()
+      .required()
+      .description('default password of admin'),
+    DEFAULT_ADMIN_NAME: Joi.string()
+      .required()
+      .description('default name of admin'),
+    DEFAULT_ADMIN_ROLE: Joi.string()
+      .required()
+      .description('default role of admin'),
   })
   .unknown();
 
@@ -63,5 +73,11 @@ module.exports = {
       },
     },
     from: envVars.EMAIL_FROM,
+  },
+  defaultAdmin: {
+    name: envVars.DEFAULT_ADMIN_NAME,
+    email: envVars.DEFAULT_ADMIN_EMAIL,
+    password: envVars.DEFAULT_ADMIN_PASS,
+    role: envVars.DEFAULT_ADMIN_ROLE,
   },
 };
