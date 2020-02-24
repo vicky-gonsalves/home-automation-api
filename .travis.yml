@@ -2,7 +2,7 @@ language: node_js
 node_js:
   - '12.15.0'
 services:
-  - mongodb
+  - docker
 cache: yarn
 branches:
   only:
@@ -10,4 +10,11 @@ branches:
 script:
   - yarn lint
   - yarn test
-after_success: yarn coverage:coveralls
+deploy:
+  provider: script
+  script: bash deploy.sh
+  on:
+    branch: master
+after_success:
+  - yarn coverage:coveralls
+  - bin/docker_push.sh
