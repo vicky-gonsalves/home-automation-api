@@ -1,11 +1,11 @@
 const faker = require('faker');
-const {subDeviceType} = require('../../../src/config/Device');
+const { subDeviceType } = require('../../../src/config/device');
 
-const {SubDevice} = require('../../../src/models');
+const { SubDevice } = require('../../../src/models');
 
 describe('SubDevice Model', () => {
-  let newSubDevice;
   describe('SubDevice validation', () => {
+    let newSubDevice;
     beforeEach(() => {
       const email = faker.internet.email();
       newSubDevice = {
@@ -98,7 +98,7 @@ describe('SubDevice Model', () => {
         name: faker.name.firstName(),
         type: faker.random.arrayElement(subDeviceType),
         createdBy: email,
-        updatedBy: email
+        updatedBy: email,
       };
     });
 

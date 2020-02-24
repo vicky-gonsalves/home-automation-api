@@ -1,7 +1,7 @@
 const validator = require('validator');
 
 const mongoose = require('mongoose');
-const {omit, pick} = require('lodash');
+const { omit, pick } = require('lodash');
 
 const subDeviceParamsSchema = mongoose.Schema(
   {
@@ -27,7 +27,7 @@ const subDeviceParamsSchema = mongoose.Schema(
       trim: true,
       match: /^[A-Za-z_\d]+$/,
       minlength: 1,
-      maxlength: 50
+      maxlength: 50,
     },
     paramValue: {
       type: mongoose.Schema.Types.Mixed,
@@ -40,7 +40,7 @@ const subDeviceParamsSchema = mongoose.Schema(
     },
     isDisabled: {
       type: Boolean,
-      default: false
+      default: false,
     },
     createdBy: {
       type: String,
@@ -61,12 +61,12 @@ const subDeviceParamsSchema = mongoose.Schema(
           throw new Error('Invalid email');
         }
       },
-    }
+    },
   },
   {
     timestamps: true,
-    toObject: {getters: true},
-    toJSON: {getters: true},
+    toObject: { getters: true },
+    toJSON: { getters: true },
   }
 );
 
@@ -77,7 +77,18 @@ subDeviceParamsSchema.methods.toJSON = function() {
 
 subDeviceParamsSchema.methods.transform = function() {
   const subDeviceParam = this;
-  return pick(subDeviceParam.toJSON(), ['id', 'deviceId', 'subDeviceId', 'paramName', 'paramValue', 'isDisabled', 'createdBy', 'updatedBy', 'createdAt', 'updatedAt']);
+  return pick(subDeviceParam.toJSON(), [
+    'id',
+    'deviceId',
+    'subDeviceId',
+    'paramName',
+    'paramValue',
+    'isDisabled',
+    'createdBy',
+    'updatedBy',
+    'createdAt',
+    'updatedAt',
+  ]);
 };
 
 subDeviceParamsSchema.pre('save', function(next) {
@@ -87,7 +98,7 @@ subDeviceParamsSchema.pre('save', function(next) {
   return next();
 });
 
-subDeviceParamsSchema.index({deviceId: 1, subDeviceId: 1, paramName: 1}, {unique: true});
+subDeviceParamsSchema.index({ deviceId: 1, subDeviceId: 1, paramName: 1 }, { unique: true });
 
 const SubDeviceParam = mongoose.model('SubDeviceParam', subDeviceParamsSchema);
 

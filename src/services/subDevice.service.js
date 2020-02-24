@@ -1,35 +1,44 @@
-const {getDeviceByDeviceId} = require('./device.service');
 const httpStatus = require('http-status');
-const {pick} = require('lodash');
+const { pick } = require('lodash');
+const { getDeviceByDeviceId } = require('./device.service');
 const AppError = require('../utils/AppError');
-const {SubDevice} = require('../models');
-const {getQueryOptions} = require('../utils/service.util');
+const { SubDevice } = require('../models');
+const { getQueryOptions } = require('../utils/service.util');
 
 const checkDuplicateSubDeviceId = async (subDeviceId, excludeSubDeviceId) => {
-  const subDevice = await SubDevice.findOne({subDeviceId, _id: {$ne: excludeSubDeviceId}});
+  const subDevice = await SubDevice.findOne({ subDeviceId, _id: { $ne: excludeSubDeviceId } });
   if (subDevice) {
     throw new AppError(httpStatus.BAD_REQUEST, 'subDeviceId already registered');
   }
 };
 
-const createSubDevice = async (deviceId, subDeviceBody) => {
+const createSubDevice = async (deviceId, _subDeviceBody) => {
+  const subDeviceBody = _subDeviceBody;
   await getDeviceByDeviceId(deviceId);
   await checkDuplicateSubDeviceId(subDeviceBody.subDeviceId);
   subDeviceBody.deviceId = deviceId;
-  const subDevice = await SubDevice.create(subDeviceBody);
-  return subDevice;
+  return SubDevice.create(subDeviceBody);
 };
 
 const getSubDevices = async (deviceId, query) => {
-  const filter = pick(query, ['id', 'subDeviceId', 'name', 'type', 'registeredAt', 'isDisabled', 'subDeviceOwner', 'createdBy', 'updatedBy']);
+  const filter = pick(query, [
+    'id',
+    'subDeviceId',
+    'name',
+    'type',
+    'registeredAt',
+    'isDisabled',
+    'subDeviceOwner',
+    'createdBy',
+    'updatedBy',
+  ]);
   filter.deviceId = deviceId;
   const options = getQueryOptions(query);
-  const subDevices = await SubDevice.find(filter, null, options);
-  return subDevices;
+  return SubDevice.find(filter, null, options);
 };
 
 const getSubDeviceBySubDeviceId = async (deviceId, subDeviceId) => {
-  const subDevice = await SubDevice.findOne({deviceId, subDeviceId});
+  const subDevice = await SubDevice.findOne({ deviceId, subDeviceId });
   if (!subDevice) {
     throw new AppError(httpStatus.NOT_FOUND, 'No subDevice found');
   }

@@ -7,13 +7,13 @@ const bcrypt = require('bcryptjs');
 const app = require('../../src/app');
 const config = require('../../src/config/config');
 const auth = require('../../src/middlewares/auth');
-const {tokenService, emailService} = require('../../src/services');
+const { tokenService, emailService } = require('../../src/services');
 const AppError = require('../../src/utils/AppError');
-const setupTestDB = require('../utils/setupTestDB');
-const {User, Token} = require('../../src/models');
-const {roleRights} = require('../../src/config/roles');
-const {userOne, admin, insertUsers} = require('../fixtures/user.fixture');
-const {userOneAccessToken, adminAccessToken} = require('../fixtures/token.fixture');
+const { setupTestDB } = require('../utils/setupTestDB');
+const { User, Token } = require('../../src/models');
+const { roleRights } = require('../../src/config/roles');
+const { userOne, admin, insertUsers } = require('../fixtures/user.fixture');
+const { userOneAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
 
 setupTestDB();
 
@@ -35,16 +35,16 @@ describe('Auth routes', () => {
         .expect(httpStatus.CREATED);
 
       expect(res.body.user).not.toHaveProperty('password');
-      expect(res.body.user).toEqual({id: expect.anything(), name: newUser.name, email: newUser.email, role: 'user'});
+      expect(res.body.user).toEqual({ id: expect.anything(), name: newUser.name, email: newUser.email, role: 'user' });
 
       const dbUser = await User.findById(res.body.user.id);
       expect(dbUser).toBeDefined();
       expect(dbUser.password).not.toBe(newUser.password);
-      expect(dbUser).toMatchObject({name: newUser.name, email: newUser.email, role: 'user'});
+      expect(dbUser).toMatchObject({ name: newUser.name, email: newUser.email, role: 'user' });
 
       expect(res.body.tokens).toEqual({
-        access: {token: expect.anything(), expires: expect.anything()},
-        refresh: {token: expect.anything(), expires: expect.anything()},
+        access: { token: expect.anything(), expires: expect.anything() },
+        refresh: { token: expect.anything(), expires: expect.anything() },
       });
     });
 
@@ -114,8 +114,8 @@ describe('Auth routes', () => {
       });
 
       expect(res.body.tokens).toEqual({
-        access: {token: expect.anything(), expires: expect.anything()},
-        refresh: {token: expect.anything(), expires: expect.anything()},
+        access: { token: expect.anything(), expires: expect.anything() },
+        refresh: { token: expect.anything(), expires: expect.anything() },
       });
     });
 
@@ -130,7 +130,7 @@ describe('Auth routes', () => {
         .send(loginCredentials)
         .expect(httpStatus.UNAUTHORIZED);
 
-      expect(res.body).toEqual({code: httpStatus.UNAUTHORIZED, message: 'Incorrect email or password'});
+      expect(res.body).toEqual({ code: httpStatus.UNAUTHORIZED, message: 'Incorrect email or password' });
     });
 
     it('should return 401 error if password is wrong', async () => {
@@ -145,7 +145,7 @@ describe('Auth routes', () => {
         .send(loginCredentials)
         .expect(httpStatus.UNAUTHORIZED);
 
-      expect(res.body).toEqual({code: httpStatus.UNAUTHORIZED, message: 'Incorrect email or password'});
+      expect(res.body).toEqual({ code: httpStatus.UNAUTHORIZED, message: 'Incorrect email or password' });
     });
   });
 
@@ -158,16 +158,16 @@ describe('Auth routes', () => {
 
       const res = await request(app)
         .post('/v1/auth/refresh-tokens')
-        .send({refreshToken})
+        .send({ refreshToken })
         .expect(httpStatus.OK);
 
       expect(res.body).toEqual({
-        access: {token: expect.anything(), expires: expect.anything()},
-        refresh: {token: expect.anything(), expires: expect.anything()},
+        access: { token: expect.anything(), expires: expect.anything() },
+        refresh: { token: expect.anything(), expires: expect.anything() },
       });
 
-      const dbRefreshTokenDoc = await Token.findOne({token: res.body.refresh.token});
-      expect(dbRefreshTokenDoc).toMatchObject({type: 'refresh', user: userOne._id, blacklisted: false});
+      const dbRefreshTokenDoc = await Token.findOne({ token: res.body.refresh.token });
+      expect(dbRefreshTokenDoc).toMatchObject({ type: 'refresh', user: userOne._id, blacklisted: false });
 
       const dbRefreshTokenCount = await Token.countDocuments();
       expect(dbRefreshTokenCount).toBe(1);
@@ -188,7 +188,7 @@ describe('Auth routes', () => {
 
       await request(app)
         .post('/v1/auth/refresh-tokens')
-        .send({refreshToken})
+        .send({ refreshToken })
         .expect(httpStatus.UNAUTHORIZED);
     });
 
@@ -199,7 +199,7 @@ describe('Auth routes', () => {
 
       await request(app)
         .post('/v1/auth/refresh-tokens')
-        .send({refreshToken})
+        .send({ refreshToken })
         .expect(httpStatus.UNAUTHORIZED);
     });
 
@@ -211,7 +211,7 @@ describe('Auth routes', () => {
 
       await request(app)
         .post('/v1/auth/refresh-tokens')
-        .send({refreshToken})
+        .send({ refreshToken })
         .expect(httpStatus.UNAUTHORIZED);
     });
 
@@ -223,7 +223,7 @@ describe('Auth routes', () => {
 
       await request(app)
         .post('/v1/auth/refresh-tokens')
-        .send({refreshToken})
+        .send({ refreshToken })
         .expect(httpStatus.UNAUTHORIZED);
     });
 
@@ -234,7 +234,7 @@ describe('Auth routes', () => {
 
       await request(app)
         .post('/v1/auth/refresh-tokens')
-        .send({refreshToken})
+        .send({ refreshToken })
         .expect(httpStatus.UNAUTHORIZED);
     });
   });
@@ -250,12 +250,12 @@ describe('Auth routes', () => {
 
       await request(app)
         .post('/v1/auth/forgot-password')
-        .send({email: userOne.email})
+        .send({ email: userOne.email })
         .expect(httpStatus.NO_CONTENT);
 
       expect(sendResetPasswordEmailSpy).toHaveBeenCalledWith(userOne.email, expect.any(String));
       const resetPasswordToken = sendResetPasswordEmailSpy.mock.calls[0][1];
-      const dbResetPasswordTokenDoc = await Token.findOne({token: resetPasswordToken, user: userOne._id});
+      const dbResetPasswordTokenDoc = await Token.findOne({ token: resetPasswordToken, user: userOne._id });
       expect(dbResetPasswordTokenDoc).toBeDefined();
     });
 
@@ -271,7 +271,7 @@ describe('Auth routes', () => {
     it('should return 404 if email does not belong to any user', async () => {
       await request(app)
         .post('/v1/auth/forgot-password')
-        .send({email: userOne.email})
+        .send({ email: userOne.email })
         .expect(httpStatus.NOT_FOUND);
     });
   });
@@ -285,15 +285,15 @@ describe('Auth routes', () => {
 
       await request(app)
         .post('/v1/auth/reset-password')
-        .query({token: resetPasswordToken})
-        .send({password: 'password2'})
+        .query({ token: resetPasswordToken })
+        .send({ password: 'password2' })
         .expect(httpStatus.NO_CONTENT);
 
       const dbUser = await User.findById(userOne._id);
       const isPasswordMatch = await bcrypt.compare('password2', dbUser.password);
       expect(isPasswordMatch).toBe(true);
 
-      const dbResetPasswordTokenCount = await Token.countDocuments({user: userOne._id, type: 'resetPassword'});
+      const dbResetPasswordTokenCount = await Token.countDocuments({ user: userOne._id, type: 'resetPassword' });
       expect(dbResetPasswordTokenCount).toBe(0);
     });
 
@@ -302,7 +302,7 @@ describe('Auth routes', () => {
 
       await request(app)
         .post('/v1/auth/reset-password')
-        .send({password: 'password2'})
+        .send({ password: 'password2' })
         .expect(httpStatus.BAD_REQUEST);
     });
 
@@ -314,8 +314,8 @@ describe('Auth routes', () => {
 
       await request(app)
         .post('/v1/auth/reset-password')
-        .query({token: resetPasswordToken})
-        .send({password: 'password2'})
+        .query({ token: resetPasswordToken })
+        .send({ password: 'password2' })
         .expect(httpStatus.UNAUTHORIZED);
     });
 
@@ -327,8 +327,8 @@ describe('Auth routes', () => {
 
       await request(app)
         .post('/v1/auth/reset-password')
-        .query({token: resetPasswordToken})
-        .send({password: 'password2'})
+        .query({ token: resetPasswordToken })
+        .send({ password: 'password2' })
         .expect(httpStatus.UNAUTHORIZED);
     });
 
@@ -339,8 +339,8 @@ describe('Auth routes', () => {
 
       await request(app)
         .post('/v1/auth/reset-password')
-        .query({token: resetPasswordToken})
-        .send({password: 'password2'})
+        .query({ token: resetPasswordToken })
+        .send({ password: 'password2' })
         .expect(httpStatus.UNAUTHORIZED);
     });
 
@@ -352,25 +352,25 @@ describe('Auth routes', () => {
 
       await request(app)
         .post('/v1/auth/reset-password')
-        .query({token: resetPasswordToken})
+        .query({ token: resetPasswordToken })
         .expect(httpStatus.BAD_REQUEST);
 
       await request(app)
         .post('/v1/auth/reset-password')
-        .query({token: resetPasswordToken})
-        .send({password: 'short1'})
+        .query({ token: resetPasswordToken })
+        .send({ password: 'short1' })
         .expect(httpStatus.BAD_REQUEST);
 
       await request(app)
         .post('/v1/auth/reset-password')
-        .query({token: resetPasswordToken})
-        .send({password: 'password'})
+        .query({ token: resetPasswordToken })
+        .send({ password: 'password' })
         .expect(httpStatus.BAD_REQUEST);
 
       await request(app)
         .post('/v1/auth/reset-password')
-        .query({token: resetPasswordToken})
-        .send({password: '11111111'})
+        .query({ token: resetPasswordToken })
+        .send({ password: '11111111' })
         .expect(httpStatus.BAD_REQUEST);
     });
   });
@@ -379,7 +379,7 @@ describe('Auth routes', () => {
 describe('Auth middleware', () => {
   it('should call next with no errors if access token is valid', async () => {
     await insertUsers([userOne]);
-    const req = httpMocks.createRequest({headers: {Authorization: `Bearer ${userOneAccessToken}`}});
+    const req = httpMocks.createRequest({ headers: { Authorization: `Bearer ${userOneAccessToken}` } });
     const next = jest.fn();
 
     await auth()(req, httpMocks.createResponse(), next);
@@ -397,20 +397,20 @@ describe('Auth middleware', () => {
 
     expect(next).toHaveBeenCalledWith(expect.any(AppError));
     expect(next).toHaveBeenCalledWith(
-      expect.objectContaining({statusCode: httpStatus.UNAUTHORIZED, message: 'Please authenticate'})
+      expect.objectContaining({ statusCode: httpStatus.UNAUTHORIZED, message: 'Please authenticate' })
     );
   });
 
   it('should call next with unauthorized error if access token is not a valid jwt token', async () => {
     await insertUsers([userOne]);
-    const req = httpMocks.createRequest({headers: {Authorization: 'Bearer randomToken'}});
+    const req = httpMocks.createRequest({ headers: { Authorization: 'Bearer randomToken' } });
     const next = jest.fn();
 
     await auth()(req, httpMocks.createResponse(), next);
 
     expect(next).toHaveBeenCalledWith(expect.any(AppError));
     expect(next).toHaveBeenCalledWith(
-      expect.objectContaining({statusCode: httpStatus.UNAUTHORIZED, message: 'Please authenticate'})
+      expect.objectContaining({ statusCode: httpStatus.UNAUTHORIZED, message: 'Please authenticate' })
     );
   });
 
@@ -418,14 +418,14 @@ describe('Auth middleware', () => {
     await insertUsers([userOne]);
     const tokenExpires = moment().add(config.jwt.accessExpirationMinutes, 'minutes');
     const accessToken = tokenService.generateToken(userOne._id, tokenExpires, 'invalidSecret');
-    const req = httpMocks.createRequest({headers: {Authorization: `Bearer ${accessToken}`}});
+    const req = httpMocks.createRequest({ headers: { Authorization: `Bearer ${accessToken}` } });
     const next = jest.fn();
 
     await auth()(req, httpMocks.createResponse(), next);
 
     expect(next).toHaveBeenCalledWith(expect.any(AppError));
     expect(next).toHaveBeenCalledWith(
-      expect.objectContaining({statusCode: httpStatus.UNAUTHORIZED, message: 'Please authenticate'})
+      expect.objectContaining({ statusCode: httpStatus.UNAUTHORIZED, message: 'Please authenticate' })
     );
   });
 
@@ -433,45 +433,45 @@ describe('Auth middleware', () => {
     await insertUsers([userOne]);
     const tokenExpires = moment().subtract(1, 'minutes');
     const accessToken = tokenService.generateToken(userOne._id, tokenExpires);
-    const req = httpMocks.createRequest({headers: {Authorization: `Bearer ${accessToken}`}});
+    const req = httpMocks.createRequest({ headers: { Authorization: `Bearer ${accessToken}` } });
     const next = jest.fn();
 
     await auth()(req, httpMocks.createResponse(), next);
 
     expect(next).toHaveBeenCalledWith(expect.any(AppError));
     expect(next).toHaveBeenCalledWith(
-      expect.objectContaining({statusCode: httpStatus.UNAUTHORIZED, message: 'Please authenticate'})
+      expect.objectContaining({ statusCode: httpStatus.UNAUTHORIZED, message: 'Please authenticate' })
     );
   });
 
   it('should call next with unauthorized error if user is not found', async () => {
-    const req = httpMocks.createRequest({headers: {Authorization: `Bearer ${userOneAccessToken}`}});
+    const req = httpMocks.createRequest({ headers: { Authorization: `Bearer ${userOneAccessToken}` } });
     const next = jest.fn();
 
     await auth()(req, httpMocks.createResponse(), next);
 
     expect(next).toHaveBeenCalledWith(expect.any(AppError));
     expect(next).toHaveBeenCalledWith(
-      expect.objectContaining({statusCode: httpStatus.UNAUTHORIZED, message: 'Please authenticate'})
+      expect.objectContaining({ statusCode: httpStatus.UNAUTHORIZED, message: 'Please authenticate' })
     );
   });
 
   it('should call next with forbidden error if user does not have required rights and userId is not in params', async () => {
     await insertUsers([userOne]);
-    const req = httpMocks.createRequest({headers: {Authorization: `Bearer ${userOneAccessToken}`}});
+    const req = httpMocks.createRequest({ headers: { Authorization: `Bearer ${userOneAccessToken}` } });
     const next = jest.fn();
 
     await auth('anyRight')(req, httpMocks.createResponse(), next);
 
     expect(next).toHaveBeenCalledWith(expect.any(AppError));
-    expect(next).toHaveBeenCalledWith(expect.objectContaining({statusCode: httpStatus.FORBIDDEN, message: 'Forbidden'}));
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: httpStatus.FORBIDDEN, message: 'Forbidden' }));
   });
 
   it('should call next with no errors if user does not have required rights but userId is in params', async () => {
     await insertUsers([userOne]);
     const req = httpMocks.createRequest({
-      headers: {Authorization: `Bearer ${userOneAccessToken}`},
-      params: {userId: userOne._id.toHexString()},
+      headers: { Authorization: `Bearer ${userOneAccessToken}` },
+      params: { userId: userOne._id.toHexString() },
     });
     const next = jest.fn();
 
@@ -483,8 +483,8 @@ describe('Auth middleware', () => {
   it('should call next with no errors if user has required rights', async () => {
     await insertUsers([admin]);
     const req = httpMocks.createRequest({
-      headers: {Authorization: `Bearer ${adminAccessToken}`},
-      params: {userId: userOne._id.toHexString()},
+      headers: { Authorization: `Bearer ${adminAccessToken}` },
+      params: { userId: userOne._id.toHexString() },
     });
     const next = jest.fn();
 

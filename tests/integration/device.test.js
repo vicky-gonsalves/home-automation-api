@@ -1,18 +1,18 @@
-const setupTestDB = require('../utils/setupTestDB');
 const faker = require('faker');
-const {deviceType} = require('../../src/config/device');
 const request = require('supertest');
-const app = require('../../src/app');
-const {userOneAccessToken, adminAccessToken} = require('../fixtures/token.fixture');
 const httpStatus = require('http-status');
-const {userOne, userTwo, admin, insertUsers} = require('../fixtures/user.fixture');
-const {deviceOne, deviceTwo, insertDevices} = require('../fixtures/device.fixture');
-const {Device} = require('../../src/models');
+const { setupTestDB } = require('../utils/setupTestDB');
+const { deviceType } = require('../../src/config/device');
+const app = require('../../src/app');
+const { userOneAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
+const { userOne, userTwo, admin, insertUsers } = require('../fixtures/user.fixture');
+const { deviceOne, deviceTwo, insertDevices } = require('../fixtures/device.fixture');
+const { Device } = require('../../src/models');
 
 setupTestDB();
 
 describe('Device Routes', () => {
-  let route = '/v1/devices';
+  const route = '/v1/devices';
   describe('POST /v1/devices', () => {
     let newDevice;
     beforeEach(() => {
@@ -22,7 +22,7 @@ describe('Device Routes', () => {
         name: faker.name.firstName(),
         type: faker.random.arrayElement(deviceType),
         deviceOwner: email,
-        registeredAt: new Date().toISOString()
+        registeredAt: new Date().toISOString(),
       };
     });
 
@@ -41,7 +41,7 @@ describe('Device Routes', () => {
         isDisabled: false,
         createdAt: expect.anything(),
         updatedAt: expect.anything(),
-        ...newDevice
+        ...newDevice,
       });
 
       const dbDevice = await Device.findById(res.body.id);
@@ -54,7 +54,7 @@ describe('Device Routes', () => {
         deviceOwner: newDevice.deviceOwner,
         isDisabled: false,
         registeredAt: new Date(newDevice.registeredAt),
-        createdBy: admin.email
+        createdBy: admin.email,
       });
     });
 
@@ -402,7 +402,7 @@ describe('Device Routes', () => {
         deviceOwner: deviceOne.deviceOwner,
         registeredAt: deviceOne.registeredAt,
         createdBy: deviceOne.createdBy,
-        updatedBy: deviceOne.updatedBy
+        updatedBy: deviceOne.updatedBy,
       });
     });
 
@@ -434,7 +434,7 @@ describe('Device Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({deviceId: deviceOne.deviceId})
+        .query({ deviceId: deviceOne.deviceId })
         .send()
         .expect(httpStatus.OK);
 
@@ -449,7 +449,7 @@ describe('Device Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({name: deviceOne.name})
+        .query({ name: deviceOne.name })
         .send()
         .expect(httpStatus.OK);
 
@@ -464,7 +464,7 @@ describe('Device Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({type: deviceOne.type})
+        .query({ type: deviceOne.type })
         .send()
         .expect(httpStatus.OK);
 
@@ -479,7 +479,7 @@ describe('Device Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({registeredAt: deviceOne.registeredAt})
+        .query({ registeredAt: deviceOne.registeredAt })
         .send()
         .expect(httpStatus.OK);
 
@@ -494,7 +494,7 @@ describe('Device Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({isDisabled: deviceOne.isDisabled})
+        .query({ isDisabled: deviceOne.isDisabled })
         .send()
         .expect(httpStatus.OK);
 
@@ -509,7 +509,7 @@ describe('Device Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({sortBy: 'registeredAt:desc'})
+        .query({ sortBy: 'registeredAt:desc' })
         .send()
         .expect(httpStatus.OK);
 
@@ -524,7 +524,7 @@ describe('Device Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({sortBy: 'registeredAt:asc'})
+        .query({ sortBy: 'registeredAt:asc' })
         .send()
         .expect(httpStatus.OK);
 
@@ -539,7 +539,7 @@ describe('Device Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({limit: 1})
+        .query({ limit: 1 })
         .send()
         .expect(httpStatus.OK);
 
@@ -553,7 +553,7 @@ describe('Device Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({page: 2, limit: 1})
+        .query({ page: 2, limit: 1 })
         .send()
         .expect(httpStatus.OK);
 
@@ -586,7 +586,7 @@ describe('Device Routes', () => {
         deviceOwner: deviceOne.deviceOwner,
         registeredAt: deviceOne.registeredAt,
         createdBy: deviceOne.createdBy,
-        updatedBy: deviceOne.updatedBy
+        updatedBy: deviceOne.updatedBy,
       });
     });
 
@@ -645,7 +645,7 @@ describe('Device Routes', () => {
         deviceOwner: deviceOne.deviceOwner,
         registeredAt: deviceOne.registeredAt,
         createdBy: deviceOne.createdBy,
-        updatedBy: deviceOne.updatedBy
+        updatedBy: deviceOne.updatedBy,
       });
     });
 
@@ -777,7 +777,7 @@ describe('Device Routes', () => {
         name: faker.name.firstName(),
         type: faker.random.arrayElement(deviceType),
         deviceOwner: email,
-        isDisabled: true
+        isDisabled: true,
       };
     });
 
@@ -797,10 +797,10 @@ describe('Device Routes', () => {
         name: updateBody.name,
         type: updateBody.type,
         isDisabled: true,
-        deviceOwner: updateBody.deviceOwner
+        deviceOwner: updateBody.deviceOwner,
       });
 
-      const dbDevice = await Device.findOne({deviceId: updateBody.deviceId});
+      const dbDevice = await Device.findOne({ deviceId: updateBody.deviceId });
       expect(dbDevice).toBeDefined();
       expect(dbDevice).toMatchObject({
         deviceId: updateBody.deviceId,
@@ -808,13 +808,13 @@ describe('Device Routes', () => {
         type: updateBody.type,
         isDisabled: true,
         deviceOwner: updateBody.deviceOwner,
-        updatedBy: admin.email
+        updatedBy: admin.email,
       });
     });
 
     it('should return 401 error if access token is missing', async () => {
       await insertUsers([userOne]);
-      const updateBody = {name: faker.name.firstName()};
+      updateBody = { name: faker.name.firstName() };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -824,7 +824,7 @@ describe('Device Routes', () => {
 
     it('should return 403 if user is updating device', async () => {
       await insertUsers([userOne, userTwo]);
-      const updateBody = {name: faker.name.firstName()};
+      updateBody = { name: faker.name.firstName() };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -837,7 +837,7 @@ describe('Device Routes', () => {
       await insertUsers([userOne, admin]);
       await insertDevices([deviceOne]);
 
-      const updateBody = {name: faker.name.firstName()};
+      updateBody = { name: faker.name.firstName() };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -848,7 +848,7 @@ describe('Device Routes', () => {
 
     it('should return 404 if admin is updating device that is not found', async () => {
       await insertUsers([admin]);
-      const updateBody = {name: faker.name.firstName()};
+      updateBody = { name: faker.name.firstName() };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -859,7 +859,7 @@ describe('Device Routes', () => {
 
     it('should return 400 error if deviceId is not valid', async () => {
       await insertUsers([admin]);
-      const updateBody = {name: faker.name.firstName()};
+      updateBody = { name: faker.name.firstName() };
 
       await request(app)
         .patch(`${route}/invalidid`)
@@ -871,7 +871,7 @@ describe('Device Routes', () => {
     it('should return 400 if deviceId is invalid', async () => {
       await insertUsers([admin]);
       await insertDevices([deviceOne]);
-      const updateBody = {deviceId: 'invalidId'};
+      updateBody = { deviceId: 'invalidId' };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -883,7 +883,7 @@ describe('Device Routes', () => {
     it('should return 400 if deviceId is already taken', async () => {
       await insertUsers([admin]);
       await insertDevices([deviceOne, deviceTwo]);
-      const updateBody = {deviceId: deviceTwo.deviceId};
+      updateBody = { deviceId: deviceTwo.deviceId };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -895,7 +895,7 @@ describe('Device Routes', () => {
     it('should not return 400 if deviceId is my deviceId', async () => {
       await insertUsers([admin]);
       await insertDevices([deviceOne]);
-      const updateBody = {deviceId: userOne.deviceId};
+      updateBody = { deviceId: userOne.deviceId };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -908,7 +908,7 @@ describe('Device Routes', () => {
       await insertUsers([admin]);
       await insertDevices([deviceOne]);
 
-      const updateBody = {deviceId: faker.random.alphaNumeric(15)};
+      updateBody = { deviceId: faker.random.alphaNumeric(15) };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -921,7 +921,7 @@ describe('Device Routes', () => {
       await insertUsers([admin]);
       await insertDevices([deviceOne]);
 
-      const updateBody = {deviceId: faker.random.alphaNumeric(21)};
+      updateBody = { deviceId: faker.random.alphaNumeric(21) };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -934,7 +934,7 @@ describe('Device Routes', () => {
       await insertUsers([admin]);
       await insertDevices([deviceOne]);
 
-      let updateBody = {deviceId: 31231};
+      updateBody = { deviceId: 31231 };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -942,7 +942,7 @@ describe('Device Routes', () => {
         .send(updateBody)
         .expect(httpStatus.BAD_REQUEST);
 
-      updateBody = {deviceId: {}};
+      updateBody = { deviceId: {} };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -955,7 +955,7 @@ describe('Device Routes', () => {
       await insertUsers([admin]);
       await insertDevices([deviceOne]);
 
-      const updateBody = {name: 'invalid@name'};
+      updateBody = { name: 'invalid@name' };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -968,7 +968,7 @@ describe('Device Routes', () => {
       await insertUsers([admin]);
       await insertDevices([deviceOne]);
 
-      let updateBody = {name: 1231};
+      updateBody = { name: 1231 };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -976,7 +976,7 @@ describe('Device Routes', () => {
         .send(updateBody)
         .expect(httpStatus.BAD_REQUEST);
 
-      updateBody = {name: 1231};
+      updateBody = { name: 1231 };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -989,7 +989,7 @@ describe('Device Routes', () => {
       await insertUsers([admin]);
       await insertDevices([deviceOne]);
 
-      const updateBody = {name: ''};
+      updateBody = { name: '' };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -1002,7 +1002,7 @@ describe('Device Routes', () => {
       await insertUsers([admin]);
       await insertDevices([deviceOne]);
 
-      const updateBody = {name: faker.random.alphaNumeric(21)};
+      updateBody = { name: faker.random.alphaNumeric(21) };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -1015,7 +1015,7 @@ describe('Device Routes', () => {
       await insertUsers([admin]);
       await insertDevices([deviceOne]);
 
-      const updateBody = {type: 'invalid'};
+      updateBody = { type: 'invalid' };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -1028,7 +1028,7 @@ describe('Device Routes', () => {
       await insertUsers([admin]);
       await insertDevices([deviceOne]);
 
-      let updateBody = {type: 23123};
+      updateBody = { type: 23123 };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -1036,7 +1036,7 @@ describe('Device Routes', () => {
         .send(updateBody)
         .expect(httpStatus.BAD_REQUEST);
 
-      updateBody = {type: {}};
+      updateBody = { type: {} };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -1049,7 +1049,7 @@ describe('Device Routes', () => {
       await insertUsers([admin]);
       await insertDevices([deviceOne]);
 
-      const updateBody = {deviceOwner: 'invalid'};
+      updateBody = { deviceOwner: 'invalid' };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -1062,7 +1062,7 @@ describe('Device Routes', () => {
       await insertUsers([admin]);
       await insertDevices([deviceOne]);
 
-      let updateBody = {deviceOwner: 3123123};
+      updateBody = { deviceOwner: 3123123 };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -1070,7 +1070,7 @@ describe('Device Routes', () => {
         .send(updateBody)
         .expect(httpStatus.BAD_REQUEST);
 
-      updateBody = {deviceOwner: {}};
+      updateBody = { deviceOwner: {} };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)

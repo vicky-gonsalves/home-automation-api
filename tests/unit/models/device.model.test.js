@@ -1,11 +1,11 @@
 const faker = require('faker');
-const {deviceType} = require('../../../src/config/device');
+const { deviceType } = require('../../../src/config/device');
 
-const {Device} = require('../../../src/models');
+const { Device } = require('../../../src/models');
 
 describe('Device Model', () => {
-  let newDevice;
   describe('Device validation', () => {
+    let newDevice;
     beforeEach(() => {
       const email = faker.internet.email();
       newDevice = {
@@ -94,7 +94,7 @@ describe('Device Model', () => {
         type: faker.random.arrayElement(deviceType),
         deviceOwner: email,
         registeredAt: new Date().toISOString(),
-        createdBy: email
+        createdBy: email,
       };
     });
 

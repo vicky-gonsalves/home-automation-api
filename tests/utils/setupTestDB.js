@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
+const { Mockgoose } = require('mockgoose');
 const config = require('../../src/config/config');
-const Mockgoose = require('mockgoose').Mockgoose;
 
 const setupTestDBWithActualTestDB = () => {
   beforeAll(async () => {
@@ -17,7 +17,7 @@ const setupTestDBWithActualTestDB = () => {
 };
 
 const setupTestDB = () => {
-  var mockgoose = new Mockgoose(mongoose);
+  const mockgoose = new Mockgoose(mongoose);
   beforeAll(async done => {
     await mockgoose.prepareStorage();
     await mongoose.connect(config.mongoose.url, config.mongoose.options);
@@ -36,4 +36,4 @@ const setupTestDB = () => {
   });
 };
 
-module.exports = setupTestDB;
+module.exports = { setupTestDBWithActualTestDB, setupTestDB };

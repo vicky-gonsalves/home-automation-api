@@ -10,7 +10,7 @@ const subDeviceParamController = require('../../controllers/subDeviceParam.contr
 
 const router = express.Router();
 
-//--------------------------------Devices---------------------------------------------------------------------------------------------------
+// --------------------------------Devices---------------------------------------------------------------------------------------------------
 router
   .route('/')
   .post(auth('manageDevices'), validate(deviceValidation.createDevice), deviceController.createDevice)
@@ -26,7 +26,7 @@ router
   .route('/get-by-device-owner/:deviceOwner')
   .get(auth('getDevices'), validate(deviceValidation.getDeviceByDeviceOwner), deviceController.getByDeviceOwner);
 
-//--------------------------------SubDevices------------------------------------------------------------------------------------------------
+// --------------------------------SubDevices------------------------------------------------------------------------------------------------
 
 router
   .route('/:deviceId/sub-devices/')
@@ -39,18 +39,37 @@ router
   .patch(auth('manageSubDevices'), validate(subDeviceValidation.updateSubDevice), subDeviceController.updateSubDevice)
   .delete(auth('manageSubDevices'), validate(subDeviceValidation.deleteSubDevice), subDeviceController.deleteSubDevice);
 
-
-//--------------------------------SubDeviceParams-------------------------------------------------------------------------------------------
+// --------------------------------SubDeviceParams-------------------------------------------------------------------------------------------
 
 router
   .route('/:deviceId/sub-devices/:subDeviceId/sub-device-params/')
-  .post(auth('manageSubDeviceParams'), validate(subDeviceParamValidation.createSubDeviceParam), subDeviceParamController.createSubDeviceParam)
-  .get(auth('getSubDeviceParams'), validate(subDeviceParamValidation.getSubDeviceParams), subDeviceParamController.getSubDeviceParams);
+  .post(
+    auth('manageSubDeviceParams'),
+    validate(subDeviceParamValidation.createSubDeviceParam),
+    subDeviceParamController.createSubDeviceParam
+  )
+  .get(
+    auth('getSubDeviceParams'),
+    validate(subDeviceParamValidation.getSubDeviceParams),
+    subDeviceParamController.getSubDeviceParams
+  );
 
 router
   .route('/:deviceId/sub-devices/:subDeviceId/sub-device-params/:paramName')
-  .get(auth('getSubDeviceParams'), validate(subDeviceParamValidation.getSubDeviceParam), subDeviceParamController.getSubDeviceParam)
-  .patch(auth('manageSubDeviceParams'), validate(subDeviceParamValidation.updateSubDeviceParam), subDeviceParamController.updateSubDeviceParam)
-  .delete(auth('manageSubDeviceParams'), validate(subDeviceParamValidation.deleteSubDeviceParam), subDeviceParamController.deleteSubDeviceParam);
+  .get(
+    auth('getSubDeviceParams'),
+    validate(subDeviceParamValidation.getSubDeviceParam),
+    subDeviceParamController.getSubDeviceParam
+  )
+  .patch(
+    auth('manageSubDeviceParams'),
+    validate(subDeviceParamValidation.updateSubDeviceParam),
+    subDeviceParamController.updateSubDeviceParam
+  )
+  .delete(
+    auth('manageSubDeviceParams'),
+    validate(subDeviceParamValidation.deleteSubDeviceParam),
+    subDeviceParamController.deleteSubDeviceParam
+  );
 
 module.exports = router;

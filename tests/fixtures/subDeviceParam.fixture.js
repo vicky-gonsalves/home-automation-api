@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
-const {admin, userOne} = require('./user.fixture');
-const {deviceOne, deviceTwo} = require('./device.fixture');
+const { admin, userOne } = require('./user.fixture');
+const { deviceOne, deviceTwo } = require('./device.fixture');
 const SubDeviceParam = require('../../src/models/subDeviceParam.model');
-const {subDeviceOne, subDeviceTwo} = require('./subDevice.fixture');
+const { subDeviceOne, subDeviceTwo } = require('./subDevice.fixture');
 
 const email1 = admin.email;
 const email2 = userOne.email;
@@ -22,7 +22,7 @@ const subDeviceParamTwo = {
   deviceId: deviceOne.deviceId,
   subDeviceId: subDeviceOne.subDeviceId,
   paramName: 'lastFilledAt',
-  paramValue: "2020-02-21T08:46:06.124Z",
+  paramValue: '2020-02-21T08:46:06.124Z',
   createdBy: email1,
   updatedBy: email1,
 };
@@ -32,7 +32,7 @@ const subDeviceParamThree = {
   deviceId: deviceOne.deviceId,
   subDeviceId: subDeviceOne.subDeviceId,
   paramName: 'status',
-  paramValue: "off",
+  paramValue: 'off',
   createdBy: email1,
   updatedBy: email1,
 };
@@ -42,13 +42,13 @@ const subDeviceParamFour = {
   deviceId: deviceTwo.deviceId,
   subDeviceId: subDeviceTwo.subDeviceId,
   paramName: 'status',
-  paramValue: "off",
+  paramValue: 'off',
   createdBy: email2,
   updatedBy: email2,
 };
 
 const insertSubDeviceParams = async subDeviceParams => {
-  await SubDeviceParam.insertMany(subDeviceParams.map(subDeviceParam => ({...subDeviceParam})));
+  await SubDeviceParam.insertMany(subDeviceParams.map(subDeviceParam => ({ ...subDeviceParam })));
 };
 
 module.exports = {

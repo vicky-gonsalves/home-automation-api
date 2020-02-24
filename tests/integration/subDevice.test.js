@@ -1,17 +1,22 @@
-const setupTestDB = require('../utils/setupTestDB');
 const faker = require('faker');
-const {subDeviceType} = require('../../src/config/device');
 const request = require('supertest');
-const app = require('../../src/app');
-const {userOneAccessToken, adminAccessToken} = require('../fixtures/token.fixture');
 const httpStatus = require('http-status');
-const {userOne, admin, insertUsers} = require('../fixtures/user.fixture');
-const {deviceOne, deviceTwo, insertDevices} = require('../fixtures/device.fixture');
-const {subDeviceOne, subDeviceTwo, subDeviceThree, subDeviceFour, insertSubDevices} = require('../fixtures/subDevice.fixture');
-const {SubDevice} = require('../../src/models');
+const { setupTestDB } = require('../utils/setupTestDB');
+const { subDeviceType } = require('../../src/config/device');
+const app = require('../../src/app');
+const { userOneAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
+const { userOne, admin, insertUsers } = require('../fixtures/user.fixture');
+const { deviceOne, deviceTwo, insertDevices } = require('../fixtures/device.fixture');
+const {
+  subDeviceOne,
+  subDeviceTwo,
+  subDeviceThree,
+  subDeviceFour,
+  insertSubDevices,
+} = require('../fixtures/subDevice.fixture');
+const { SubDevice } = require('../../src/models');
 
 setupTestDB();
-
 
 describe('Sub-Device Routes', () => {
   let route;
@@ -21,11 +26,11 @@ describe('Sub-Device Routes', () => {
       subDevice = {
         subDeviceId: faker.random.alphaNumeric(16),
         name: faker.name.firstName(),
-        type: faker.random.arrayElement(subDeviceType)
+        type: faker.random.arrayElement(subDeviceType),
       };
       await insertUsers([admin, userOne]);
       await insertDevices([deviceOne]);
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices'
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices`;
     });
 
     it('should return 201 and successfully create new sub-device if data is ok', async () => {
@@ -43,7 +48,7 @@ describe('Sub-Device Routes', () => {
         deviceId: deviceOne.deviceId,
         createdAt: expect.anything(),
         updatedAt: expect.anything(),
-        ...subDevice
+        ...subDevice,
       });
 
       const dbSubDevice = await SubDevice.findById(res.body.id);
@@ -55,7 +60,7 @@ describe('Sub-Device Routes', () => {
         subDeviceId: subDevice.subDeviceId,
         type: subDevice.type,
         isDisabled: false,
-        createdBy: admin.email
+        createdBy: admin.email,
       });
     });
 
@@ -300,9 +305,8 @@ describe('Sub-Device Routes', () => {
     beforeEach(async () => {
       await insertUsers([admin, userOne]);
       await insertDevices([deviceOne, deviceTwo]);
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices'
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices`;
     });
-
 
     it('should return 200 and all sub-devices', async () => {
       await insertSubDevices([subDeviceOne, subDeviceTwo]);
@@ -324,7 +328,7 @@ describe('Sub-Device Routes', () => {
         name: subDeviceOne.name,
         type: subDeviceOne.type,
         isDisabled: false,
-        createdBy: subDeviceOne.createdBy
+        createdBy: subDeviceOne.createdBy,
       });
     });
 
@@ -353,7 +357,7 @@ describe('Sub-Device Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({subDeviceId: subDeviceOne.subDeviceId})
+        .query({ subDeviceId: subDeviceOne.subDeviceId })
         .send()
         .expect(httpStatus.OK);
 
@@ -367,7 +371,7 @@ describe('Sub-Device Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({name: subDeviceOne.name})
+        .query({ name: subDeviceOne.name })
         .send()
         .expect(httpStatus.OK);
 
@@ -381,7 +385,7 @@ describe('Sub-Device Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({type: subDeviceOne.type})
+        .query({ type: subDeviceOne.type })
         .send()
         .expect(httpStatus.OK);
 
@@ -395,7 +399,7 @@ describe('Sub-Device Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({isDisabled: subDeviceOne.isDisabled})
+        .query({ isDisabled: subDeviceOne.isDisabled })
         .send()
         .expect(httpStatus.OK);
 
@@ -409,7 +413,7 @@ describe('Sub-Device Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({sortBy: 'name:desc'})
+        .query({ sortBy: 'name:desc' })
         .send()
         .expect(httpStatus.OK);
 
@@ -423,7 +427,7 @@ describe('Sub-Device Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({sortBy: 'name:asc'})
+        .query({ sortBy: 'name:asc' })
         .send()
         .expect(httpStatus.OK);
 
@@ -437,7 +441,7 @@ describe('Sub-Device Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({limit: 1})
+        .query({ limit: 1 })
         .send()
         .expect(httpStatus.OK);
 
@@ -450,7 +454,7 @@ describe('Sub-Device Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({page: 2, limit: 1})
+        .query({ page: 2, limit: 1 })
         .send()
         .expect(httpStatus.OK);
 
@@ -464,9 +468,8 @@ describe('Sub-Device Routes', () => {
       await insertUsers([admin, userOne]);
       await insertDevices([deviceOne]);
       await insertSubDevices([subDeviceOne]);
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/' + subDeviceOne.subDeviceId;
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}`;
     });
-
 
     it('should return 200 and the sub-device object if data is ok', async () => {
       const res = await request(app)
@@ -486,7 +489,7 @@ describe('Sub-Device Routes', () => {
         type: subDeviceOne.type,
         isDisabled: false,
         createdBy: deviceOne.createdBy,
-        updatedBy: deviceOne.updatedBy
+        updatedBy: deviceOne.updatedBy,
       });
     });
 
@@ -514,7 +517,7 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 400 error if subDeviceId is not valid', async () => {
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/invalid';
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/invalid`;
       await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
@@ -523,7 +526,7 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 404 error if device is not found', async () => {
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/' + subDeviceTwo.subDeviceId;
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceTwo.subDeviceId}`;
       await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
@@ -537,7 +540,7 @@ describe('Sub-Device Routes', () => {
       await insertUsers([admin, userOne]);
       await insertDevices([deviceOne]);
       await insertSubDevices([subDeviceOne]);
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/' + subDeviceOne.subDeviceId;
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}`;
     });
 
     it('should return 204 if data is ok', async () => {
@@ -575,7 +578,7 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 400 error if subDeviceId is not valid', async () => {
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/invalid';
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/invalid`;
       await request(app)
         .delete(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
@@ -584,7 +587,7 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 404 error if device is not found', async () => {
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/' + subDeviceTwo.subDeviceId;
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceTwo.subDeviceId}`;
       await request(app)
         .delete(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
@@ -600,12 +603,12 @@ describe('Sub-Device Routes', () => {
         subDeviceId: faker.random.alphaNumeric(16),
         name: 'someUnique',
         type: subDeviceType[1],
-        isDisabled: true
+        isDisabled: true,
       };
       await insertUsers([admin, userOne]);
       await insertDevices([deviceOne]);
       await insertSubDevices([subDeviceOne]);
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/' + subDeviceOne.subDeviceId;
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}`;
     });
 
     it('should return 200 and successfully update sub-device if data is ok', async () => {
@@ -621,10 +624,10 @@ describe('Sub-Device Routes', () => {
         subDeviceId: updateBody.subDeviceId,
         name: updateBody.name,
         type: updateBody.type,
-        isDisabled: true
+        isDisabled: true,
       });
 
-      const dbSubDevice = await SubDevice.findOne({deviceId: deviceOne.deviceId, subDeviceId: updateBody.subDeviceId});
+      const dbSubDevice = await SubDevice.findOne({ deviceId: deviceOne.deviceId, subDeviceId: updateBody.subDeviceId });
       expect(dbSubDevice).toBeDefined();
       expect(dbSubDevice).toMatchObject({
         deviceId: deviceOne.deviceId,
@@ -632,12 +635,12 @@ describe('Sub-Device Routes', () => {
         name: updateBody.name,
         type: updateBody.type,
         isDisabled: true,
-        updatedBy: admin.email
+        updatedBy: admin.email,
       });
     });
 
     it('should return 401 error if access token is missing', async () => {
-      const updateBody = {name: faker.name.firstName()};
+      updateBody = { name: faker.name.firstName() };
 
       await request(app)
         .patch(route)
@@ -646,7 +649,7 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 403 if user is updating sub-device', async () => {
-      const updateBody = {name: faker.name.firstName()};
+      updateBody = { name: faker.name.firstName() };
 
       await request(app)
         .patch(route)
@@ -656,7 +659,7 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 200 and successfully update sub-device if admin is updating sub-device', async () => {
-      const updateBody = {name: faker.name.firstName()};
+      updateBody = { name: faker.name.firstName() };
 
       await request(app)
         .patch(route)
@@ -666,8 +669,8 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 404 if admin is updating sub-device that is not found', async () => {
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/' + subDeviceTwo.subDeviceId;
-      const updateBody = {name: faker.name.firstName()};
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceTwo.subDeviceId}`;
+      updateBody = { name: faker.name.firstName() };
 
       await request(app)
         .patch(route)
@@ -677,8 +680,8 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 400 error if subDeviceId is not valid', async () => {
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/invalid';
-      const updateBody = {name: faker.name.firstName()};
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/invalid`;
+      updateBody = { name: faker.name.firstName() };
 
       await request(app)
         .patch(route)
@@ -688,7 +691,7 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 400 if subDeviceId is invalid', async () => {
-      const updateBody = {subDeviceId: 'invalidId'};
+      updateBody = { subDeviceId: 'invalidId' };
 
       await request(app)
         .patch(route)
@@ -699,7 +702,7 @@ describe('Sub-Device Routes', () => {
 
     it('should return 400 if subDeviceId is already taken', async () => {
       await insertSubDevices([subDeviceTwo]);
-      const updateBody = {subDeviceId: subDeviceTwo.subDeviceId};
+      updateBody = { subDeviceId: subDeviceTwo.subDeviceId };
 
       await request(app)
         .patch(route)
@@ -710,7 +713,7 @@ describe('Sub-Device Routes', () => {
 
     it('should not return 400 if subDeviceId is my subDeviceId', async () => {
       await insertSubDevices([subDeviceTwo]);
-      const updateBody = {subDeviceId: subDeviceOne.subDeviceId};
+      updateBody = { subDeviceId: subDeviceOne.subDeviceId };
 
       await request(app)
         .patch(route)
@@ -720,7 +723,7 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 400 if subDeviceId length is less than 16 characters', async () => {
-      const updateBody = {subDeviceId: faker.random.alphaNumeric(15)};
+      updateBody = { subDeviceId: faker.random.alphaNumeric(15) };
 
       await request(app)
         .patch(route)
@@ -730,7 +733,7 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 400 error if subDeviceId length is greater than 20 characters', async () => {
-      const updateBody = {subDeviceId: faker.random.alphaNumeric(21)};
+      updateBody = { subDeviceId: faker.random.alphaNumeric(21) };
 
       await request(app)
         .patch(route)
@@ -740,7 +743,7 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 400 error if subDeviceId is not string', async () => {
-      let updateBody = {subDeviceId: 31231};
+      updateBody = { subDeviceId: 31231 };
 
       await request(app)
         .patch(route)
@@ -748,7 +751,7 @@ describe('Sub-Device Routes', () => {
         .send(updateBody)
         .expect(httpStatus.BAD_REQUEST);
 
-      updateBody = {subDeviceId: {}};
+      updateBody = { subDeviceId: {} };
 
       await request(app)
         .patch(route)
@@ -758,7 +761,7 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 400 error if name is invalid', async () => {
-      const updateBody = {name: 'invalid@name'};
+      updateBody = { name: 'invalid@name' };
 
       await request(app)
         .patch(route)
@@ -768,7 +771,7 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 400 error if name is not string', async () => {
-      let updateBody = {name: 1231};
+      updateBody = { name: 1231 };
 
       await request(app)
         .patch(route)
@@ -776,7 +779,7 @@ describe('Sub-Device Routes', () => {
         .send(updateBody)
         .expect(httpStatus.BAD_REQUEST);
 
-      updateBody = {name: 1231};
+      updateBody = { name: 1231 };
 
       await request(app)
         .patch(route)
@@ -786,7 +789,7 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 400 error if name length is less than 1', async () => {
-      const updateBody = {name: ''};
+      updateBody = { name: '' };
 
       await request(app)
         .patch(route)
@@ -796,7 +799,7 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 400 error if name length is greater than 20', async () => {
-      const updateBody = {name: faker.random.alphaNumeric(21)};
+      updateBody = { name: faker.random.alphaNumeric(21) };
 
       await request(app)
         .patch(route)
@@ -806,7 +809,7 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 400 error if type is invalid', async () => {
-      const updateBody = {type: 'invalid'};
+      updateBody = { type: 'invalid' };
 
       await request(app)
         .patch(route)
@@ -816,7 +819,7 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 400 error if type is not a string', async () => {
-      let updateBody = {type: 23123};
+      updateBody = { type: 23123 };
 
       await request(app)
         .patch(route)
@@ -824,7 +827,7 @@ describe('Sub-Device Routes', () => {
         .send(updateBody)
         .expect(httpStatus.BAD_REQUEST);
 
-      updateBody = {type: {}};
+      updateBody = { type: {} };
 
       await request(app)
         .patch(route)
@@ -833,5 +836,4 @@ describe('Sub-Device Routes', () => {
         .expect(httpStatus.BAD_REQUEST);
     });
   });
-
 });

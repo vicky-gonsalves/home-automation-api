@@ -1,8 +1,8 @@
-const {subDeviceType} = require('../config/device');
 const validator = require('validator');
 
 const mongoose = require('mongoose');
-const {omit, pick} = require('lodash');
+const { omit, pick } = require('lodash');
+const { subDeviceType } = require('../config/device');
 
 const subDeviceSchema = mongoose.Schema(
   {
@@ -35,11 +35,11 @@ const subDeviceSchema = mongoose.Schema(
       type: String,
       enum: subDeviceType,
       required: true,
-      trim: true
+      trim: true,
     },
     isDisabled: {
       type: Boolean,
-      default: false
+      default: false,
     },
     createdBy: {
       type: String,
@@ -60,12 +60,12 @@ const subDeviceSchema = mongoose.Schema(
           throw new Error('Invalid email');
         }
       },
-    }
+    },
   },
   {
     timestamps: true,
-    toObject: {getters: true},
-    toJSON: {getters: true},
+    toObject: { getters: true },
+    toJSON: { getters: true },
   }
 );
 
@@ -76,7 +76,18 @@ subDeviceSchema.methods.toJSON = function() {
 
 subDeviceSchema.methods.transform = function() {
   const subDevice = this;
-  return pick(subDevice.toJSON(), ['id', 'deviceId', 'subDeviceId', 'name', 'type', 'isDisabled', 'createdBy', 'updatedBy', 'createdAt', 'updatedAt']);
+  return pick(subDevice.toJSON(), [
+    'id',
+    'deviceId',
+    'subDeviceId',
+    'name',
+    'type',
+    'isDisabled',
+    'createdBy',
+    'updatedBy',
+    'createdAt',
+    'updatedAt',
+  ]);
 };
 
 subDeviceSchema.pre('save', function(next) {

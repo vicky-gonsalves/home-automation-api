@@ -2,10 +2,10 @@ const request = require('supertest');
 const faker = require('faker');
 const httpStatus = require('http-status');
 const app = require('../../src/app');
-const setupTestDB = require('../utils/setupTestDB');
-const {User} = require('../../src/models');
-const {userOne, userTwo, admin, insertUsers} = require('../fixtures/user.fixture');
-const {userOneAccessToken, adminAccessToken} = require('../fixtures/token.fixture');
+const { setupTestDB } = require('../utils/setupTestDB');
+const { User } = require('../../src/models');
+const { userOne, userTwo, admin, insertUsers } = require('../fixtures/user.fixture');
+const { userOneAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
 
 setupTestDB();
 
@@ -32,12 +32,12 @@ describe('User routes', () => {
         .expect(httpStatus.CREATED);
 
       expect(res.body).not.toHaveProperty('password');
-      expect(res.body).toEqual({id: expect.anything(), name: newUser.name, email: newUser.email, role: newUser.role});
+      expect(res.body).toEqual({ id: expect.anything(), name: newUser.name, email: newUser.email, role: newUser.role });
 
       const dbUser = await User.findById(res.body.id);
       expect(dbUser).toBeDefined();
       expect(dbUser.password).not.toBe(newUser.password);
-      expect(dbUser).toMatchObject({name: newUser.name, email: newUser.email, role: newUser.role});
+      expect(dbUser).toMatchObject({ name: newUser.name, email: newUser.email, role: newUser.role });
     });
 
     it('should be able to create an admin as well', async () => {
@@ -182,7 +182,7 @@ describe('User routes', () => {
       const res = await request(app)
         .get('/v1/users')
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({name: userOne.name})
+        .query({ name: userOne.name })
         .send()
         .expect(httpStatus.OK);
 
@@ -196,7 +196,7 @@ describe('User routes', () => {
       const res = await request(app)
         .get('/v1/users')
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({role: 'user'})
+        .query({ role: 'user' })
         .send()
         .expect(httpStatus.OK);
 
@@ -211,7 +211,7 @@ describe('User routes', () => {
       const res = await request(app)
         .get('/v1/users')
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({sortBy: 'role:desc'})
+        .query({ sortBy: 'role:desc' })
         .send()
         .expect(httpStatus.OK);
 
@@ -225,7 +225,7 @@ describe('User routes', () => {
       const res = await request(app)
         .get('/v1/users')
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({sortBy: 'role:asc'})
+        .query({ sortBy: 'role:asc' })
         .send()
         .expect(httpStatus.OK);
 
@@ -239,7 +239,7 @@ describe('User routes', () => {
       const res = await request(app)
         .get('/v1/users')
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({limit: 2})
+        .query({ limit: 2 })
         .send()
         .expect(httpStatus.OK);
 
@@ -252,7 +252,7 @@ describe('User routes', () => {
       const res = await request(app)
         .get('/v1/users')
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({page: 2, limit: 2})
+        .query({ page: 2, limit: 2 })
         .send()
         .expect(httpStatus.OK);
 
@@ -420,12 +420,12 @@ describe('User routes', () => {
       const dbUser = await User.findById(userOne._id);
       expect(dbUser).toBeDefined();
       expect(dbUser.password).not.toBe(updateBody.password);
-      expect(dbUser).toMatchObject({name: updateBody.name, email: updateBody.email, role: 'user'});
+      expect(dbUser).toMatchObject({ name: updateBody.name, email: updateBody.email, role: 'user' });
     });
 
     it('should return 401 error if access token is missing', async () => {
       await insertUsers([userOne]);
-      const updateBody = {name: faker.name.findName()};
+      const updateBody = { name: faker.name.findName() };
 
       await request(app)
         .patch(`/v1/users/${userOne._id}`)
@@ -435,7 +435,7 @@ describe('User routes', () => {
 
     it('should return 403 if user is updating another user', async () => {
       await insertUsers([userOne, userTwo]);
-      const updateBody = {name: faker.name.findName()};
+      const updateBody = { name: faker.name.findName() };
 
       await request(app)
         .patch(`/v1/users/${userTwo._id}`)
@@ -446,7 +446,7 @@ describe('User routes', () => {
 
     it('should return 200 and successfully update user if admin is updating another user', async () => {
       await insertUsers([userOne, admin]);
-      const updateBody = {name: faker.name.findName()};
+      const updateBody = { name: faker.name.findName() };
 
       await request(app)
         .patch(`/v1/users/${userOne._id}`)
@@ -457,7 +457,7 @@ describe('User routes', () => {
 
     it('should return 404 if admin is updating another user that is not found', async () => {
       await insertUsers([admin]);
-      const updateBody = {name: faker.name.findName()};
+      const updateBody = { name: faker.name.findName() };
 
       await request(app)
         .patch(`/v1/users/${userOne._id}`)
@@ -468,7 +468,7 @@ describe('User routes', () => {
 
     it('should return 400 error if userId is not a valid mongo id', async () => {
       await insertUsers([admin]);
-      const updateBody = {name: faker.name.findName()};
+      const updateBody = { name: faker.name.findName() };
 
       await request(app)
         .patch(`/v1/users/invalidId`)
@@ -479,7 +479,7 @@ describe('User routes', () => {
 
     it('should return 400 if email is invalid', async () => {
       await insertUsers([userOne]);
-      const updateBody = {email: 'invalidEmail'};
+      const updateBody = { email: 'invalidEmail' };
 
       await request(app)
         .patch(`/v1/users/${userOne._id}`)
@@ -490,7 +490,7 @@ describe('User routes', () => {
 
     it('should return 400 if email is already taken', async () => {
       await insertUsers([userOne, userTwo]);
-      const updateBody = {email: userTwo.email};
+      const updateBody = { email: userTwo.email };
 
       await request(app)
         .patch(`/v1/users/${userOne._id}`)
@@ -501,7 +501,7 @@ describe('User routes', () => {
 
     it('should not return 400 if email is my email', async () => {
       await insertUsers([userOne]);
-      const updateBody = {email: userOne.email};
+      const updateBody = { email: userOne.email };
 
       await request(app)
         .patch(`/v1/users/${userOne._id}`)
@@ -512,7 +512,7 @@ describe('User routes', () => {
 
     it('should return 400 if password length is less than 8 characters', async () => {
       await insertUsers([userOne]);
-      const updateBody = {password: 'passwo1'};
+      const updateBody = { password: 'passwo1' };
 
       await request(app)
         .patch(`/v1/users/${userOne._id}`)
@@ -523,7 +523,7 @@ describe('User routes', () => {
 
     it('should return 400 if password does not contain both letters and numbers', async () => {
       await insertUsers([userOne]);
-      const updateBody = {password: 'password'};
+      const updateBody = { password: 'password' };
 
       await request(app)
         .patch(`/v1/users/${userOne._id}`)

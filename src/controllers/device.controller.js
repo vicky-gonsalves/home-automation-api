@@ -1,6 +1,6 @@
 const httpStatus = require('http-status');
 const catchAsync = require('../utils/catchAsync');
-const {deviceService} = require('../services');
+const { deviceService } = require('../services');
 
 const createDevice = catchAsync(async (req, res) => {
   req.body.createdBy = req.user.email;

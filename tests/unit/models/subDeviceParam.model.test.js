@@ -1,9 +1,9 @@
 const faker = require('faker');
-const {SubDeviceParam} = require('../../../src/models');
+const { SubDeviceParam } = require('../../../src/models');
 
 describe('SubDeviceParam Model', () => {
-  let newSubDeviceParam;
   describe('SubDeviceParam validation', () => {
+    let newSubDeviceParam;
     beforeEach(() => {
       const email = faker.internet.email();
       newSubDeviceParam = {

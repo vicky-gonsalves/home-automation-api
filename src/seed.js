@@ -1,9 +1,11 @@
-"use strict";
-
-const {SeedUserFn} = require('./seed-scripts/user.seed');
+const { SeedUserFn } = require('./seed-scripts/user.seed');
 
 const seedUser = true;
 
-if (seedUser) {
-  SeedUserFn();
-}
+const Seed = () => {
+  if (seedUser) {
+    SeedUserFn();
+  }
+};
+
+module.exports = { Seed };

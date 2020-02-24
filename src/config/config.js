@@ -2,7 +2,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 const Joi = require('@hapi/joi');
 
-dotenv.config({path: path.join(__dirname, '../../.env')});
+dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 const envVarsSchema = Joi.object()
   .keys({
@@ -33,7 +33,7 @@ const envVarsSchema = Joi.object()
   })
   .unknown();
 
-const {value: envVars, error} = envVarsSchema.prefs({errors: {label: 'key'}}).validate(process.env);
+const { value: envVars, error } = envVarsSchema.prefs({ errors: { label: 'key' } }).validate(process.env);
 
 if (error) {
   throw new Error(`Config validation error: ${error.message}`);
@@ -44,7 +44,7 @@ module.exports = {
   port: envVars.PORT,
   mongoose: {
     url: envVars.MONGODB_URL + (envVars.NODE_ENV === 'test' ? '-test' : ''),
-    options: {useCreateIndex: true, useNewUrlParser: true, useUnifiedTopology: true},
+    options: { useCreateIndex: true, useNewUrlParser: true, useUnifiedTopology: true },
   },
   seedDB: envVars.SEED_DB,
   jwt: {

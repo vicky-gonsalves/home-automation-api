@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const faker = require('faker');
-const {deviceType} = require('../../src/config/device');
+const { deviceType } = require('../../src/config/device');
 const Device = require('../../src/models/device.model');
-const {admin, userOne} = require('./user.fixture');
+const { admin, userOne } = require('./user.fixture');
 
 const email1 = admin.email;
 const email2 = userOne.email;
@@ -30,11 +30,11 @@ const deviceTwo = {
 };
 
 const insertDevices = async devices => {
-  await Device.insertMany(devices.map(device => ({...device})));
+  await Device.insertMany(devices.map(device => ({ ...device })));
 };
 
 module.exports = {
   insertDevices,
   deviceOne,
-  deviceTwo
+  deviceTwo,
 };

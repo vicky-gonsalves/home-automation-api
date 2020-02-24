@@ -1,8 +1,8 @@
-const {deviceStatus, deviceType} = require('../config/device');
 const validator = require('validator');
 
 const mongoose = require('mongoose');
-const {omit, pick} = require('lodash');
+const { omit, pick } = require('lodash');
+const { deviceType } = require('../config/device');
 
 const deviceSchema = mongoose.Schema(
   {
@@ -27,11 +27,11 @@ const deviceSchema = mongoose.Schema(
       type: String,
       enum: deviceType,
       required: true,
-      trim: true
+      trim: true,
     },
     isDisabled: {
       type: Boolean,
-      default: false
+      default: false,
     },
     deviceOwner: {
       type: String,
@@ -46,7 +46,7 @@ const deviceSchema = mongoose.Schema(
     },
     registeredAt: {
       type: Date,
-      required: true
+      required: true,
     },
     createdBy: {
       type: String,
@@ -67,12 +67,12 @@ const deviceSchema = mongoose.Schema(
           throw new Error('Invalid email');
         }
       },
-    }
+    },
   },
   {
     timestamps: true,
-    toObject: {getters: true},
-    toJSON: {getters: true},
+    toObject: { getters: true },
+    toJSON: { getters: true },
   }
 );
 
@@ -83,7 +83,19 @@ deviceSchema.methods.toJSON = function() {
 
 deviceSchema.methods.transform = function() {
   const device = this;
-  return pick(device.toJSON(), ['id', 'deviceId', 'name', 'type', 'registeredAt', 'isDisabled', 'deviceOwner', 'createdBy', 'updatedBy', 'createdAt', 'updatedAt']);
+  return pick(device.toJSON(), [
+    'id',
+    'deviceId',
+    'name',
+    'type',
+    'registeredAt',
+    'isDisabled',
+    'deviceOwner',
+    'createdBy',
+    'updatedBy',
+    'createdAt',
+    'updatedAt',
+  ]);
 };
 
 deviceSchema.pre('save', function(next) {

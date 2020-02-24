@@ -1,37 +1,52 @@
-const {getDeviceByDeviceId} = require('./device.service');
 const httpStatus = require('http-status');
-const {pick} = require('lodash');
+const { pick } = require('lodash');
+const { getDeviceByDeviceId } = require('./device.service');
 const AppError = require('../utils/AppError');
-const {SubDeviceParam} = require('../models');
-const {getQueryOptions} = require('../utils/service.util');
+const { SubDeviceParam } = require('../models');
+const { getQueryOptions } = require('../utils/service.util');
 
 const checkDuplicateSubDeviceParam = async (deviceId, subDeviceId, paramName, excludeSubDeviceParamId) => {
-  const subDeviceParam = await SubDeviceParam.findOne({deviceId, subDeviceId, paramName, _id: {$ne: excludeSubDeviceParamId}});
+  const subDeviceParam = await SubDeviceParam.findOne({
+    deviceId,
+    subDeviceId,
+    paramName,
+    _id: { $ne: excludeSubDeviceParamId },
+  });
   if (subDeviceParam) {
     throw new AppError(httpStatus.BAD_REQUEST, 'subDeviceParam already registered');
   }
 };
 
-const createSubDeviceParam = async (deviceId, subDeviceId, subDeviceParamBody) => {
+const createSubDeviceParam = async (deviceId, subDeviceId, _subDeviceParamBody) => {
+  const subDeviceParamBody = _subDeviceParamBody;
   await getDeviceByDeviceId(deviceId);
   await checkDuplicateSubDeviceParam(deviceId, subDeviceId, subDeviceParamBody.paramName);
   subDeviceParamBody.deviceId = deviceId;
   subDeviceParamBody.subDeviceId = subDeviceId;
-  const subDeviceParam = await SubDeviceParam.create(subDeviceParamBody);
-  return subDeviceParam;
+  return SubDeviceParam.create(subDeviceParamBody);
 };
 
 const getSubDeviceParams = async (deviceId, subDeviceId, query) => {
-  const filter = pick(query, ['id', 'deviceId', 'subDeviceId', 'paramName', 'paramValue', 'isDisabled', 'createdBy', 'updatedBy', 'createdAt', 'updatedAt']);
+  const filter = pick(query, [
+    'id',
+    'deviceId',
+    'subDeviceId',
+    'paramName',
+    'paramValue',
+    'isDisabled',
+    'createdBy',
+    'updatedBy',
+    'createdAt',
+    'updatedAt',
+  ]);
   filter.deviceId = deviceId;
   filter.subDeviceId = subDeviceId;
   const options = getQueryOptions(query);
-  const subDeviceParams = await SubDeviceParam.find(filter, null, options);
-  return subDeviceParams;
+  return SubDeviceParam.find(filter, null, options);
 };
 
 const getSubDeviceParamByParamName = async (deviceId, subDeviceId, paramName) => {
-  const subDeviceParam = await SubDeviceParam.findOne({deviceId, subDeviceId, paramName});
+  const subDeviceParam = await SubDeviceParam.findOne({ deviceId, subDeviceId, paramName });
   if (!subDeviceParam) {
     throw new AppError(httpStatus.NOT_FOUND, 'No subDeviceParam found');
   }

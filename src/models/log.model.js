@@ -1,7 +1,7 @@
 const validator = require('validator');
 
 const mongoose = require('mongoose');
-const {omit, pick} = require('lodash');
+const { omit, pick } = require('lodash');
 
 const logSchema = mongoose.Schema(
   {
@@ -53,12 +53,12 @@ const logSchema = mongoose.Schema(
           throw new Error('Invalid email');
         }
       },
-    }
+    },
   },
   {
     timestamps: true,
-    toObject: {getters: true},
-    toJSON: {getters: true},
+    toObject: { getters: true },
+    toJSON: { getters: true },
   }
 );
 

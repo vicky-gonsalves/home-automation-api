@@ -1,18 +1,28 @@
-const setupTestDB = require('../utils/setupTestDB');
 const faker = require('faker');
-const {subDeviceType} = require('../../src/config/device');
 const request = require('supertest');
-const app = require('../../src/app');
-const {userOneAccessToken, adminAccessToken} = require('../fixtures/token.fixture');
 const httpStatus = require('http-status');
-const {userOne, admin, insertUsers} = require('../fixtures/user.fixture');
-const {deviceOne, deviceTwo, insertDevices} = require('../fixtures/device.fixture');
-const {subDeviceOne, subDeviceTwo, subDeviceThree, subDeviceFour, insertSubDevices} = require('../fixtures/subDevice.fixture');
-const {subDeviceParamOne, subDeviceParamTwo, subDeviceParamThree, subDeviceParamFour, insertSubDeviceParams} = require('../fixtures/subDeviceParam.fixture');
-const {SubDeviceParam} = require('../../src/models');
+const { setupTestDB } = require('../utils/setupTestDB');
+const app = require('../../src/app');
+const { userOneAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
+const { userOne, admin, insertUsers } = require('../fixtures/user.fixture');
+const { deviceOne, insertDevices } = require('../fixtures/device.fixture');
+const {
+  subDeviceOne,
+  subDeviceTwo,
+  subDeviceThree,
+  subDeviceFour,
+  insertSubDevices,
+} = require('../fixtures/subDevice.fixture');
+const {
+  subDeviceParamOne,
+  subDeviceParamTwo,
+  subDeviceParamThree,
+  subDeviceParamFour,
+  insertSubDeviceParams,
+} = require('../fixtures/subDeviceParam.fixture');
+const { SubDeviceParam } = require('../../src/models');
 
 setupTestDB();
-
 
 describe('Sub-Device Params Routes', () => {
   let route;
@@ -21,12 +31,12 @@ describe('Sub-Device Params Routes', () => {
     beforeEach(async () => {
       subDeviceParam = {
         paramName: faker.random.alphaNumeric(50),
-        paramValue: faker.random.arrayElement(['something', 2131231, {data: 'something'}])
+        paramValue: faker.random.arrayElement(['something', 2131231, { data: 'something' }]),
       };
       await insertUsers([admin, userOne]);
       await insertDevices([deviceOne]);
       await insertSubDevices([subDeviceOne, subDeviceTwo, subDeviceThree, subDeviceFour]);
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/' + subDeviceOne.subDeviceId + '/sub-device-params';
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-params`;
     });
 
     it('should return 201 and successfully create new sub-device param if data is ok', async () => {
@@ -46,7 +56,7 @@ describe('Sub-Device Params Routes', () => {
         subDeviceId: subDeviceOne.subDeviceId,
         createdAt: expect.anything(),
         updatedAt: expect.anything(),
-        ...subDeviceParam
+        ...subDeviceParam,
       });
 
       const dbSubDeviceParam = await SubDeviceParam.findById(res.body.id);
@@ -58,7 +68,7 @@ describe('Sub-Device Params Routes', () => {
         deviceId: deviceOne.deviceId,
         subDeviceId: subDeviceOne.subDeviceId,
         isDisabled: false,
-        createdBy: admin.email
+        createdBy: admin.email,
       });
     });
 
@@ -217,18 +227,12 @@ describe('Sub-Device Params Routes', () => {
   });
 
   describe('GET /v1/devices/:deviceId/sub-devices/:subDeviceId/sub-device-params', () => {
-    let subDeviceParam;
     beforeEach(async () => {
-      subDeviceParam = {
-        paramName: faker.random.alphaNumeric(50),
-        paramValue: faker.random.arrayElement(['something', 2131231, {data: 'something'}])
-      };
       await insertUsers([admin, userOne]);
       await insertDevices([deviceOne]);
       await insertSubDevices([subDeviceOne, subDeviceTwo, subDeviceThree, subDeviceFour]);
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/' + subDeviceOne.subDeviceId + '/sub-device-params';
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-params`;
     });
-
 
     it('should return 200 and all sub-device params', async () => {
       await insertSubDeviceParams([subDeviceParamOne, subDeviceParamTwo, subDeviceParamThree, subDeviceParamFour]);
@@ -250,7 +254,7 @@ describe('Sub-Device Params Routes', () => {
         paramName: subDeviceParamOne.paramName,
         paramValue: subDeviceParamOne.paramValue,
         isDisabled: false,
-        createdBy: admin.email
+        createdBy: admin.email,
       });
     });
 
@@ -275,7 +279,7 @@ describe('Sub-Device Params Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({paramName: subDeviceParamOne.paramName})
+        .query({ paramName: subDeviceParamOne.paramName })
         .send()
         .expect(httpStatus.OK);
 
@@ -289,7 +293,7 @@ describe('Sub-Device Params Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({paramValue: subDeviceParamTwo.paramValue})
+        .query({ paramValue: subDeviceParamTwo.paramValue })
         .send()
         .expect(httpStatus.OK);
 
@@ -303,7 +307,7 @@ describe('Sub-Device Params Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({isDisabled: subDeviceParamOne.isDisabled})
+        .query({ isDisabled: subDeviceParamOne.isDisabled })
         .send()
         .expect(httpStatus.OK);
 
@@ -317,7 +321,7 @@ describe('Sub-Device Params Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({sortBy: 'paramName:desc'})
+        .query({ sortBy: 'paramName:desc' })
         .send()
         .expect(httpStatus.OK);
 
@@ -331,7 +335,7 @@ describe('Sub-Device Params Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({sortBy: 'paramName:asc'})
+        .query({ sortBy: 'paramName:asc' })
         .send()
         .expect(httpStatus.OK);
 
@@ -345,7 +349,7 @@ describe('Sub-Device Params Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({limit: 1})
+        .query({ limit: 1 })
         .send()
         .expect(httpStatus.OK);
 
@@ -358,7 +362,7 @@ describe('Sub-Device Params Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({page: 2, limit: 1})
+        .query({ page: 2, limit: 1 })
         .send()
         .expect(httpStatus.OK);
 
@@ -368,19 +372,13 @@ describe('Sub-Device Params Routes', () => {
   });
 
   describe('GET /v1/devices/:deviceId/sub-devices/:subDeviceId/sub-device-params/:paramName', () => {
-    let subDeviceParam;
     beforeEach(async () => {
-      subDeviceParam = {
-        paramName: faker.random.alphaNumeric(50),
-        paramValue: faker.random.arrayElement(['something', 2131231, {data: 'something'}])
-      };
       await insertUsers([admin, userOne]);
       await insertDevices([deviceOne]);
       await insertSubDevices([subDeviceOne, subDeviceTwo, subDeviceThree, subDeviceFour]);
       await insertSubDeviceParams([subDeviceParamOne]);
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/' + subDeviceOne.subDeviceId + '/sub-device-params/' + subDeviceParamOne.paramName;
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-params/${subDeviceParamOne.paramName}`;
     });
-
 
     it('should return 200 and the sub-device param object if data is ok', async () => {
       const res = await request(app)
@@ -402,7 +400,7 @@ describe('Sub-Device Params Routes', () => {
         paramValue: subDeviceParamOne.paramValue,
         isDisabled: false,
         createdBy: deviceOne.createdBy,
-        updatedBy: deviceOne.updatedBy
+        updatedBy: deviceOne.updatedBy,
       });
     });
 
@@ -430,7 +428,7 @@ describe('Sub-Device Params Routes', () => {
     });
 
     it('should return 400 error if paramName is not valid', async () => {
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/' + subDeviceOne.subDeviceId + '/sub-device-params/invalid@Name';
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-params/invalid@Name`;
       await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
@@ -439,7 +437,7 @@ describe('Sub-Device Params Routes', () => {
     });
 
     it('should return 404 error if device is not found', async () => {
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/' + subDeviceOne.subDeviceId + '/sub-device-params/' + subDeviceParamTwo.paramName;
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-params/${subDeviceParamTwo.paramName}`;
       await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
@@ -454,7 +452,7 @@ describe('Sub-Device Params Routes', () => {
       await insertDevices([deviceOne]);
       await insertSubDevices([subDeviceOne]);
       await insertSubDeviceParams([subDeviceParamOne]);
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/' + subDeviceOne.subDeviceId + '/sub-device-params/' + subDeviceParamOne.paramName;
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-params/${subDeviceParamOne.paramName}`;
     });
 
     it('should return 204 if data is ok', async () => {
@@ -492,7 +490,7 @@ describe('Sub-Device Params Routes', () => {
     });
 
     it('should return 400 error if paramName is not valid', async () => {
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/' + subDeviceOne.subDeviceId + '/sub-device-params/invalid@';
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-params/invalid@`;
       await request(app)
         .delete(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
@@ -501,7 +499,7 @@ describe('Sub-Device Params Routes', () => {
     });
 
     it('should return 404 error if device is not found', async () => {
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/' + subDeviceOne.subDeviceId + '/sub-device-params/' + subDeviceParamTwo.paramName;
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-params/${subDeviceParamTwo.paramName}`;
       await request(app)
         .delete(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
@@ -515,14 +513,14 @@ describe('Sub-Device Params Routes', () => {
     beforeEach(async () => {
       updateBody = {
         paramName: faker.random.alphaNumeric(50),
-        paramValue: faker.random.arrayElement(['something', 2131231, {data: 'something'}]),
-        isDisabled: true
+        paramValue: faker.random.arrayElement(['something', 2131231, { data: 'something' }]),
+        isDisabled: true,
       };
       await insertUsers([admin, userOne]);
       await insertDevices([deviceOne]);
       await insertSubDevices([subDeviceOne]);
       await insertSubDeviceParams([subDeviceParamOne]);
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/' + subDeviceOne.subDeviceId + '/sub-device-params/' + subDeviceParamOne.paramName;
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-params/${subDeviceParamOne.paramName}`;
     });
 
     it('should return 200 and successfully update sub-device param if data is ok', async () => {
@@ -538,13 +536,13 @@ describe('Sub-Device Params Routes', () => {
         subDeviceId: subDeviceOne.subDeviceId,
         paramName: updateBody.paramName,
         paramValue: updateBody.paramValue,
-        isDisabled: true
+        isDisabled: true,
       });
 
       const dbSubDeviceParam = await SubDeviceParam.findOne({
         deviceId: deviceOne.deviceId,
         subDeviceId: subDeviceOne.subDeviceId,
-        paramName: updateBody.paramName
+        paramName: updateBody.paramName,
       });
       expect(dbSubDeviceParam).toBeDefined();
       expect(dbSubDeviceParam).toMatchObject({
@@ -553,12 +551,12 @@ describe('Sub-Device Params Routes', () => {
         paramName: updateBody.paramName,
         paramValue: updateBody.paramValue,
         isDisabled: true,
-        updatedBy: admin.email
+        updatedBy: admin.email,
       });
     });
 
     it('should return 401 error if access token is missing', async () => {
-      const updateBody = {name: faker.name.firstName()};
+      updateBody = { name: faker.name.firstName() };
 
       await request(app)
         .patch(route)
@@ -567,7 +565,7 @@ describe('Sub-Device Params Routes', () => {
     });
 
     it('should return 403 if user is updating sub-device param', async () => {
-      const updateBody = {name: faker.name.firstName()};
+      updateBody = { name: faker.name.firstName() };
 
       await request(app)
         .patch(route)
@@ -577,7 +575,7 @@ describe('Sub-Device Params Routes', () => {
     });
 
     it('should return 200 and successfully update sub-device param if admin is updating sub-device param', async () => {
-      const updateBody = {paramName: faker.name.firstName()};
+      updateBody = { paramName: faker.name.firstName() };
 
       await request(app)
         .patch(route)
@@ -587,8 +585,8 @@ describe('Sub-Device Params Routes', () => {
     });
 
     it('should return 404 if admin is updating sub-device paramName that is not found', async () => {
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/' + subDeviceOne.subDeviceId + '/sub-device-params/' + subDeviceParamTwo.paramName;
-      const updateBody = {paramName: faker.name.firstName()};
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-params/${subDeviceParamTwo.paramName}`;
+      updateBody = { paramName: faker.name.firstName() };
 
       await request(app)
         .patch(route)
@@ -598,8 +596,8 @@ describe('Sub-Device Params Routes', () => {
     });
 
     it('should return 400 error if sub-device paramName is not valid', async () => {
-      route = '/v1/devices/' + deviceOne.deviceId + '/sub-devices/' + subDeviceOne.subDeviceId + '/sub-device-params/invalid@';
-      const updateBody = {paramName: faker.name.firstName()};
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-params/invalid@`;
+      updateBody = { paramName: faker.name.firstName() };
 
       await request(app)
         .patch(route)
@@ -609,7 +607,7 @@ describe('Sub-Device Params Routes', () => {
     });
 
     it('should return 400 if sub-device paramName is invalid', async () => {
-      const updateBody = {paramName: 'invalidId@'};
+      updateBody = { paramName: 'invalidId@' };
 
       await request(app)
         .patch(route)
@@ -620,7 +618,7 @@ describe('Sub-Device Params Routes', () => {
 
     it('should return 400 if sub-device paramName is already taken', async () => {
       await insertSubDeviceParams([subDeviceParamTwo]);
-      const updateBody = {paramName: subDeviceParamTwo.paramName};
+      updateBody = { paramName: subDeviceParamTwo.paramName };
 
       await request(app)
         .patch(route)
@@ -631,7 +629,7 @@ describe('Sub-Device Params Routes', () => {
 
     it('should not return 400 if paramName is my paramName', async () => {
       await insertSubDeviceParams([subDeviceParamTwo]);
-      const updateBody = {paramName: subDeviceOne.paramName};
+      updateBody = { paramName: subDeviceOne.paramName };
 
       await request(app)
         .patch(route)
@@ -641,7 +639,7 @@ describe('Sub-Device Params Routes', () => {
     });
 
     it('should return 400 if paramName length is less than 1 characters', async () => {
-      const updateBody = {paramName: faker.random.alphaNumeric(0)};
+      updateBody = { paramName: faker.random.alphaNumeric(0) };
 
       await request(app)
         .patch(route)
@@ -651,7 +649,7 @@ describe('Sub-Device Params Routes', () => {
     });
 
     it('should return 400 error if paramName length is greater than 50 characters', async () => {
-      const updateBody = {paramName: faker.random.alphaNumeric(51)};
+      updateBody = { paramName: faker.random.alphaNumeric(51) };
 
       await request(app)
         .patch(route)
@@ -661,7 +659,7 @@ describe('Sub-Device Params Routes', () => {
     });
 
     it('should return 400 error if paramName is not string', async () => {
-      let updateBody = {paramName: 31231};
+      updateBody = { paramName: 31231 };
 
       await request(app)
         .patch(route)
@@ -669,7 +667,7 @@ describe('Sub-Device Params Routes', () => {
         .send(updateBody)
         .expect(httpStatus.BAD_REQUEST);
 
-      updateBody = {paramName: {}};
+      updateBody = { paramName: {} };
 
       await request(app)
         .patch(route)
@@ -679,7 +677,7 @@ describe('Sub-Device Params Routes', () => {
     });
 
     it('should return 500 error if paramValue is invalid', async () => {
-      const updateBody = {paramValue: ''};
+      updateBody = { paramValue: '' };
 
       await request(app)
         .patch(route)

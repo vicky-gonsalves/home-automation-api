@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const faker = require('faker');
-const {subDeviceType} = require('../../src/config/device');
-const {userOne, admin} = require('./user.fixture');
-const {deviceOne, deviceTwo} = require('./device.fixture');
+const { subDeviceType } = require('../../src/config/device');
+const { userOne, admin } = require('./user.fixture');
+const { deviceOne, deviceTwo } = require('./device.fixture');
 const SubDevice = require('../../src/models/subDevice.model');
 
 const email1 = admin.email;
@@ -51,7 +51,7 @@ const subDeviceFour = {
 };
 
 const insertSubDevices = async subDevices => {
-  await SubDevice.insertMany(subDevices.map(subDevice => ({...subDevice})));
+  await SubDevice.insertMany(subDevices.map(subDevice => ({ ...subDevice })));
 };
 
 module.exports = {
