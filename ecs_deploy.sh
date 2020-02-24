@@ -1,4 +1,5 @@
 #! /bin/bash
+chmod +x ./bin/ecs-deploy
 # Deploy only if it's not a pull request
 if [ -z "$TRAVIS_PULL_REQUEST" ] || [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
 # Deploy only if we're testing the master branch
