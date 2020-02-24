@@ -1,0 +1,6 @@
+version: '3'
+
+services:
+  home-automation-api:
+    container_name: home-automation-api-dev
+    command: yarn dev -L

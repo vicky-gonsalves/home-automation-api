@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  home-automation-api:
+    build: .
+    image: home-automation-api
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017/home-automation-api
+    ports:
+      - '9000:9000'
+    depends_on:
+      - mongodb
+
+#    Enable for local docker
+#    volumes:
+#      - .:/usr/src/home-automation-api
+    networks:
+      - node-network
+
+  mongodb:
+    image: mongo:4.2.1-bionic
+    ports:
+      - '27017:27017'
+    volumes:
+      - dbdata:/data/db
+    networks:
+      - node-network
+
+volumes:
+  dbdata:
+
+networks:
+  node-network:
+    driver: bridge

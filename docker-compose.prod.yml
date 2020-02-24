@@ -1,0 +1,7 @@
+version: '3'
+
+services:
+  home-automation-api:
+    image: 161538171660.dkr.ecr.us-east-1.amazonaws.com/home-automation-api:latest
+    container_name: home-automation-api-prod
+    command: yarn start
