@@ -17,4 +17,3 @@ deploy:
     branch: master
 after_success:
   - yarn coverage:coveralls
-  - bin/docker_push.sh
