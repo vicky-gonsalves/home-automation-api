@@ -3,6 +3,7 @@ node_js:
   - '12.15.0'
 services:
   - docker
+  - mongodb
 cache: yarn
 branches:
   only:
