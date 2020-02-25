@@ -4,6 +4,3 @@ task_definition:
     home-automation-api:
       cpu_shares: 100
       mem_limit: 262144000
-    mongodb:
-      cpu_shares: 100
-      mem_limit: 262144000

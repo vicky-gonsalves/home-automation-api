@@ -3,10 +3,14 @@ node_js:
   - '12.15.0'
 services:
   - docker
-cache: yarn
 branches:
   only:
     - master
+    - development
+cache:
+  directories:
+    - node_modules
+  yarn: true
 script:
   - yarn lint
   - yarn test
