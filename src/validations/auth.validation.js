@@ -1,32 +1,32 @@
-const Joi = require('@hapi/joi');
-const { password } = require('./custom.validation');
+import Joi from '@hapi/joi';
+import { passwordValidation } from './custom.validation';
 
-const register = {
+const registerValidation = {
   body: Joi.object().keys({
     email: Joi.string()
       .required()
       .email(),
     password: Joi.string()
       .required()
-      .custom(password),
+      .custom(passwordValidation),
     name: Joi.string().required(),
   }),
 };
 
-const login = {
+const loginValidation = {
   body: Joi.object().keys({
     email: Joi.string().required(),
     password: Joi.string().required(),
   }),
 };
 
-const refreshTokens = {
+const refreshTokensValidation = {
   body: Joi.object().keys({
     refreshToken: Joi.string().required(),
   }),
 };
 
-const forgotPassword = {
+const forgotPasswordValidation = {
   body: Joi.object().keys({
     email: Joi.string()
       .email()
@@ -34,21 +34,21 @@ const forgotPassword = {
   }),
 };
 
-const resetPassword = {
+const resetPasswordValidation = {
   query: Joi.object().keys({
     token: Joi.string().required(),
   }),
   body: Joi.object().keys({
     password: Joi.string()
       .required()
-      .custom(password),
+      .custom(passwordValidation),
   }),
 };
 
 module.exports = {
-  register,
-  login,
-  refreshTokens,
-  forgotPassword,
-  resetPassword,
+  registerValidation,
+  loginValidation,
+  refreshTokensValidation,
+  forgotPasswordValidation,
+  resetPasswordValidation,
 };

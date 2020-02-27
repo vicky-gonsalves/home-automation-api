@@ -1,7 +1,7 @@
-const Joi = require('@hapi/joi');
-const { deviceType } = require('../config/device');
+import Joi from '@hapi/joi';
+import { deviceType } from '../config/device';
 
-const createDevice = {
+const createDeviceValidation = {
   body: Joi.object().keys({
     deviceId: Joi.string()
       .required()
@@ -22,7 +22,7 @@ const createDevice = {
   }),
 };
 
-const getDevices = {
+const getDevicesValidation = {
   query: Joi.object().keys({
     deviceId: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
     name: Joi.string().pattern(new RegExp('^[A-Za-z_\\s\\d]{1,20}$')),
@@ -36,7 +36,7 @@ const getDevices = {
   }),
 };
 
-const getDevice = {
+const getDeviceValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
@@ -44,7 +44,7 @@ const getDevice = {
   }),
 };
 
-const getDeviceByDeviceOwner = {
+const getDeviceByDeviceOwnerValidation = {
   params: Joi.object().keys({
     deviceOwner: Joi.string()
       .email()
@@ -52,7 +52,7 @@ const getDeviceByDeviceOwner = {
   }),
 };
 
-const updateDevice = {
+const updateDeviceValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
@@ -69,7 +69,7 @@ const updateDevice = {
     .min(0),
 };
 
-const deleteDevice = {
+const deleteDeviceValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
@@ -78,10 +78,10 @@ const deleteDevice = {
 };
 
 module.exports = {
-  createDevice,
-  getDevices,
-  getDevice,
-  getDeviceByDeviceOwner,
-  updateDevice,
-  deleteDevice,
+  createDeviceValidation,
+  getDevicesValidation,
+  getDeviceValidation,
+  getDeviceByDeviceOwnerValidation,
+  updateDeviceValidation,
+  deleteDeviceValidation,
 };

@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
-const { Mockgoose } = require('mockgoose');
-const config = require('../../src/config/config');
+import mongoose from 'mongoose';
+import { Mockgoose } from 'mockgoose';
+import config from '../../src/config/config';
 
 const setupTestDBWithActualTestDB = () => {
   beforeAll(async () => {

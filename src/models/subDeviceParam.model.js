@@ -1,7 +1,6 @@
-const validator = require('validator');
-
-const mongoose = require('mongoose');
-const { omit, pick } = require('lodash');
+import validator from 'validator';
+import mongoose from 'mongoose';
+import { omit, pick } from 'lodash';
 
 const subDeviceParamsSchema = mongoose.Schema(
   {
@@ -102,4 +101,4 @@ subDeviceParamsSchema.index({ deviceId: 1, subDeviceId: 1, paramName: 1 }, { uni
 
 const SubDeviceParam = mongoose.model('SubDeviceParam', subDeviceParamsSchema);
 
-module.exports = SubDeviceParam;
+export default SubDeviceParam;

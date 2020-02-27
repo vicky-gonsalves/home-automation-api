@@ -1,5 +1,5 @@
-const faker = require('faker');
-const { SubDeviceParam } = require('../../../src/models');
+import faker from 'faker';
+import SubDeviceParam from '../../../src/models/subDeviceParam.model';
 
 describe('SubDeviceParam Model', () => {
   describe('SubDeviceParam validation', () => {

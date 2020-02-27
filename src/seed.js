@@ -1,11 +1,13 @@
-const { SeedUserFn } = require('./seed-scripts/user.seed');
+'use strict';
+
+import SeedUserFn from './seed-scripts/user.seed';
 
 const seedUser = true;
 
-const Seed = () => {
+const Seed = async () => {
   if (seedUser) {
-    SeedUserFn();
+    await SeedUserFn();
   }
 };
 
-module.exports = { Seed };
+module.exports = Seed;

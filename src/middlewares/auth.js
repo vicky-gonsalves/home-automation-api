@@ -1,7 +1,7 @@
-const passport = require('passport');
-const httpStatus = require('http-status');
-const AppError = require('../utils/AppError');
-const { roleRights } = require('../config/roles');
+import passport from 'passport';
+import httpStatus from 'http-status';
+import AppError from '../utils/AppError';
+import { roleRights } from '../config/roles';
 
 const verifyCallback = (req, resolve, reject, requiredRights) => async (err, user, info) => {
   if (err || info || !user) {

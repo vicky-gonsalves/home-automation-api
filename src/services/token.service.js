@@ -1,11 +1,11 @@
-const jwt = require('jsonwebtoken');
-const moment = require('moment');
-const httpStatus = require('http-status');
-const config = require('../config/config');
-const { Token } = require('../models');
-const AppError = require('../utils/AppError');
+import httpStatus from 'http-status';
+import jwt from 'jsonwebtoken';
+import moment from 'moment';
+import config from '../config/config';
+import Token from '../models/token.model';
+import AppError from '../utils/AppError';
 
-const generateToken = (userId, expires, secret = config.jwt.secret) => {
+const generateTokenService = (userId, expires, secret = config.jwt.secret) => {
   const payload = {
     sub: userId,
     iat: moment().unix(),
@@ -14,18 +14,17 @@ const generateToken = (userId, expires, secret = config.jwt.secret) => {
   return jwt.sign(payload, secret);
 };
 
-const saveToken = async (token, userId, expires, type, blacklisted = false) => {
-  const tokenDoc = await Token.create({
+const saveTokenService = async (token, userId, expires, type, blacklisted = false) => {
+  return Token.create({
     token,
     user: userId,
     expires: expires.toDate(),
     type,
     blacklisted,
   });
-  return tokenDoc;
 };
 
-const verifyToken = async (token, type) => {
+const verifyTokenService = async (token, type) => {
   const payload = jwt.verify(token, config.jwt.secret);
   const tokenDoc = await Token.findOne({ token, type, user: payload.sub, blacklisted: false });
   if (!tokenDoc) {
@@ -35,7 +34,7 @@ const verifyToken = async (token, type) => {
 };
 
 module.exports = {
-  generateToken,
-  saveToken,
-  verifyToken,
+  generateTokenService,
+  saveTokenService,
+  verifyTokenService,
 };

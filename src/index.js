@@ -1,8 +1,9 @@
-const mongoose = require('mongoose');
-const app = require('./app');
+import mongoose from 'mongoose';
+import Seed from './seed';
+import app from './app';
+
 const config = require('./config/config');
 const logger = require('./config/logger');
-const { Seed } = require('./seed');
 
 let server;
 mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
@@ -15,6 +16,7 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
     Seed();
   }
 });
+mongoose.set('debug', true);
 
 const exitHandler = () => {
   if (server) {

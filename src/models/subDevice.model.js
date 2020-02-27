@@ -1,8 +1,7 @@
-const validator = require('validator');
-
-const mongoose = require('mongoose');
-const { omit, pick } = require('lodash');
-const { subDeviceType } = require('../config/device');
+import validator from 'validator';
+import mongoose from 'mongoose';
+import { omit, pick } from 'lodash';
+import { subDeviceType } from '../config/device';
 
 const subDeviceSchema = mongoose.Schema(
   {
@@ -99,4 +98,4 @@ subDeviceSchema.pre('save', function(next) {
 
 const SubDevice = mongoose.model('SubDevice', subDeviceSchema);
 
-module.exports = SubDevice;
+export default SubDevice;

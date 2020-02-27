@@ -1,26 +1,20 @@
-const faker = require('faker');
-const request = require('supertest');
-const httpStatus = require('http-status');
-const { setupTestDB } = require('../utils/setupTestDB');
-const app = require('../../src/app');
-const { userOneAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
-const { userOne, admin, insertUsers } = require('../fixtures/user.fixture');
-const { deviceOne, insertDevices } = require('../fixtures/device.fixture');
-const {
-  subDeviceOne,
-  subDeviceTwo,
-  subDeviceThree,
-  subDeviceFour,
-  insertSubDevices,
-} = require('../fixtures/subDevice.fixture');
-const {
+import faker from 'faker';
+import request from 'supertest';
+import httpStatus from 'http-status';
+import { setupTestDB } from '../utils/setupTestDB';
+import app from '../../src/app';
+import { userOneAccessToken, adminAccessToken } from '../fixtures/token.fixture';
+import { userOne, admin, insertUsers } from '../fixtures/user.fixture';
+import { deviceOne, insertDevices } from '../fixtures/device.fixture';
+import { subDeviceOne, subDeviceTwo, subDeviceThree, subDeviceFour, insertSubDevices } from '../fixtures/subDevice.fixture';
+import {
   subDeviceParamOne,
   subDeviceParamTwo,
   subDeviceParamThree,
   subDeviceParamFour,
   insertSubDeviceParams,
-} = require('../fixtures/subDeviceParam.fixture');
-const { SubDeviceParam } = require('../../src/models');
+} from '../fixtures/subDeviceParam.fixture';
+import SubDeviceParam from '../../src/models/subDeviceParam.model';
 
 setupTestDB();
 

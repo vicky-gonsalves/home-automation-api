@@ -1,14 +1,14 @@
-const Joi = require('@hapi/joi');
-const { password, objectId } = require('./custom.validation');
+import Joi from '@hapi/joi';
+import { passwordValidation, objectIdValidation } from './custom.validation';
 
-const createUser = {
+const createUserValidation = {
   body: Joi.object().keys({
     email: Joi.string()
       .required()
       .email(),
     password: Joi.string()
       .required()
-      .custom(password),
+      .custom(passwordValidation),
     name: Joi.string().required(),
     role: Joi.string()
       .required()
@@ -16,7 +16,7 @@ const createUser = {
   }),
 };
 
-const getUsers = {
+const getUsersValidation = {
   query: Joi.object().keys({
     name: Joi.string(),
     role: Joi.string(),
@@ -26,35 +26,35 @@ const getUsers = {
   }),
 };
 
-const getUser = {
+const getUserValidation = {
   params: Joi.object().keys({
-    userId: Joi.string().custom(objectId),
+    userId: Joi.string().custom(objectIdValidation),
   }),
 };
 
-const updateUser = {
+const updateUserValidation = {
   params: Joi.object().keys({
-    userId: Joi.required().custom(objectId),
+    userId: Joi.required().custom(objectIdValidation),
   }),
   body: Joi.object()
     .keys({
       email: Joi.string().email(),
-      password: Joi.string().custom(password),
+      password: Joi.string().custom(passwordValidation),
       name: Joi.string(),
     })
     .min(1),
 };
 
-const deleteUser = {
+const deleteUserValidation = {
   params: Joi.object().keys({
-    userId: Joi.string().custom(objectId),
+    userId: Joi.string().custom(objectIdValidation),
   }),
 };
 
 module.exports = {
-  createUser,
-  getUsers,
-  getUser,
-  updateUser,
-  deleteUser,
+  createUserValidation,
+  getUsersValidation,
+  getUserValidation,
+  updateUserValidation,
+  deleteUserValidation,
 };

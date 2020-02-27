@@ -1,9 +1,9 @@
-const mongoose = require('mongoose');
-const faker = require('faker');
-const { subDeviceType } = require('../../src/config/device');
-const { userOne, admin } = require('./user.fixture');
-const { deviceOne, deviceTwo } = require('./device.fixture');
-const SubDevice = require('../../src/models/subDevice.model');
+import mongoose from 'mongoose';
+import faker from 'faker';
+import { subDeviceType } from '../../src/config/device';
+import { userOne, admin } from './user.fixture';
+import { deviceOne, deviceTwo } from './device.fixture';
+import SubDevice from '../../src/models/subDevice.model';
 
 const email1 = admin.email;
 const email2 = userOne.email;

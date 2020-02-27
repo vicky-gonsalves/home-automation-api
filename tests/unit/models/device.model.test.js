@@ -1,7 +1,6 @@
-const faker = require('faker');
-const { deviceType } = require('../../../src/config/device');
-
-const { Device } = require('../../../src/models');
+import faker from 'faker';
+import { deviceType } from '../../../src/config/device';
+import Device from '../../../src/models/device.model';
 
 describe('Device Model', () => {
   describe('Device validation', () => {

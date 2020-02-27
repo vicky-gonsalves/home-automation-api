@@ -10,4 +10,6 @@ RUN yarn install --pure-lockfile
 
 COPY . .
 
+RUN yarn build
+
 EXPOSE 9000

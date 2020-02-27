@@ -1,7 +1,7 @@
-const Joi = require('@hapi/joi');
-const httpStatus = require('http-status');
-const { pick } = require('lodash');
-const AppError = require('../utils/AppError');
+import Joi from '@hapi/joi';
+import httpStatus from 'http-status';
+import { pick } from 'lodash';
+import AppError from '../utils/AppError';
 
 const validate = schema => (req, res, next) => {
   const validSchema = pick(schema, ['params', 'query', 'body']);

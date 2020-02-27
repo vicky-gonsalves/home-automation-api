@@ -1,13 +1,19 @@
-const faker = require('faker');
-const request = require('supertest');
-const httpStatus = require('http-status');
-const { setupTestDB } = require('../utils/setupTestDB');
-const { deviceType } = require('../../src/config/device');
-const app = require('../../src/app');
-const { userOneAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
-const { userOne, userTwo, admin, insertUsers } = require('../fixtures/user.fixture');
-const { deviceOne, deviceTwo, insertDevices } = require('../fixtures/device.fixture');
-const { Device } = require('../../src/models');
+import faker from 'faker';
+import httpStatus from 'http-status';
+import request from 'supertest';
+import app from '../../src/app';
+import { deviceType } from '../../src/config/device';
+import Device from '../../src/models/device.model';
+import SocketId from '../../src/models/socketId.model';
+import SubDevice from '../../src/models/subDevice.model';
+import SubDeviceParam from '../../src/models/subDeviceParam.model';
+import { deviceOne, deviceTwo, insertDevices } from '../fixtures/device.fixture';
+import { insertSocketIds, socketIdSix } from '../fixtures/socketId.fixture';
+import { insertSubDevices, subDeviceFour, subDeviceThree } from '../fixtures/subDevice.fixture';
+import { insertSubDeviceParams, subDeviceParamFive, subDeviceParamFour } from '../fixtures/subDeviceParam.fixture';
+import { adminAccessToken, userOneAccessToken } from '../fixtures/token.fixture';
+import { admin, insertUsers, userOne, userTwo } from '../fixtures/user.fixture';
+import { setupTestDB } from '../utils/setupTestDB';
 
 setupTestDB();
 
@@ -717,6 +723,33 @@ describe('Device Routes', () => {
       expect(dbDevice).toBeNull();
     });
 
+    it('should return 204 and delete device, all sub-devices, all sub-device-params and all socketIds of a device', async () => {
+      await insertUsers([admin]);
+      await insertDevices([deviceTwo]);
+      await insertSubDevices([subDeviceThree, subDeviceFour]);
+      await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
+      await insertSocketIds([socketIdSix]);
+
+      await request(app)
+        .delete(`${route}/${deviceTwo.deviceId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.NO_CONTENT);
+
+      const dbDeviceOne = await Device.findById(deviceTwo._id);
+      expect(dbDeviceOne).toBeNull();
+      const dbSubDeviceOne = await SubDevice.findById(subDeviceThree._id);
+      expect(dbSubDeviceOne).toBeNull();
+      const dbSubDeviceTwo = await SubDevice.findById(subDeviceFour._id);
+      expect(dbSubDeviceTwo).toBeNull();
+      const dbSubDeviceParamOne = await SubDeviceParam.findById(subDeviceParamFour._id);
+      expect(dbSubDeviceParamOne).toBeNull();
+      const dbSubDeviceParamTwo = await SubDeviceParam.findById(subDeviceParamFive._id);
+      expect(dbSubDeviceParamTwo).toBeNull();
+      const dbSocketIdOne = await SocketId.findById(socketIdSix._id);
+      expect(dbSocketIdOne).toBeNull();
+    });
+
     it('should return 401 error if access token is missing', async () => {
       await insertUsers([userOne]);
 
@@ -810,6 +843,36 @@ describe('Device Routes', () => {
         deviceOwner: updateBody.deviceOwner,
         updatedBy: admin.email,
       });
+    });
+
+    it('should return 200 and update device, all sub-devices, all sub-device-params and all socketIds of a device', async () => {
+      await insertUsers([admin]);
+      await insertDevices([deviceTwo]);
+      await insertSubDevices([subDeviceThree, subDeviceFour]);
+      await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
+      await insertSocketIds([socketIdSix]);
+
+      await request(app)
+        .patch(`${route}/${deviceTwo.deviceId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      const dbSubDeviceTwo = await SubDevice.findById(subDeviceFour._id);
+      expect(dbSubDeviceTwo).toBeDefined();
+      expect(dbSubDeviceTwo.deviceId).toBe(updateBody.deviceId);
+
+      const dbSubDeviceParamOne = await SubDeviceParam.findById(subDeviceParamFour._id);
+      expect(dbSubDeviceParamOne).toBeDefined();
+      expect(dbSubDeviceParamOne.deviceId).toBe(updateBody.deviceId);
+
+      const dbSubDeviceParamTwo = await SubDeviceParam.findById(subDeviceParamFive._id);
+      expect(dbSubDeviceParamTwo).toBeDefined();
+      expect(dbSubDeviceParamTwo.deviceId).toBe(updateBody.deviceId);
+
+      const dbSocketIdTwo = await SocketId.findById(socketIdSix._id);
+      expect(dbSocketIdTwo).toBeDefined();
+      expect(dbSocketIdTwo.bindedTo).toBe(updateBody.deviceId);
     });
 
     it('should return 401 error if access token is missing', async () => {

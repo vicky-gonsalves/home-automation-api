@@ -1,6 +1,6 @@
-const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
-const config = require('./config');
-const { User } = require('../models');
+import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
+import config from './config';
+import User from '../models/user.model';
 
 const jwtOptions = {
   secretOrKey: config.jwt.secret,

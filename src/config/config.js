@@ -1,6 +1,6 @@
-const dotenv = require('dotenv');
-const path = require('path');
-const Joi = require('@hapi/joi');
+import dotenv from 'dotenv';
+import path from 'path';
+import Joi from '@hapi/joi';
 
 dotenv.config({ path: path.join(__dirname, '../../.env') });
 

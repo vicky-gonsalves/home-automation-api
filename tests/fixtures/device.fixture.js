@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
-const faker = require('faker');
-const { deviceType } = require('../../src/config/device');
-const Device = require('../../src/models/device.model');
-const { admin, userOne } = require('./user.fixture');
+import mongoose from 'mongoose';
+import faker from 'faker';
+import { deviceType } from '../../src/config/device';
+import Device from '../../src/models/device.model';
+import { admin, userOne } from './user.fixture';
 
 const email1 = admin.email;
 const email2 = userOne.email;
@@ -29,6 +29,17 @@ const deviceTwo = {
   updatedBy: email2,
 };
 
+const deviceThree = {
+  _id: mongoose.Types.ObjectId(),
+  deviceId: faker.random.alphaNumeric(16),
+  name: 'Light',
+  type: deviceType[1],
+  deviceOwner: email2,
+  registeredAt: new Date().toISOString(),
+  createdBy: email2,
+  updatedBy: email2,
+};
+
 const insertDevices = async devices => {
   await Device.insertMany(devices.map(device => ({ ...device })));
 };
@@ -37,4 +48,5 @@ module.exports = {
   insertDevices,
   deviceOne,
   deviceTwo,
+  deviceThree,
 };

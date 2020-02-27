@@ -1,7 +1,7 @@
-const httpStatus = require('http-status');
-const config = require('../config/config');
-const logger = require('../config/logger');
-const AppError = require('../utils/AppError');
+import httpStatus from 'http-status';
+import config from '../config/config';
+import logger from '../config/logger';
+import AppError from '../utils/AppError';
 
 const errorConverter = (err, req, res, next) => {
   let error = err;
@@ -14,7 +14,7 @@ const errorConverter = (err, req, res, next) => {
 };
 
 // eslint-disable-next-line no-unused-vars
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res) => {
   let { statusCode, message } = err;
   if (config.env === 'production' && !err.isOperational) {
     statusCode = httpStatus.INTERNAL_SERVER_ERROR;

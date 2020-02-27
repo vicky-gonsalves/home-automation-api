@@ -1,7 +1,7 @@
-const express = require('express');
-const authRoute = require('./auth.route');
-const userRoute = require('./user.route');
-const deviceRoute = require('./device.route');
+import express from 'express';
+import authRoute from './auth.route';
+import userRoute from './user.route';
+import deviceRoute from './device.route';
 
 const router = express.Router();
 

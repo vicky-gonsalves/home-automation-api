@@ -1,6 +1,8 @@
-const { User } = require('../../src/models');
-const logger = require('../config/logger');
-const config = require('../config/config');
+'use-strict';
+
+import User from '../models/user.model';
+import logger from '../config/logger';
+import config from '../config/config';
 
 const SeedUserFn = async () => {
   await User.find({}).deleteMany();
@@ -8,4 +10,4 @@ const SeedUserFn = async () => {
   logger.info('User Seed Done');
 };
 
-module.exports = { SeedUserFn };
+module.exports = SeedUserFn;

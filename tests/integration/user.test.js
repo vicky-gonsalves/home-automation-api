@@ -1,11 +1,19 @@
-const request = require('supertest');
-const faker = require('faker');
-const httpStatus = require('http-status');
-const app = require('../../src/app');
-const { setupTestDB } = require('../utils/setupTestDB');
-const { User } = require('../../src/models');
-const { userOne, userTwo, admin, insertUsers } = require('../fixtures/user.fixture');
-const { userOneAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
+import faker from 'faker';
+import httpStatus from 'http-status';
+import request from 'supertest';
+import app from '../../src/app';
+import Device from '../../src/models/device.model';
+import SocketId from '../../src/models/socketId.model';
+import SubDevice from '../../src/models/subDevice.model';
+import SubDeviceParam from '../../src/models/subDeviceParam.model';
+import User from '../../src/models/user.model';
+import { deviceThree, deviceTwo, insertDevices } from '../fixtures/device.fixture';
+import { insertSocketIds, socketIdFive, socketIdFour, socketIdOne, socketIdSix } from '../fixtures/socketId.fixture';
+import { insertSubDevices, subDeviceFour, subDeviceThree } from '../fixtures/subDevice.fixture';
+import { insertSubDeviceParams, subDeviceParamFive, subDeviceParamFour } from '../fixtures/subDeviceParam.fixture';
+import { adminAccessToken, userOneAccessToken } from '../fixtures/token.fixture';
+import { admin, insertUsers, userOne, userTwo } from '../fixtures/user.fixture';
+import { setupTestDB } from '../utils/setupTestDB';
 
 setupTestDB();
 
@@ -344,6 +352,42 @@ describe('User routes', () => {
       expect(dbUser).toBeNull();
     });
 
+    it('should return 204 and delete user, all devices, all sub-devices, all sub-device-params and all socket ids of user', async () => {
+      await insertUsers([userOne]);
+      await insertDevices([deviceTwo, deviceThree]);
+      await insertSubDevices([subDeviceThree, subDeviceFour]);
+      await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
+      await insertSocketIds([socketIdOne, socketIdFour, socketIdFive, socketIdSix]);
+      await request(app)
+        .delete(`/v1/users/${userOne._id}`)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send()
+        .expect(httpStatus.NO_CONTENT);
+
+      const dbUser = await User.findById(userOne._id);
+      expect(dbUser).toBeNull();
+      const dbDeviceOne = await Device.findById(deviceTwo._id);
+      expect(dbDeviceOne).toBeNull();
+      const dbDeviceTwo = await Device.findById(deviceThree._id);
+      expect(dbDeviceTwo).toBeNull();
+      const dbSubDeviceOne = await SubDevice.findById(subDeviceThree._id);
+      expect(dbSubDeviceOne).toBeNull();
+      const dbSubDeviceTwo = await SubDevice.findById(subDeviceFour._id);
+      expect(dbSubDeviceTwo).toBeNull();
+      const dbSubDeviceParamOne = await SubDeviceParam.findById(subDeviceParamFour._id);
+      expect(dbSubDeviceParamOne).toBeNull();
+      const dbSubDeviceParamTwo = await SubDeviceParam.findById(subDeviceParamFive._id);
+      expect(dbSubDeviceParamTwo).toBeNull();
+      const dbSocketIdOne = await SocketId.findById(socketIdFour._id);
+      expect(dbSocketIdOne).toBeNull();
+      const dbSocketIdTwo = await SocketId.findById(socketIdFive._id);
+      expect(dbSocketIdTwo).toBeNull();
+      const dbSocketIdThree = await SocketId.findById(socketIdSix._id);
+      expect(dbSocketIdThree).toBeNull();
+      const dbSocketFour = await SocketId.findById(socketIdOne._id);
+      expect(dbSocketFour).not.toBeNull();
+    });
+
     it('should return 401 error if access token is missing', async () => {
       await insertUsers([userOne]);
 
@@ -371,6 +415,43 @@ describe('User routes', () => {
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send()
         .expect(httpStatus.NO_CONTENT);
+    });
+
+    it('should return 204 admin is trying to delete another user and delete user, all devices, all sub-devices, all sub-device-params and all socket ids of user', async () => {
+      await insertUsers([userOne, admin]);
+      await insertDevices([deviceTwo, deviceThree]);
+      await insertSubDevices([subDeviceThree, subDeviceFour]);
+      await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
+      await insertSocketIds([socketIdOne, socketIdFour, socketIdFive, socketIdSix]);
+
+      await request(app)
+        .delete(`/v1/users/${userOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.NO_CONTENT);
+
+      const dbUser = await User.findById(userOne._id);
+      expect(dbUser).toBeNull();
+      const dbDeviceOne = await Device.findById(deviceTwo._id);
+      expect(dbDeviceOne).toBeNull();
+      const dbDeviceTwo = await Device.findById(deviceThree._id);
+      expect(dbDeviceTwo).toBeNull();
+      const dbSubDeviceOne = await SubDevice.findById(subDeviceThree._id);
+      expect(dbSubDeviceOne).toBeNull();
+      const dbSubDeviceTwo = await SubDevice.findById(subDeviceFour._id);
+      expect(dbSubDeviceTwo).toBeNull();
+      const dbSubDeviceParamOne = await SubDeviceParam.findById(subDeviceParamFour._id);
+      expect(dbSubDeviceParamOne).toBeNull();
+      const dbSubDeviceParamTwo = await SubDeviceParam.findById(subDeviceParamFive._id);
+      expect(dbSubDeviceParamTwo).toBeNull();
+      const dbSocketIdOne = await SocketId.findById(socketIdFour._id);
+      expect(dbSocketIdOne).toBeNull();
+      const dbSocketIdTwo = await SocketId.findById(socketIdFive._id);
+      expect(dbSocketIdTwo).toBeNull();
+      const dbSocketIdThree = await SocketId.findById(socketIdSix._id);
+      expect(dbSocketIdThree).toBeNull();
+      const dbSocketFour = await SocketId.findById(socketIdOne._id);
+      expect(dbSocketFour).not.toBeNull();
     });
 
     it('should return 400 error if userId is not a valid mongo id', async () => {
@@ -423,6 +504,71 @@ describe('User routes', () => {
       expect(dbUser).toMatchObject({ name: updateBody.name, email: updateBody.email, role: 'user' });
     });
 
+    it('should return 200 and successfully update user, all devices, all sub-devices, all sub-device-params and all socketIds of user', async () => {
+      const updateBody = {
+        name: faker.name.findName(),
+        email: faker.internet.email().toLowerCase(),
+        password: 'newPassword1',
+      };
+
+      await insertUsers([userOne]);
+      await insertDevices([deviceTwo, deviceThree]);
+      await insertSubDevices([subDeviceThree, subDeviceFour]);
+      await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
+      await insertSocketIds([socketIdOne, socketIdFour, socketIdFive, socketIdSix]);
+
+      await request(app)
+        .patch(`/v1/users/${userOne._id}`)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      const dbUser = await User.findById(userOne._id);
+      expect(dbUser).toBeDefined();
+      expect(dbUser.password).not.toBe(updateBody.password);
+      expect(dbUser).toMatchObject({ name: updateBody.name, email: updateBody.email, role: 'user' });
+
+      const dbDeviceOne = await Device.findById(deviceTwo._id);
+      expect(dbDeviceOne).toBeDefined();
+      expect(dbDeviceOne.createdBy).toBe(updateBody.email);
+      expect(dbDeviceOne.updatedBy).toBe(updateBody.email);
+      expect(dbDeviceOne.deviceOwner).toBe(updateBody.email);
+
+      const dbDeviceTwo = await Device.findById(deviceThree._id);
+      expect(dbDeviceTwo).toBeDefined();
+      expect(dbDeviceTwo.createdBy).toBe(updateBody.email);
+      expect(dbDeviceTwo.updatedBy).toBe(updateBody.email);
+      expect(dbDeviceTwo.deviceOwner).toBe(updateBody.email);
+
+      const dbSubDeviceOne = await SubDevice.findById(subDeviceThree._id);
+      expect(dbSubDeviceOne).toBeDefined();
+      expect(dbSubDeviceOne.createdBy).toBe(updateBody.email);
+      expect(dbSubDeviceOne.updatedBy).toBe(updateBody.email);
+
+      const dbSubDeviceTwo = await SubDevice.findById(subDeviceFour._id);
+      expect(dbSubDeviceTwo).toBeDefined();
+      expect(dbSubDeviceTwo.createdBy).toBe(updateBody.email);
+      expect(dbSubDeviceTwo.updatedBy).toBe(updateBody.email);
+
+      const dbSubDeviceParamOne = await SubDeviceParam.findById(subDeviceParamFour._id);
+      expect(dbSubDeviceParamOne).toBeDefined();
+      expect(dbSubDeviceParamOne.createdBy).toBe(updateBody.email);
+      expect(dbSubDeviceParamOne.updatedBy).toBe(updateBody.email);
+
+      const dbSubDeviceParamTwo = await SubDeviceParam.findById(subDeviceParamFive._id);
+      expect(dbSubDeviceParamTwo).toBeDefined();
+      expect(dbSubDeviceParamTwo.createdBy).toBe(updateBody.email);
+      expect(dbSubDeviceParamTwo.updatedBy).toBe(updateBody.email);
+
+      const dbSocketIdOne = await SocketId.findById(socketIdFour._id);
+      expect(dbSocketIdOne).toBeDefined();
+      expect(dbSocketIdOne.bindedTo).toBe(updateBody.email);
+
+      const dbSocketIdTwo = await SocketId.findById(socketIdFive._id);
+      expect(dbSocketIdTwo).toBeDefined();
+      expect(dbSocketIdTwo.bindedTo).toBe(updateBody.email);
+    });
+
     it('should return 401 error if access token is missing', async () => {
       await insertUsers([userOne]);
       const updateBody = { name: faker.name.findName() };
@@ -453,6 +599,71 @@ describe('User routes', () => {
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updateBody)
         .expect(httpStatus.OK);
+    });
+
+    it('should return 200 and successfully update user, all devices, all sub-devices, all sub-device-params and all socketIds of user if admin is updating another user', async () => {
+      const updateBody = {
+        name: faker.name.findName(),
+        email: faker.internet.email().toLowerCase(),
+        password: 'newPassword1',
+      };
+
+      await insertUsers([userOne, admin]);
+      await insertDevices([deviceTwo, deviceThree]);
+      await insertSubDevices([subDeviceThree, subDeviceFour]);
+      await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
+      await insertSocketIds([socketIdOne, socketIdFour, socketIdFive, socketIdSix]);
+
+      await request(app)
+        .patch(`/v1/users/${userOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      const dbUser = await User.findById(userOne._id);
+      expect(dbUser).toBeDefined();
+      expect(dbUser.password).not.toBe(updateBody.password);
+      expect(dbUser).toMatchObject({ name: updateBody.name, email: updateBody.email, role: 'user' });
+
+      const dbDeviceOne = await Device.findById(deviceTwo._id);
+      expect(dbDeviceOne).toBeDefined();
+      expect(dbDeviceOne.createdBy).toBe(updateBody.email);
+      expect(dbDeviceOne.updatedBy).toBe(updateBody.email);
+      expect(dbDeviceOne.deviceOwner).toBe(updateBody.email);
+
+      const dbDeviceTwo = await Device.findById(deviceThree._id);
+      expect(dbDeviceTwo).toBeDefined();
+      expect(dbDeviceTwo.createdBy).toBe(updateBody.email);
+      expect(dbDeviceTwo.updatedBy).toBe(updateBody.email);
+      expect(dbDeviceTwo.deviceOwner).toBe(updateBody.email);
+
+      const dbSubDeviceOne = await SubDevice.findById(subDeviceThree._id);
+      expect(dbSubDeviceOne).toBeDefined();
+      expect(dbSubDeviceOne.createdBy).toBe(updateBody.email);
+      expect(dbSubDeviceOne.updatedBy).toBe(updateBody.email);
+
+      const dbSubDeviceTwo = await SubDevice.findById(subDeviceFour._id);
+      expect(dbSubDeviceTwo).toBeDefined();
+      expect(dbSubDeviceTwo.createdBy).toBe(updateBody.email);
+      expect(dbSubDeviceTwo.updatedBy).toBe(updateBody.email);
+
+      const dbSubDeviceParamOne = await SubDeviceParam.findById(subDeviceParamFour._id);
+      expect(dbSubDeviceParamOne).toBeDefined();
+      expect(dbSubDeviceParamOne.createdBy).toBe(updateBody.email);
+      expect(dbSubDeviceParamOne.updatedBy).toBe(updateBody.email);
+
+      const dbSubDeviceParamTwo = await SubDeviceParam.findById(subDeviceParamFive._id);
+      expect(dbSubDeviceParamTwo).toBeDefined();
+      expect(dbSubDeviceParamTwo.createdBy).toBe(updateBody.email);
+      expect(dbSubDeviceParamTwo.updatedBy).toBe(updateBody.email);
+
+      const dbSocketIdOne = await SocketId.findById(socketIdFour._id);
+      expect(dbSocketIdOne).toBeDefined();
+      expect(dbSocketIdOne.bindedTo).toBe(updateBody.email);
+
+      const dbSocketIdTwo = await SocketId.findById(socketIdFive._id);
+      expect(dbSocketIdTwo).toBeDefined();
+      expect(dbSocketIdTwo.bindedTo).toBe(updateBody.email);
     });
 
     it('should return 404 if admin is updating another user that is not found', async () => {

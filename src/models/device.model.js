@@ -1,8 +1,7 @@
-const validator = require('validator');
-
-const mongoose = require('mongoose');
-const { omit, pick } = require('lodash');
-const { deviceType } = require('../config/device');
+import validator from 'validator';
+import mongoose from 'mongoose';
+import { omit, pick } from 'lodash';
+import { deviceType } from '../config/device';
 
 const deviceSchema = mongoose.Schema(
   {
@@ -107,4 +106,4 @@ deviceSchema.pre('save', function(next) {
 
 const Device = mongoose.model('Device', deviceSchema);
 
-module.exports = Device;
+export default Device;

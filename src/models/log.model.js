@@ -1,7 +1,6 @@
-const validator = require('validator');
-
-const mongoose = require('mongoose');
-const { omit, pick } = require('lodash');
+import validator from 'validator';
+import mongoose from 'mongoose';
+import { omit, pick } from 'lodash';
 
 const logSchema = mongoose.Schema(
   {
@@ -81,4 +80,4 @@ logSchema.pre('save', function(next) {
 
 const Log = mongoose.model('Log', logSchema);
 
-module.exports = Log;
+export default Log;

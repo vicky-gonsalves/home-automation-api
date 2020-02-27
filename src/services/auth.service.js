@@ -1,19 +1,19 @@
-const moment = require('moment');
-const bcrypt = require('bcryptjs');
-const httpStatus = require('http-status');
-const config = require('../config/config');
-const tokenService = require('./token.service');
-const userService = require('./user.service');
-const Token = require('../models/token.model');
-const AppError = require('../utils/AppError');
+import moment from 'moment';
+import bcrypt from 'bcryptjs';
+import httpStatus from 'http-status';
+import config from '../config/config';
+import { generateTokenService, saveTokenService, verifyTokenService } from './token.service';
+import Token from '../models/token.model';
+import AppError from '../utils/AppError';
+import { getUserByEmailService, getUserByIdService, updateUserService } from './user.service';
 
-const generateAuthTokens = async userId => {
+const generateAuthTokensService = async userId => {
   const accessTokenExpires = moment().add(config.jwt.accessExpirationMinutes, 'minutes');
-  const accessToken = tokenService.generateToken(userId, accessTokenExpires);
+  const accessToken = generateTokenService(userId, accessTokenExpires);
 
   const refreshTokenExpires = moment().add(config.jwt.refreshExpirationDays, 'days');
-  const refreshToken = tokenService.generateToken(userId, refreshTokenExpires);
-  await tokenService.saveToken(refreshToken, userId, refreshTokenExpires, 'refresh');
+  const refreshToken = generateTokenService(userId, refreshTokenExpires);
+  await saveTokenService(refreshToken, userId, refreshTokenExpires, 'refresh');
 
   return {
     access: {
@@ -27,49 +27,49 @@ const generateAuthTokens = async userId => {
   };
 };
 
-const checkPassword = async (password, correctPassword) => {
+const checkPasswordService = async (password, correctPassword) => {
   const isPasswordMatch = await bcrypt.compare(password, correctPassword);
   if (!isPasswordMatch) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Passwords do not match');
   }
 };
 
-const loginUser = async (email, password) => {
+const loginUserService = async (email, password) => {
   try {
-    const user = await userService.getUserByEmail(email);
-    await checkPassword(password, user.password);
+    const user = await getUserByEmailService(email);
+    await checkPasswordService(password, user.password);
     return user;
   } catch (error) {
     throw new AppError(httpStatus.UNAUTHORIZED, 'Incorrect email or password');
   }
 };
 
-const refreshAuthTokens = async refreshToken => {
+const refreshAuthTokensService = async refreshToken => {
   try {
-    const refreshTokenDoc = await tokenService.verifyToken(refreshToken, 'refresh');
+    const refreshTokenDoc = await verifyTokenService(refreshToken, 'refresh');
     const userId = refreshTokenDoc.user;
-    await userService.getUserById(userId);
+    await getUserByIdService(userId);
     await refreshTokenDoc.remove();
-    return await generateAuthTokens(userId);
+    return await generateAuthTokensService(userId);
   } catch (error) {
     throw new AppError(httpStatus.UNAUTHORIZED, 'Please authenticate');
   }
 };
 
-const generateResetPasswordToken = async email => {
-  const user = await userService.getUserByEmail(email);
+const generateResetPasswordTokenService = async email => {
+  const user = await getUserByEmailService(email);
   const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
-  const resetPasswordToken = tokenService.generateToken(user._id, expires);
-  await tokenService.saveToken(resetPasswordToken, user._id, expires, 'resetPassword');
+  const resetPasswordToken = generateTokenService(user._id, expires);
+  await saveTokenService(resetPasswordToken, user._id, expires, 'resetPassword');
   return resetPasswordToken;
 };
 
-const resetPassword = async (resetPasswordToken, newPassword) => {
+const resetUserPasswordService = async (resetPasswordToken, newPassword) => {
   let userId;
   try {
-    const resetPasswordTokenDoc = await tokenService.verifyToken(resetPasswordToken, 'resetPassword');
+    const resetPasswordTokenDoc = await verifyTokenService(resetPasswordToken, 'resetPassword');
     userId = resetPasswordTokenDoc.user;
-    await userService.updateUser(userId, { password: newPassword });
+    await updateUserService(userId, { password: newPassword });
   } catch (error) {
     throw new AppError(httpStatus.UNAUTHORIZED, 'Password reset failed');
   }
@@ -77,9 +77,9 @@ const resetPassword = async (resetPasswordToken, newPassword) => {
 };
 
 module.exports = {
-  generateAuthTokens,
-  loginUser,
-  refreshAuthTokens,
-  generateResetPasswordToken,
-  resetPassword,
+  generateAuthTokensService,
+  loginUserService,
+  refreshAuthTokensService,
+  generateResetPasswordTokenService,
+  resetUserPasswordService,
 };

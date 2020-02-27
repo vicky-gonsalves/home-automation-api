@@ -1,7 +1,7 @@
-const Joi = require('@hapi/joi');
-const { subDeviceType } = require('../config/device');
+import Joi from '@hapi/joi';
+import { subDeviceType } from '../config/device';
 
-const createSubDevice = {
+const createSubDeviceValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
@@ -21,7 +21,7 @@ const createSubDevice = {
   }),
 };
 
-const getSubDevices = {
+const getSubDevicesValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
@@ -38,7 +38,7 @@ const getSubDevices = {
   }),
 };
 
-const getSubDevice = {
+const getSubDeviceValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
@@ -49,7 +49,7 @@ const getSubDevice = {
   }),
 };
 
-const updateSubDevice = {
+const updateSubDeviceValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
@@ -63,13 +63,12 @@ const updateSubDevice = {
       subDeviceId: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
       name: Joi.string().pattern(new RegExp('^[A-Za-z_\\s\\d]{1,20}$')),
       type: Joi.string().valid(...subDeviceType),
-      subDeviceOwner: Joi.string().email(),
       isDisabled: Joi.boolean(),
     })
     .min(0),
 };
 
-const deleteSubDevice = {
+const deleteSubDeviceValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
@@ -81,9 +80,9 @@ const deleteSubDevice = {
 };
 
 module.exports = {
-  createSubDevice,
-  getSubDevices,
-  getSubDevice,
-  updateSubDevice,
-  deleteSubDevice,
+  createSubDeviceValidation,
+  getSubDevicesValidation,
+  getSubDeviceValidation,
+  updateSubDeviceValidation,
+  deleteSubDeviceValidation,
 };

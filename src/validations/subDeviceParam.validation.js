@@ -1,6 +1,6 @@
-const Joi = require('@hapi/joi');
+import Joi from '@hapi/joi';
 
-const createSubDeviceParam = {
+const createSubDeviceParamValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
@@ -18,7 +18,7 @@ const createSubDeviceParam = {
   }),
 };
 
-const getSubDeviceParams = {
+const getSubDeviceParamsValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
@@ -37,7 +37,7 @@ const getSubDeviceParams = {
   }),
 };
 
-const getSubDeviceParam = {
+const getSubDeviceParamValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
@@ -51,7 +51,7 @@ const getSubDeviceParam = {
   }),
 };
 
-const updateSubDeviceParam = {
+const updateSubDeviceParamValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
@@ -72,7 +72,7 @@ const updateSubDeviceParam = {
     .min(0),
 };
 
-const deleteSubDeviceParam = {
+const deleteSubDeviceParamValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
@@ -87,9 +87,9 @@ const deleteSubDeviceParam = {
 };
 
 module.exports = {
-  createSubDeviceParam,
-  getSubDeviceParams,
-  getSubDeviceParam,
-  updateSubDeviceParam,
-  deleteSubDeviceParam,
+  createSubDeviceParamValidation,
+  getSubDeviceParamsValidation,
+  getSubDeviceParamValidation,
+  updateSubDeviceParamValidation,
+  deleteSubDeviceParamValidation,
 };

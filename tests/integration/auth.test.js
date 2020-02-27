@@ -1,19 +1,21 @@
-const request = require('supertest');
-const faker = require('faker');
-const httpStatus = require('http-status');
-const httpMocks = require('node-mocks-http');
-const moment = require('moment');
-const bcrypt = require('bcryptjs');
-const app = require('../../src/app');
-const config = require('../../src/config/config');
-const auth = require('../../src/middlewares/auth');
-const { tokenService, emailService } = require('../../src/services');
-const AppError = require('../../src/utils/AppError');
-const { setupTestDB } = require('../utils/setupTestDB');
-const { User, Token } = require('../../src/models');
-const { roleRights } = require('../../src/config/roles');
-const { userOne, admin, insertUsers } = require('../fixtures/user.fixture');
-const { userOneAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
+import request from 'supertest';
+import faker from 'faker';
+import httpStatus from 'http-status';
+import httpMocks from 'node-mocks-http';
+import moment from 'moment';
+import bcrypt from 'bcryptjs';
+import app from '../../src/app';
+import config from '../../src/config/config';
+import auth from '../../src/middlewares/auth';
+import { generateTokenService, saveTokenService } from '../../src/services/token.service';
+import emailService, { transportService } from '../../src/services/email.service';
+import AppError from '../../src/utils/AppError';
+import { setupTestDB } from '../utils/setupTestDB';
+import User from '../../src/models/user.model';
+import Token from '../../src/models/token.model';
+import { roleRights } from '../../src/config/roles';
+import { userOne, admin, insertUsers } from '../fixtures/user.fixture';
+import { userOneAccessToken, adminAccessToken } from '../fixtures/token.fixture';
 
 setupTestDB();
 
@@ -153,8 +155,8 @@ describe('Auth routes', () => {
     it('should return 200 and new auth tokens if refresh token is valid', async () => {
       await insertUsers([userOne]);
       const expires = moment().add(config.jwt.refreshExpirationDays, 'days');
-      const refreshToken = tokenService.generateToken(userOne._id, expires);
-      await tokenService.saveToken(refreshToken, userOne._id, expires, 'refresh');
+      const refreshToken = generateTokenService(userOne._id, expires);
+      await saveTokenService(refreshToken, userOne._id, expires, 'refresh');
 
       const res = await request(app)
         .post('/v1/auth/refresh-tokens')
@@ -183,8 +185,8 @@ describe('Auth routes', () => {
     it('should return 401 error if refresh token is signed using an invalid secret', async () => {
       await insertUsers([userOne]);
       const expires = moment().add(config.jwt.refreshExpirationDays, 'days');
-      const refreshToken = tokenService.generateToken(userOne._id, expires, 'invalidSecret');
-      await tokenService.saveToken(refreshToken, userOne._id, expires, 'refresh');
+      const refreshToken = generateTokenService(userOne._id, expires, 'invalidSecret');
+      await saveTokenService(refreshToken, userOne._id, expires, 'refresh');
 
       await request(app)
         .post('/v1/auth/refresh-tokens')
@@ -195,7 +197,7 @@ describe('Auth routes', () => {
     it('should return 401 error if refresh token is not found in the database', async () => {
       await insertUsers([userOne]);
       const expires = moment().add(config.jwt.refreshExpirationDays, 'days');
-      const refreshToken = tokenService.generateToken(userOne._id, expires);
+      const refreshToken = generateTokenService(userOne._id, expires);
 
       await request(app)
         .post('/v1/auth/refresh-tokens')
@@ -206,8 +208,8 @@ describe('Auth routes', () => {
     it('should return 401 error if refresh token is blacklisted', async () => {
       await insertUsers([userOne]);
       const expires = moment().add(config.jwt.refreshExpirationDays, 'days');
-      const refreshToken = tokenService.generateToken(userOne._id, expires);
-      await tokenService.saveToken(refreshToken, userOne._id, expires, 'refresh', true);
+      const refreshToken = generateTokenService(userOne._id, expires);
+      await saveTokenService(refreshToken, userOne._id, expires, 'refresh', true);
 
       await request(app)
         .post('/v1/auth/refresh-tokens')
@@ -218,8 +220,8 @@ describe('Auth routes', () => {
     it('should return 401 error if refresh token is expired', async () => {
       await insertUsers([userOne]);
       const expires = moment().subtract(1, 'minutes');
-      const refreshToken = tokenService.generateToken(userOne._id, expires);
-      await tokenService.saveToken(refreshToken, userOne._id, expires, 'refresh');
+      const refreshToken = generateTokenService(userOne._id, expires);
+      await saveTokenService(refreshToken, userOne._id, expires, 'refresh');
 
       await request(app)
         .post('/v1/auth/refresh-tokens')
@@ -229,8 +231,8 @@ describe('Auth routes', () => {
 
     it('should return 401 error if user is not found', async () => {
       const expires = moment().add(config.jwt.refreshExpirationDays, 'days');
-      const refreshToken = tokenService.generateToken(userOne._id, expires);
-      await tokenService.saveToken(refreshToken, userOne._id, expires, 'refresh');
+      const refreshToken = generateTokenService(userOne._id, expires);
+      await saveTokenService(refreshToken, userOne._id, expires, 'refresh');
 
       await request(app)
         .post('/v1/auth/refresh-tokens')
@@ -241,20 +243,20 @@ describe('Auth routes', () => {
 
   describe('POST /v1/auth/forgot-password', () => {
     beforeEach(() => {
-      jest.spyOn(emailService.transport, 'sendMail').mockResolvedValue();
+      jest.spyOn(transportService, 'sendMail').mockResolvedValue();
     });
 
     it('should return 204 and send reset password email to the user', async () => {
       await insertUsers([userOne]);
-      const sendResetPasswordEmailSpy = jest.spyOn(emailService, 'sendResetPasswordEmail');
+      const sendResetPasswordEmailServiceSpy = jest.spyOn(emailService, 'sendResetPasswordEmailService');
 
       await request(app)
         .post('/v1/auth/forgot-password')
         .send({ email: userOne.email })
         .expect(httpStatus.NO_CONTENT);
 
-      expect(sendResetPasswordEmailSpy).toHaveBeenCalledWith(userOne.email, expect.any(String));
-      const resetPasswordToken = sendResetPasswordEmailSpy.mock.calls[0][1];
+      expect(sendResetPasswordEmailServiceSpy).toHaveBeenCalledWith(userOne.email, expect.any(String));
+      const resetPasswordToken = sendResetPasswordEmailServiceSpy.mock.calls[0][1];
       const dbResetPasswordTokenDoc = await Token.findOne({ token: resetPasswordToken, user: userOne._id });
       expect(dbResetPasswordTokenDoc).toBeDefined();
     });
@@ -280,8 +282,8 @@ describe('Auth routes', () => {
     it('should return 204 and reset the password', async () => {
       await insertUsers([userOne]);
       const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
-      const resetPasswordToken = tokenService.generateToken(userOne._id, expires);
-      await tokenService.saveToken(resetPasswordToken, userOne._id, expires, 'resetPassword');
+      const resetPasswordToken = generateTokenService(userOne._id, expires);
+      await saveTokenService(resetPasswordToken, userOne._id, expires, 'resetPassword');
 
       await request(app)
         .post('/v1/auth/reset-password')
@@ -309,8 +311,8 @@ describe('Auth routes', () => {
     it('should return 401 if reset password token is blacklisted', async () => {
       await insertUsers([userOne]);
       const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
-      const resetPasswordToken = tokenService.generateToken(userOne._id, expires);
-      await tokenService.saveToken(resetPasswordToken, userOne._id, expires, 'resetPassword', true);
+      const resetPasswordToken = generateTokenService(userOne._id, expires);
+      await saveTokenService(resetPasswordToken, userOne._id, expires, 'resetPassword', true);
 
       await request(app)
         .post('/v1/auth/reset-password')
@@ -322,8 +324,8 @@ describe('Auth routes', () => {
     it('should return 401 if reset password token is expired', async () => {
       await insertUsers([userOne]);
       const expires = moment().subtract(1, 'minutes');
-      const resetPasswordToken = tokenService.generateToken(userOne._id, expires);
-      await tokenService.saveToken(resetPasswordToken, userOne._id, expires, 'resetPassword');
+      const resetPasswordToken = generateTokenService(userOne._id, expires);
+      await saveTokenService(resetPasswordToken, userOne._id, expires, 'resetPassword');
 
       await request(app)
         .post('/v1/auth/reset-password')
@@ -334,8 +336,8 @@ describe('Auth routes', () => {
 
     it('should return 401 if user is not found', async () => {
       const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
-      const resetPasswordToken = tokenService.generateToken(userOne._id, expires);
-      await tokenService.saveToken(resetPasswordToken, userOne._id, expires, 'resetPassword');
+      const resetPasswordToken = generateTokenService(userOne._id, expires);
+      await saveTokenService(resetPasswordToken, userOne._id, expires, 'resetPassword');
 
       await request(app)
         .post('/v1/auth/reset-password')
@@ -347,8 +349,8 @@ describe('Auth routes', () => {
     it('should return 400 if password is missing or invalid', async () => {
       await insertUsers([userOne]);
       const expires = moment().add(config.jwt.resetPasswordExpirationMinutes, 'minutes');
-      const resetPasswordToken = tokenService.generateToken(userOne._id, expires);
-      await tokenService.saveToken(resetPasswordToken, userOne._id, expires, 'resetPassword');
+      const resetPasswordToken = generateTokenService(userOne._id, expires);
+      await saveTokenService(resetPasswordToken, userOne._id, expires, 'resetPassword');
 
       await request(app)
         .post('/v1/auth/reset-password')
@@ -417,7 +419,7 @@ describe('Auth middleware', () => {
   it('should call next with unauthorized error if access token is generated with an invalid secret', async () => {
     await insertUsers([userOne]);
     const tokenExpires = moment().add(config.jwt.accessExpirationMinutes, 'minutes');
-    const accessToken = tokenService.generateToken(userOne._id, tokenExpires, 'invalidSecret');
+    const accessToken = generateTokenService(userOne._id, tokenExpires, 'invalidSecret');
     const req = httpMocks.createRequest({ headers: { Authorization: `Bearer ${accessToken}` } });
     const next = jest.fn();
 
@@ -432,7 +434,7 @@ describe('Auth middleware', () => {
   it('should call next with unauthorized error if access token is expired', async () => {
     await insertUsers([userOne]);
     const tokenExpires = moment().subtract(1, 'minutes');
-    const accessToken = tokenService.generateToken(userOne._id, tokenExpires);
+    const accessToken = generateTokenService(userOne._id, tokenExpires);
     const req = httpMocks.createRequest({ headers: { Authorization: `Bearer ${accessToken}` } });
     const next = jest.fn();
 

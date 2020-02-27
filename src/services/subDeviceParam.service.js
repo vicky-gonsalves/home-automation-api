@@ -1,11 +1,10 @@
-const httpStatus = require('http-status');
-const { pick } = require('lodash');
-const { getDeviceByDeviceId } = require('./device.service');
-const AppError = require('../utils/AppError');
-const { SubDeviceParam } = require('../models');
-const { getQueryOptions } = require('../utils/service.util');
+import httpStatus from 'http-status';
+import { pick } from 'lodash';
+import AppError from '../utils/AppError';
+import SubDeviceParam from '../models/subDeviceParam.model';
+import { getQueryOptions } from '../utils/service.util';
 
-const checkDuplicateSubDeviceParam = async (deviceId, subDeviceId, paramName, excludeSubDeviceParamId) => {
+const checkDuplicateSubDeviceParamService = async (deviceId, subDeviceId, paramName, excludeSubDeviceParamId) => {
   const subDeviceParam = await SubDeviceParam.findOne({
     deviceId,
     subDeviceId,
@@ -17,16 +16,15 @@ const checkDuplicateSubDeviceParam = async (deviceId, subDeviceId, paramName, ex
   }
 };
 
-const createSubDeviceParam = async (deviceId, subDeviceId, _subDeviceParamBody) => {
+const createSubDeviceParamService = async (deviceId, subDeviceId, _subDeviceParamBody) => {
   const subDeviceParamBody = _subDeviceParamBody;
-  await getDeviceByDeviceId(deviceId);
-  await checkDuplicateSubDeviceParam(deviceId, subDeviceId, subDeviceParamBody.paramName);
+  await checkDuplicateSubDeviceParamService(deviceId, subDeviceId, subDeviceParamBody.paramName);
   subDeviceParamBody.deviceId = deviceId;
   subDeviceParamBody.subDeviceId = subDeviceId;
   return SubDeviceParam.create(subDeviceParamBody);
 };
 
-const getSubDeviceParams = async (deviceId, subDeviceId, query) => {
+const getSubDeviceParamsService = async (deviceId, subDeviceId, query) => {
   const filter = pick(query, [
     'id',
     'deviceId',
@@ -45,7 +43,7 @@ const getSubDeviceParams = async (deviceId, subDeviceId, query) => {
   return SubDeviceParam.find(filter, null, options);
 };
 
-const getSubDeviceParamByParamName = async (deviceId, subDeviceId, paramName) => {
+const getSubDeviceParamByParamNameService = async (deviceId, subDeviceId, paramName) => {
   const subDeviceParam = await SubDeviceParam.findOne({ deviceId, subDeviceId, paramName });
   if (!subDeviceParam) {
     throw new AppError(httpStatus.NOT_FOUND, 'No subDeviceParam found');
@@ -53,27 +51,80 @@ const getSubDeviceParamByParamName = async (deviceId, subDeviceId, paramName) =>
   return subDeviceParam;
 };
 
-const updateSubDeviceParam = async (deviceId, subDeviceId, paramName, updateBody) => {
-  const subDeviceParam = await getSubDeviceParamByParamName(deviceId, subDeviceId, paramName);
+const updateSubDeviceParamService = async (deviceId, subDeviceId, paramName, updateBody) => {
+  const subDeviceParam = await getSubDeviceParamByParamNameService(deviceId, subDeviceId, paramName);
   if (updateBody.paramName) {
-    await getDeviceByDeviceId(deviceId);
-    await checkDuplicateSubDeviceParam(deviceId, subDeviceId, updateBody.paramName, subDeviceParam.id);
+    await checkDuplicateSubDeviceParamService(deviceId, subDeviceId, updateBody.paramName, subDeviceParam.id);
   }
   Object.assign(subDeviceParam, updateBody);
   await subDeviceParam.save();
   return subDeviceParam;
 };
 
-const deleteSubDeviceParam = async (deviceId, subDeviceId, paramName) => {
-  const subDeviceParam = await getSubDeviceParamByParamName(deviceId, subDeviceId, paramName);
+const updateSubDeviceParamDeviceIdService = async (oldDeviceId, newDeviceId) => {
+  const subDeviceParams = await SubDeviceParam.find({ deviceId: oldDeviceId });
+  return Promise.all(
+    subDeviceParams.map(async subDeviceParam => {
+      Object.assign(subDeviceParam, { deviceId: newDeviceId });
+      await subDeviceParam.save();
+      return subDeviceParam;
+    })
+  );
+};
+
+const updateSubDeviceParamSubDeviceIdService = async (oldSubDeviceId, newSubDeviceId) => {
+  const subDeviceParams = await SubDeviceParam.find({ subDeviceId: oldSubDeviceId });
+  return Promise.all(
+    subDeviceParams.map(async subDeviceParam => {
+      Object.assign(subDeviceParam, { subDeviceId: newSubDeviceId });
+      await subDeviceParam.save();
+      return subDeviceParam;
+    })
+  );
+};
+
+const updateSubDeviceParamCreatedByService = async (oldEmail, newEmail) => {
+  const subDeviceParams = await SubDeviceParam.find({ createdBy: oldEmail });
+  return Promise.all(
+    subDeviceParams.map(async subDeviceParam => {
+      Object.assign(subDeviceParam, { createdBy: newEmail });
+      await subDeviceParam.save();
+      return subDeviceParam;
+    })
+  );
+};
+
+const updateSubDeviceParamUpdatedByService = async (oldEmail, newEmail) => {
+  const subDeviceParams = await SubDeviceParam.find({ updatedBy: oldEmail });
+  return Promise.all(
+    subDeviceParams.map(async subDeviceParam => {
+      Object.assign(subDeviceParam, { updatedBy: newEmail });
+      await subDeviceParam.save();
+      return subDeviceParam;
+    })
+  );
+};
+
+const deleteSubDeviceParamService = async (deviceId, subDeviceId, paramName) => {
+  const subDeviceParam = await getSubDeviceParamByParamNameService(deviceId, subDeviceId, paramName);
   await subDeviceParam.remove();
   return subDeviceParam;
 };
 
+const deleteSubDeviceParamByDeviceIdService = async deviceId => {
+  const subDeviceParams = await SubDeviceParam.find({ deviceId });
+  await Promise.all(subDeviceParams.map(subDeviceParam => subDeviceParam.remove()));
+};
+
 module.exports = {
-  createSubDeviceParam,
-  getSubDeviceParams,
-  getSubDeviceParamByParamName,
-  updateSubDeviceParam,
-  deleteSubDeviceParam,
+  createSubDeviceParamService,
+  getSubDeviceParamsService,
+  getSubDeviceParamByParamNameService,
+  updateSubDeviceParamService,
+  updateSubDeviceParamDeviceIdService,
+  updateSubDeviceParamSubDeviceIdService,
+  updateSubDeviceParamCreatedByService,
+  updateSubDeviceParamUpdatedByService,
+  deleteSubDeviceParamService,
+  deleteSubDeviceParamByDeviceIdService,
 };

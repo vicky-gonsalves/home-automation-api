@@ -1,20 +1,23 @@
-const faker = require('faker');
-const request = require('supertest');
-const httpStatus = require('http-status');
-const { setupTestDB } = require('../utils/setupTestDB');
-const { subDeviceType } = require('../../src/config/device');
-const app = require('../../src/app');
-const { userOneAccessToken, adminAccessToken } = require('../fixtures/token.fixture');
-const { userOne, admin, insertUsers } = require('../fixtures/user.fixture');
-const { deviceOne, deviceTwo, insertDevices } = require('../fixtures/device.fixture');
-const {
-  subDeviceOne,
-  subDeviceTwo,
-  subDeviceThree,
-  subDeviceFour,
-  insertSubDevices,
-} = require('../fixtures/subDevice.fixture');
-const { SubDevice } = require('../../src/models');
+import faker from 'faker';
+import httpStatus from 'http-status';
+import request from 'supertest';
+import app from '../../src/app';
+import { subDeviceType } from '../../src/config/device';
+import SubDevice from '../../src/models/subDevice.model';
+import SubDeviceParam from '../../src/models/subDeviceParam.model';
+import { deviceOne, deviceTwo, insertDevices } from '../fixtures/device.fixture';
+import { insertSubDevices, subDeviceFour, subDeviceOne, subDeviceThree, subDeviceTwo } from '../fixtures/subDevice.fixture';
+import {
+  insertSubDeviceParams,
+  subDeviceParamFive,
+  subDeviceParamFour,
+  subDeviceParamOne,
+  subDeviceParamThree,
+  subDeviceParamTwo,
+} from '../fixtures/subDeviceParam.fixture';
+import { adminAccessToken, userOneAccessToken } from '../fixtures/token.fixture';
+import { admin, insertUsers, userOne } from '../fixtures/user.fixture';
+import { setupTestDB } from '../utils/setupTestDB';
 
 setupTestDB();
 
@@ -554,6 +557,24 @@ describe('Sub-Device Routes', () => {
       expect(dbSubDevice).toBeNull();
     });
 
+    it('should return 204 and delete sub-device and all sub-device-params of a device', async () => {
+      await insertDevices([deviceTwo]);
+      await insertSubDevices([subDeviceThree]);
+      await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
+
+      route = `/v1/devices/${deviceTwo.deviceId}/sub-devices/${subDeviceThree.subDeviceId}`;
+      await request(app)
+        .delete(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.NO_CONTENT);
+
+      const dbSubDeviceParamOne = await SubDeviceParam.findById(subDeviceParamFour._id);
+      expect(dbSubDeviceParamOne).toBeNull();
+      const dbSubDeviceParamTwo = await SubDeviceParam.findById(subDeviceParamFive._id);
+      expect(dbSubDeviceParamTwo).toBeNull();
+    });
+
     it('should return 401 error if access token is missing', async () => {
       await request(app)
         .delete(route)
@@ -637,6 +658,27 @@ describe('Sub-Device Routes', () => {
         isDisabled: true,
         updatedBy: admin.email,
       });
+    });
+
+    it('should return 200 and update sub-device and all sub-device-params of a device', async () => {
+      await insertSubDeviceParams([subDeviceParamOne, subDeviceParamTwo, subDeviceParamThree]);
+      await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      const dbSubDeviceParamOne = await SubDeviceParam.findById(subDeviceParamOne._id);
+      expect(dbSubDeviceParamOne).toBeDefined();
+      expect(dbSubDeviceParamOne.subDeviceId).toBe(updateBody.subDeviceId);
+
+      const dbSubDeviceParamTwo = await SubDeviceParam.findById(subDeviceParamTwo._id);
+      expect(dbSubDeviceParamTwo).toBeDefined();
+      expect(dbSubDeviceParamTwo.subDeviceId).toBe(updateBody.subDeviceId);
+
+      const dbSubDeviceParamThree = await SubDeviceParam.findById(subDeviceParamThree._id);
+      expect(dbSubDeviceParamThree).toBeDefined();
+      expect(dbSubDeviceParamThree.subDeviceId).toBe(updateBody.subDeviceId);
     });
 
     it('should return 401 error if access token is missing', async () => {
