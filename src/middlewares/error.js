@@ -34,7 +34,6 @@ const errorHandler = (err, req, res, next) => {
   }
 
   res.status(statusCode).send(response);
-  next();
 };
 
 module.exports = {
