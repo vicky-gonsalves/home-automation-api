@@ -79,6 +79,18 @@ describe('Shared Device Access Routes', () => {
         .expect(httpStatus.BAD_REQUEST);
     });
 
+    it('should return 400 error if user already has aceess to device', async () => {
+      await insertSharedDeviceAccess([accessOne]);
+      newAccess.deviceId = accessOne.deviceId;
+      newAccess.email = accessOne.email;
+
+      await request(app)
+        .post(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(newAccess)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
     it('should return 400 error if deviceId length is less than 16 characters', async () => {
       newAccess.deviceId = faker.random.alphaNumeric(14);
 

@@ -56,6 +56,8 @@ sharedDeviceAccessSchema.methods.transform = function() {
   return pick(sharedDeviceAccess.toJSON(), ['id', 'deviceId', 'email', 'sharedBy', 'isDisabled', 'createdAt', 'updatedAt']);
 };
 
+sharedDeviceAccessSchema.index({ deviceId: 1, email: 1 }, { unique: true });
+
 const SharedDeviceAccess = mongoose.model('SharedDeviceAccess', sharedDeviceAccessSchema);
 
 export default SharedDeviceAccess;
