@@ -1,8 +1,13 @@
 import httpStatus from 'http-status';
 import { pick } from 'lodash';
-import AppError from '../utils/AppError';
 import Device from '../models/device.model';
+import AppError from '../utils/AppError';
 import { getQueryOptions } from '../utils/service.util';
+import {
+  checkSharedDeviceAccessByEmailAndDeviceIdAndDeleteAccessIfExists,
+  deleteSharedDeviceAccessByDeviceIdService,
+  updateSharedDeviceAccessDeviceIdService,
+} from './sharedDeviceAccess.service';
 import { deleteSocketIdByDeviceIdService, updateSocketDeviceIdService } from './socketId.service';
 import { deleteSubDevicesByDeviceIdService, updateDeviceIdService } from './subDevice.service';
 import { updateSubDeviceParamDeviceIdService } from './subDeviceParam.service';
@@ -11,6 +16,13 @@ const checkDuplicateDeviceIdService = async (deviceId, excludeDeviceId) => {
   const device = await Device.findOne({ deviceId, _id: { $ne: excludeDeviceId } });
   if (device) {
     throw new AppError(httpStatus.BAD_REQUEST, 'deviceId already registered');
+  }
+};
+
+const checkIfEmailIsDeviceOwnerAndFail = async (deviceId, deviceOwner) => {
+  const device = await Device.findOne({ deviceId, deviceOwner });
+  if (device) {
+    throw new AppError(httpStatus.BAD_REQUEST, 'Since user owns the device, user already have access to it');
   }
 };
 
@@ -55,10 +67,17 @@ const updateDeviceService = async (id, updateBody) => {
   }
   Object.assign(device, updateBody);
   await device.save();
+  if (updateBody.deviceId || updateBody.deviceOwner) {
+    await checkSharedDeviceAccessByEmailAndDeviceIdAndDeleteAccessIfExists(
+      updateBody.deviceId || device.deviceId,
+      updateBody.deviceOwner || device.deviceOwner
+    );
+  }
   if (updateBody.deviceId) {
     await updateDeviceIdService(oldDeviceId, updateBody.deviceId);
     await updateSubDeviceParamDeviceIdService(oldDeviceId, updateBody.deviceId);
     await updateSocketDeviceIdService(oldDeviceId, updateBody.deviceId);
+    await updateSharedDeviceAccessDeviceIdService(oldDeviceId, updateBody.deviceId);
   }
   return device;
 };
@@ -100,6 +119,7 @@ const deleteDeviceService = async id => {
   const device = await getDeviceByDeviceIdService(id);
   await deleteSubDevicesByDeviceIdService(device.deviceId);
   await deleteSocketIdByDeviceIdService(device.deviceId);
+  await deleteSharedDeviceAccessByDeviceIdService(device.deviceId);
   await device.remove();
   return device;
 };
@@ -114,6 +134,7 @@ const deleteDevicesByDeviceOwnerService = async deviceOwner => {
 };
 
 module.exports = {
+  checkIfEmailIsDeviceOwnerAndFail,
   createDeviceService,
   getDevicesService,
   getDeviceByDeviceIdService,

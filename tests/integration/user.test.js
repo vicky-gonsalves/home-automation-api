@@ -14,6 +14,8 @@ import { insertSubDeviceParams, subDeviceParamFive, subDeviceParamFour } from '.
 import { adminAccessToken, userOneAccessToken } from '../fixtures/token.fixture';
 import { admin, insertUsers, userOne, userTwo } from '../fixtures/user.fixture';
 import { setupTestDB } from '../utils/setupTestDB';
+import { accessOne, accessTwo, insertSharedDeviceAccess } from '../fixtures/sharedDeviceAccess.fixture';
+import SharedDeviceAccess from '../../src/models/sharedDeviceAccess.model';
 
 setupTestDB();
 
@@ -352,12 +354,13 @@ describe('User routes', () => {
       expect(dbUser).toBeNull();
     });
 
-    it('should return 204 and delete user, all devices, all sub-devices, all sub-device-params and all socket ids of user', async () => {
+    it('should return 204 and delete user, all devices, all sub-devices, all sub-device-params, all shared device access and all socket ids of user', async () => {
       await insertUsers([userOne]);
       await insertDevices([deviceTwo, deviceThree]);
       await insertSubDevices([subDeviceThree, subDeviceFour]);
       await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
       await insertSocketIds([socketIdOne, socketIdFour, socketIdFive, socketIdSix]);
+      await insertSharedDeviceAccess([accessTwo]);
       await request(app)
         .delete(`/v1/users/${userOne._id}`)
         .set('Authorization', `Bearer ${userOneAccessToken}`)
@@ -386,6 +389,8 @@ describe('User routes', () => {
       expect(dbSocketIdThree).toBeNull();
       const dbSocketFour = await SocketId.findById(socketIdOne._id);
       expect(dbSocketFour).not.toBeNull();
+      const dbAccess = await SharedDeviceAccess.findById(accessTwo._id);
+      expect(dbAccess).not.toBeNull();
     });
 
     it('should return 401 error if access token is missing', async () => {
@@ -423,6 +428,7 @@ describe('User routes', () => {
       await insertSubDevices([subDeviceThree, subDeviceFour]);
       await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
       await insertSocketIds([socketIdOne, socketIdFour, socketIdFive, socketIdSix]);
+      await insertSharedDeviceAccess([accessTwo]);
 
       await request(app)
         .delete(`/v1/users/${userOne._id}`)
@@ -452,6 +458,8 @@ describe('User routes', () => {
       expect(dbSocketIdThree).toBeNull();
       const dbSocketFour = await SocketId.findById(socketIdOne._id);
       expect(dbSocketFour).not.toBeNull();
+      const dbAccess = await SharedDeviceAccess.findById(accessTwo._id);
+      expect(dbAccess).not.toBeNull();
     });
 
     it('should return 400 error if userId is not a valid mongo id', async () => {
@@ -516,6 +524,7 @@ describe('User routes', () => {
       await insertSubDevices([subDeviceThree, subDeviceFour]);
       await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
       await insertSocketIds([socketIdOne, socketIdFour, socketIdFive, socketIdSix]);
+      await insertSharedDeviceAccess([accessOne]);
 
       await request(app)
         .patch(`/v1/users/${userOne._id}`)
@@ -567,6 +576,10 @@ describe('User routes', () => {
       const dbSocketIdTwo = await SocketId.findById(socketIdFive._id);
       expect(dbSocketIdTwo).toBeDefined();
       expect(dbSocketIdTwo.bindedTo).toBe(updateBody.email);
+
+      const dbAccessOne = await SharedDeviceAccess.findById(accessOne._id);
+      expect(dbAccessOne).toBeDefined();
+      expect(dbAccessOne.email).toBe(updateBody.email);
     });
 
     it('should return 401 error if access token is missing', async () => {

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import SharedDeviceAccess from '../../src/models/sharedDeviceAccess.model';
-import { deviceOne } from './device.fixture';
+import { deviceOne, deviceTwo } from './device.fixture';
 import { admin, userOne, userTwo } from './user.fixture';
 
 const email1 = admin.email;
@@ -21,6 +21,13 @@ const accessTwo = {
   sharedBy: email1,
 };
 
+const accessThree = {
+  _id: mongoose.Types.ObjectId(),
+  deviceId: deviceTwo.deviceId,
+  email: email3,
+  sharedBy: email1,
+};
+
 const insertSharedDeviceAccess = async accesses => {
   await SharedDeviceAccess.insertMany(accesses.map(access => ({ ...access })));
 };
@@ -28,5 +35,6 @@ const insertSharedDeviceAccess = async accesses => {
 module.exports = {
   accessOne,
   accessTwo,
+  accessThree,
   insertSharedDeviceAccess,
 };

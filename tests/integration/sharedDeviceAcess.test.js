@@ -3,10 +3,10 @@ import httpStatus from 'http-status';
 import request from 'supertest';
 import app from '../../src/app';
 import SharedDeviceAccess from '../../src/models/sharedDeviceAccess.model';
-import { deviceOne, insertDevices } from '../fixtures/device.fixture';
-import { accessOne, accessTwo, insertSharedDeviceAccess } from '../fixtures/sharedDeviceAccess.fixture';
+import { deviceOne, deviceTwo, insertDevices } from '../fixtures/device.fixture';
+import { accessOne, accessThree, accessTwo, insertSharedDeviceAccess } from '../fixtures/sharedDeviceAccess.fixture';
 import { adminAccessToken, userOneAccessToken } from '../fixtures/token.fixture';
-import { admin, insertUsers, userOne } from '../fixtures/user.fixture';
+import { admin, insertUsers, userOne, userTwo } from '../fixtures/user.fixture';
 import { setupTestDB } from '../utils/setupTestDB';
 
 setupTestDB();
@@ -26,7 +26,7 @@ describe('Shared Device Access Routes', () => {
       await insertDevices([deviceOne]);
     });
 
-    it('should return 201 and be able to create  if data is ok', async () => {
+    it('should return 201 and be able to create if data is ok', async () => {
       const res = await request(app)
         .post(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
@@ -176,6 +176,226 @@ describe('Shared Device Access Routes', () => {
         .send(newAccess)
         .expect(httpStatus.BAD_REQUEST);
     });
+
+    it('should return 400 if deviceId and email is already exists', async () => {
+      await insertUsers([userTwo]);
+      await insertDevices([deviceTwo]);
+      await insertSharedDeviceAccess([accessOne]);
+
+      newAccess.deviceId = accessOne.deviceId;
+      newAccess.email = accessOne.email;
+      await request(app)
+        .post(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(newAccess)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should return 400 if deviceOwner is trying to add himself in shared device access', async () => {
+      newAccess.deviceId = deviceOne.deviceId;
+      newAccess.email = deviceOne.deviceOwner;
+
+      await request(app)
+        .post(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(newAccess)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+  });
+
+  describe('GET /v1/shared-device-access', () => {
+    const route = '/v1/shared-device-access';
+    beforeEach(async () => {
+      await insertUsers([admin, userOne]);
+      await insertDevices([deviceOne]);
+      await insertSharedDeviceAccess([accessOne, accessTwo]);
+    });
+
+    it('should return 200 and all shared device access', async () => {
+      const res = await request(app)
+        .get(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(res.body).toBeInstanceOf(Array);
+      expect(res.body).toHaveLength(2);
+      expect(res.body[0]).toHaveProperty('createdAt');
+      expect(res.body[0]).toHaveProperty('updatedAt');
+      expect(res.body[0]).toMatchObject({
+        id: accessOne._id.toHexString(),
+        deviceId: deviceOne.deviceId,
+        isDisabled: false,
+        email: accessOne.email,
+        sharedBy: admin.email,
+      });
+    });
+
+    it('should return 401 if access token is missing', async () => {
+      await request(app)
+        .get(route)
+        .send()
+        .expect(httpStatus.UNAUTHORIZED);
+    });
+
+    it('should return 403 if a non-admin is trying to access all shared device access', async () => {
+      await request(app)
+        .get(route)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send()
+        .expect(httpStatus.FORBIDDEN);
+    });
+
+    it('should correctly apply filter on deviceId field', async () => {
+      const res = await request(app)
+        .get(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .query({ deviceId: deviceOne.deviceId })
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveLength(2);
+      expect(res.body[0].id).toBe(accessOne._id.toHexString());
+      expect(res.body[1].id).toBe(accessTwo._id.toHexString());
+    });
+
+    it('should correctly apply filter on email field', async () => {
+      const res = await request(app)
+        .get(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .query({ email: accessOne.email })
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveLength(1);
+      expect(res.body[0].id).toBe(accessOne._id.toHexString());
+    });
+
+    it('should correctly apply filter on isDisabled field', async () => {
+      const res = await request(app)
+        .get(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .query({ isDisabled: false })
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveLength(2);
+      expect(res.body[0].id).toBe(accessOne._id.toHexString());
+    });
+
+    it('should correctly sort returned array if descending sort param is specified', async () => {
+      const res = await request(app)
+        .get(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .query({ sortBy: 'deviceId:desc' })
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveLength(2);
+      expect(res.body[0].id).toBe(accessOne._id.toHexString());
+    });
+
+    it('should correctly sort returned array if ascending sort param is specified', async () => {
+      const res = await request(app)
+        .get(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .query({ sortBy: 'deviceId:asc' })
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveLength(2);
+      expect(res.body[0].id).toBe(accessOne._id.toHexString());
+    });
+
+    it('should limit returned array if limit param is specified', async () => {
+      const res = await request(app)
+        .get(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .query({ limit: 1 })
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveLength(1);
+    });
+
+    it('should return the correct page if page and limit params are specified', async () => {
+      const res = await request(app)
+        .get(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .query({ page: 2, limit: 1 })
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveLength(1);
+      expect(res.body[0].id).toBe(accessTwo._id.toHexString());
+    });
+  });
+
+  describe('GET /v1/shared-device-access/:id', () => {
+    const route = '/v1/shared-device-access';
+    beforeEach(async () => {
+      await insertUsers([admin, userOne]);
+      await insertDevices([deviceOne]);
+      await insertSharedDeviceAccess([accessOne, accessTwo]);
+    });
+
+    it('should return 200 and the device object if data is ok', async () => {
+      const res = await request(app)
+        .get(`${route}/${accessOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveProperty('isDisabled');
+      expect(res.body).toHaveProperty('createdAt');
+      expect(res.body).toHaveProperty('updatedAt');
+      expect(res.body).toMatchObject({
+        id: accessOne._id.toHexString(),
+        deviceId: accessOne.deviceId,
+        email: accessOne.email,
+        sharedBy: accessOne.sharedBy,
+        isDisabled: false,
+      });
+    });
+
+    it('should return 401 error if access token is missing', async () => {
+      await request(app)
+        .get(`${route}/${accessOne._id}`)
+        .send()
+        .expect(httpStatus.UNAUTHORIZED);
+    });
+
+    it('should return 403 error if user is trying to get shared device access', async () => {
+      await request(app)
+        .get(`${route}/${accessOne._id}`)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send()
+        .expect(httpStatus.FORBIDDEN);
+    });
+
+    it('should return 200 and the shared device access object if admin is trying to get device', async () => {
+      await request(app)
+        .get(`${route}/${accessOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.OK);
+    });
+
+    it('should return 400 error if id is not valid', async () => {
+      await request(app)
+        .get(`${route}/invalidId`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should return 404 error if id is not found', async () => {
+      await request(app)
+        .get(`${route}/${accessThree._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.NOT_FOUND);
+    });
   });
 
   describe('DELETE /v1/shared-device-access/:id', () => {
@@ -235,6 +455,174 @@ describe('Shared Device Access Routes', () => {
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send()
         .expect(httpStatus.NOT_FOUND);
+    });
+  });
+
+  describe('PATCH /v1/shared-device-access/:id', () => {
+    let updateBody;
+    const route = '/v1/shared-device-access';
+    beforeEach(async () => {
+      const { email } = userTwo;
+      updateBody = {
+        deviceId: faker.random.alphaNumeric(16),
+        email,
+        isDisabled: true,
+      };
+      await insertUsers([admin, userOne, userTwo]);
+      await insertDevices([deviceOne]);
+      await insertSharedDeviceAccess([accessOne, accessTwo]);
+    });
+
+    it('should return 200 and successfully update shared device access if data is ok', async () => {
+      const res = await request(app)
+        .patch(`${route}/${accessOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveProperty('isDisabled');
+      expect(res.body).toHaveProperty('sharedBy');
+      expect(res.body).toMatchObject({
+        deviceId: updateBody.deviceId,
+        email: updateBody.email,
+        sharedBy: accessOne.sharedBy,
+        isDisabled: true,
+      });
+
+      const dbAccess = await SharedDeviceAccess.findOne({ deviceId: updateBody.deviceId });
+      expect(dbAccess).toBeDefined();
+      expect(dbAccess).toMatchObject({
+        deviceId: updateBody.deviceId,
+        email: updateBody.email,
+        sharedBy: accessOne.sharedBy,
+        isDisabled: true,
+      });
+    });
+
+    it('should return 401 error if access token is missing', async () => {
+      await request(app)
+        .patch(`${route}/${accessOne._id}`)
+        .send(updateBody)
+        .expect(httpStatus.UNAUTHORIZED);
+    });
+
+    it('should return 403 if user is updating shared device access', async () => {
+      await request(app)
+        .patch(`${route}/${accessOne._id}`)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.FORBIDDEN);
+    });
+
+    it('should return 200 and successfully update device if admin is updating shared device access', async () => {
+      await request(app)
+        .patch(`${route}/${accessOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+    });
+
+    it('should return 404 if admin is updating shared device access that is not found', async () => {
+      await request(app)
+        .patch(`${route}/${accessThree._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.NOT_FOUND);
+    });
+
+    it('should return 400 error if id is not valid', async () => {
+      await request(app)
+        .patch(`${route}/invalidid`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should return 400 if deviceId is invalid', async () => {
+      updateBody = { deviceId: 'invalid' };
+      await request(app)
+        .patch(`${route}/${accessOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should return 400 if deviceId and email is already exists', async () => {
+      updateBody = { deviceId: accessTwo.deviceId, email: accessTwo.email };
+
+      await request(app)
+        .patch(`${route}/${accessOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should not return 400 if deviceId and email is my deviceId and email', async () => {
+      updateBody = { deviceId: accessOne.deviceId, email: accessOne.email };
+
+      await request(app)
+        .patch(`${route}/${accessOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+    });
+
+    it('should return 400 if deviceId length is less than 16 characters', async () => {
+      updateBody = { deviceId: faker.random.alphaNumeric(15) };
+
+      await request(app)
+        .patch(`${route}/${accessOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should return 400 error if deviceId length is greater than 20 characters', async () => {
+      updateBody = { deviceId: faker.random.alphaNumeric(21) };
+
+      await request(app)
+        .patch(`${route}/${accessOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should return 400 error if deviceId is not string', async () => {
+      updateBody = { deviceId: 31231 };
+
+      await request(app)
+        .patch(`${route}/${accessOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.BAD_REQUEST);
+
+      updateBody = { deviceId: {} };
+
+      await request(app)
+        .patch(`${route}/${accessOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should return 400 error if email is invalid', async () => {
+      updateBody = { email: 'invalid' };
+
+      await request(app)
+        .patch(`${route}/${accessOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should return 400 if deviceOwner is trying to add himself in shared device access', async () => {
+      updateBody = { deviceId: deviceOne.deviceId, email: deviceOne.deviceOwner };
+
+      await request(app)
+        .patch(`${route}/${accessOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.BAD_REQUEST);
     });
   });
 });
