@@ -16,7 +16,7 @@ mongoose.connect(config.mongoose.url, config.mongoose.options).then(() => {
     Seed();
   }
 });
-mongoose.set('debug', true);
+mongoose.set('debug', config.env === 'development');
 
 const exitHandler = () => {
   if (server) {
