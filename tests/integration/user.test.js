@@ -14,7 +14,7 @@ import { insertSubDeviceParams, subDeviceParamFive, subDeviceParamFour } from '.
 import { adminAccessToken, userOneAccessToken } from '../fixtures/token.fixture';
 import { admin, insertUsers, userOne, userTwo } from '../fixtures/user.fixture';
 import { setupTestDB } from '../utils/setupTestDB';
-import { accessOne, accessTwo, insertSharedDeviceAccess } from '../fixtures/sharedDeviceAccess.fixture';
+import { accessFour, accessOne, accessTwo, insertSharedDeviceAccess } from '../fixtures/sharedDeviceAccess.fixture';
 import SharedDeviceAccess from '../../src/models/sharedDeviceAccess.model';
 
 setupTestDB();
@@ -360,7 +360,8 @@ describe('User routes', () => {
       await insertSubDevices([subDeviceThree, subDeviceFour]);
       await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
       await insertSocketIds([socketIdOne, socketIdFour, socketIdFive, socketIdSix]);
-      await insertSharedDeviceAccess([accessTwo]);
+      await insertSharedDeviceAccess([accessFour]);
+
       await request(app)
         .delete(`/v1/users/${userOne._id}`)
         .set('Authorization', `Bearer ${userOneAccessToken}`)
@@ -389,8 +390,8 @@ describe('User routes', () => {
       expect(dbSocketIdThree).toBeNull();
       const dbSocketFour = await SocketId.findById(socketIdOne._id);
       expect(dbSocketFour).not.toBeNull();
-      const dbAccess = await SharedDeviceAccess.findById(accessTwo._id);
-      expect(dbAccess).not.toBeNull();
+      const dbAccess = await SharedDeviceAccess.findById(accessFour._id);
+      expect(dbAccess).toBeNull();
     });
 
     it('should return 401 error if access token is missing', async () => {

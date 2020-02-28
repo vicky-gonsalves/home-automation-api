@@ -12,10 +12,7 @@ import {
 import { deleteSocketIdByUserEmailService, updateSocketEmailService } from './socketId.service';
 import { updateSubDeviceCreatedByService, updateSubDeviceUpdatedByService } from './subDevice.service';
 import { updateSubDeviceParamCreatedByService, updateSubDeviceParamUpdatedByService } from './subDeviceParam.service';
-import {
-  deleteSharedDeviceAccessByUserEmailService,
-  updateSharedDeviceAccessEmailService,
-} from './sharedDeviceAccess.service';
+import { updateSharedDeviceAccessEmailService } from './sharedDeviceAccess.service';
 
 const checkDuplicateEmailService = async (email, excludeUserId) => {
   const user = await User.findOne({ email, _id: { $ne: excludeUserId } });
@@ -77,7 +74,6 @@ const deleteUserService = async userId => {
   const user = await getUserByIdService(userId);
   await deleteDevicesByDeviceOwnerService(user.email);
   await deleteSocketIdByUserEmailService(user.email);
-  await deleteSharedDeviceAccessByUserEmailService(user.email);
   await user.remove();
   return user;
 };

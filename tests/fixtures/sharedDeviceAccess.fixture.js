@@ -28,6 +28,13 @@ const accessThree = {
   sharedBy: email1,
 };
 
+const accessFour = {
+  _id: mongoose.Types.ObjectId(),
+  deviceId: deviceTwo.deviceId,
+  email: email2,
+  sharedBy: email1,
+};
+
 const insertSharedDeviceAccess = async accesses => {
   await SharedDeviceAccess.insertMany(accesses.map(access => ({ ...access })));
 };
@@ -36,5 +43,6 @@ module.exports = {
   accessOne,
   accessTwo,
   accessThree,
+  accessFour,
   insertSharedDeviceAccess,
 };

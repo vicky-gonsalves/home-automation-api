@@ -37,12 +37,8 @@ const updateSharedDeviceAccessValidation = {
   }),
   body: Joi.object()
     .keys({
-      deviceId: Joi.string()
-        .required()
-        .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
-      email: Joi.string()
-        .email()
-        .required(),
+      deviceId: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      email: Joi.string().email(),
       isDisabled: Joi.boolean(),
     })
     .min(0),

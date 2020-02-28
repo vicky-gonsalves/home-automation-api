@@ -30,16 +30,8 @@ const getSharedDeviceAccessesService = async query => {
   return SharedDeviceAccess.find(filter, null, options);
 };
 
-const getSharedDeviceAccessByDeviceIdService = async deviceId => {
-  const sharedDeviceAccesses = await SharedDeviceAccess.find({ deviceId });
-  if (!sharedDeviceAccesses) {
-    throw new AppError(httpStatus.NOT_FOUND, 'No shared device access found with this deviceId');
-  }
-  return sharedDeviceAccesses;
-};
-
 const deleteSharedDeviceAccessByDeviceIdService = async deviceId => {
-  const sharedDeviceAccesses = await getSharedDeviceAccessByDeviceIdService(deviceId);
+  const sharedDeviceAccesses = await SharedDeviceAccess.find({ deviceId });
   return Promise.all(sharedDeviceAccesses.map(sharedDeviceAccess => sharedDeviceAccess.remove()));
 };
 
@@ -81,18 +73,9 @@ const deleteSharedDeviceAccessService = async id => {
   return sharedDeviceAccess;
 };
 
-const checkSharedDeviceAccessByEmailAndDeviceIdAndDeleteAccessIfExists = async (deviceId, email) => {
+const checkAndDeleteAccessIfExists = async (deviceId, email) => {
   const sharedDeviceAccesses = await SharedDeviceAccess.find({ deviceId, email });
   return Promise.all(sharedDeviceAccesses.map(sharedDeviceAccess => sharedDeviceAccess.remove()));
-};
-
-const deleteSharedDeviceAccessByUserEmailService = async email => {
-  const sharedDeviceAccesses = await SharedDeviceAccess.find({ email });
-  return Promise.all(
-    sharedDeviceAccesses.map(async sharedDeviceAccess => {
-      await deleteSharedDeviceAccessService(sharedDeviceAccess.id);
-    })
-  );
 };
 
 module.exports = {
@@ -100,12 +83,10 @@ module.exports = {
   createSharedDeviceAccessService,
   getSharedDeviceAccessByIdService,
   getSharedDeviceAccessesService,
-  getSharedDeviceAccessByDeviceIdService,
   updateSharedDeviceAccessService,
   updateSharedDeviceAccessDeviceIdService,
   updateSharedDeviceAccessEmailService,
   deleteSharedDeviceAccessByDeviceIdService,
   deleteSharedDeviceAccessService,
-  deleteSharedDeviceAccessByUserEmailService,
-  checkSharedDeviceAccessByEmailAndDeviceIdAndDeleteAccessIfExists,
+  checkAndDeleteAccessIfExists,
 };

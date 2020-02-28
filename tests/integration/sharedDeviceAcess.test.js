@@ -462,7 +462,7 @@ describe('Shared Device Access Routes', () => {
     let updateBody;
     const route = '/v1/shared-device-access';
     beforeEach(async () => {
-      const { email } = userTwo;
+      const email = faker.internet.email().toLowerCase();
       updateBody = {
         deviceId: faker.random.alphaNumeric(16),
         email,
@@ -555,6 +555,19 @@ describe('Shared Device Access Routes', () => {
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updateBody)
         .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should return 200 if isDisabled is updated', async () => {
+      updateBody = { isDisabled: true };
+
+      const res = await request(app)
+        .patch(`${route}/${accessOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveProperty('isDisabled');
+      expect(res.body).toMatchObject({ isDisabled: true });
     });
 
     it('should not return 400 if deviceId and email is my deviceId and email', async () => {

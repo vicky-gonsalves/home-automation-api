@@ -15,7 +15,7 @@ import { insertSubDeviceParams, subDeviceParamFive, subDeviceParamFour } from '.
 import { adminAccessToken, userOneAccessToken } from '../fixtures/token.fixture';
 import { admin, insertUsers, userOne, userTwo } from '../fixtures/user.fixture';
 import { setupTestDB } from '../utils/setupTestDB';
-import { accessOne, accessThree, insertSharedDeviceAccess } from '../fixtures/sharedDeviceAccess.fixture';
+import { accessFour, accessOne, accessThree, insertSharedDeviceAccess } from '../fixtures/sharedDeviceAccess.fixture';
 
 setupTestDB();
 
@@ -731,7 +731,7 @@ describe('Device Routes', () => {
       await insertSubDevices([subDeviceThree, subDeviceFour]);
       await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
       await insertSocketIds([socketIdSix]);
-      await insertSharedDeviceAccess([accessThree]);
+      await insertSharedDeviceAccess([accessFour]);
 
       await request(app)
         .delete(`${route}/${deviceTwo.deviceId}`)
@@ -751,7 +751,7 @@ describe('Device Routes', () => {
       expect(dbSubDeviceParamTwo).toBeNull();
       const dbSocketIdOne = await SocketId.findById(socketIdSix._id);
       expect(dbSocketIdOne).toBeNull();
-      const dbAccessOne = await SharedDeviceAccess.findById(accessThree._id);
+      const dbAccessOne = await SharedDeviceAccess.findById(accessFour._id);
       expect(dbAccessOne).toBeNull();
     });
 

@@ -4,7 +4,7 @@ import Device from '../models/device.model';
 import AppError from '../utils/AppError';
 import { getQueryOptions } from '../utils/service.util';
 import {
-  checkSharedDeviceAccessByEmailAndDeviceIdAndDeleteAccessIfExists,
+  checkAndDeleteAccessIfExists,
   deleteSharedDeviceAccessByDeviceIdService,
   updateSharedDeviceAccessDeviceIdService,
 } from './sharedDeviceAccess.service';
@@ -60,6 +60,8 @@ const getDevicesByDeviceOwnerService = deviceOwner => {
 };
 
 const updateDeviceService = async (id, updateBody) => {
+  let _dId;
+  let _dOwner;
   const device = await getDeviceByDeviceIdService(id);
   const oldDeviceId = device.deviceId;
   if (updateBody.deviceId) {
@@ -67,11 +69,18 @@ const updateDeviceService = async (id, updateBody) => {
   }
   Object.assign(device, updateBody);
   await device.save();
+  if (updateBody.deviceId) {
+    _dId = updateBody.deviceId;
+  } else {
+    _dId = device.deviceId;
+  }
+  if (updateBody.deviceOwner) {
+    _dOwner = updateBody.deviceOwner;
+  } else {
+    _dOwner = device.deviceOwner;
+  }
   if (updateBody.deviceId || updateBody.deviceOwner) {
-    await checkSharedDeviceAccessByEmailAndDeviceIdAndDeleteAccessIfExists(
-      updateBody.deviceId || device.deviceId,
-      updateBody.deviceOwner || device.deviceOwner
-    );
+    await checkAndDeleteAccessIfExists(_dId, _dOwner);
   }
   if (updateBody.deviceId) {
     await updateDeviceIdService(oldDeviceId, updateBody.deviceId);
