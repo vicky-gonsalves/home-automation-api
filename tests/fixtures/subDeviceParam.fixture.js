@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { admin, userOne } from './user.fixture';
 import { deviceOne, deviceTwo } from './device.fixture';
 import SubDeviceParam from '../../src/models/subDeviceParam.model';
-import { subDeviceOne, subDeviceTwo } from './subDevice.fixture';
+import { subDeviceOne, subDeviceTwo, subDeviceThree, subDeviceFour } from './subDevice.fixture';
 
 const email1 = admin.email;
 const email2 = userOne.email;
@@ -20,7 +20,7 @@ const subDeviceParamOne = {
 const subDeviceParamTwo = {
   _id: mongoose.Types.ObjectId(),
   deviceId: deviceOne.deviceId,
-  subDeviceId: subDeviceOne.subDeviceId,
+  subDeviceId: subDeviceTwo.subDeviceId,
   paramName: 'lastFilledAt',
   paramValue: '2020-02-21T08:46:06.124Z',
   createdBy: email1,
@@ -40,7 +40,7 @@ const subDeviceParamThree = {
 const subDeviceParamFour = {
   _id: mongoose.Types.ObjectId(),
   deviceId: deviceTwo.deviceId,
-  subDeviceId: subDeviceTwo.subDeviceId,
+  subDeviceId: subDeviceThree.subDeviceId,
   paramName: 'status',
   paramValue: 'off',
   createdBy: email2,
@@ -50,7 +50,7 @@ const subDeviceParamFour = {
 const subDeviceParamFive = {
   _id: mongoose.Types.ObjectId(),
   deviceId: deviceTwo.deviceId,
-  subDeviceId: subDeviceTwo.subDeviceId,
+  subDeviceId: subDeviceFour.subDeviceId,
   paramName: 'status',
   paramValue: 'off',
   createdBy: email2,

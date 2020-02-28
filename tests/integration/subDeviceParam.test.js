@@ -238,7 +238,7 @@ describe('Sub-Device Params Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toBeInstanceOf(Array);
-      expect(res.body).toHaveLength(3);
+      expect(res.body).toHaveLength(2);
       expect(res.body[0]).toHaveProperty('createdAt');
       expect(res.body[0]).toHaveProperty('updatedAt');
       expect(res.body[0]).toMatchObject({
@@ -287,12 +287,12 @@ describe('Sub-Device Params Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({ paramValue: subDeviceParamTwo.paramValue })
+        .query({ paramValue: 'off' })
         .send()
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(subDeviceParamTwo._id.toHexString());
+      expect(res.body[0].id).toBe(subDeviceParamThree._id.toHexString());
     });
 
     it('should correctly apply filter on isDisabled field', async () => {
@@ -305,7 +305,7 @@ describe('Sub-Device Params Routes', () => {
         .send()
         .expect(httpStatus.OK);
 
-      expect(res.body).toHaveLength(3);
+      expect(res.body).toHaveLength(2);
       expect(res.body[0].id).toBe(subDeviceParamOne._id.toHexString());
     });
 
@@ -319,7 +319,7 @@ describe('Sub-Device Params Routes', () => {
         .send()
         .expect(httpStatus.OK);
 
-      expect(res.body).toHaveLength(3);
+      expect(res.body).toHaveLength(2);
       expect(res.body[0].id).toBe(subDeviceParamOne._id.toHexString());
     });
 
@@ -333,8 +333,8 @@ describe('Sub-Device Params Routes', () => {
         .send()
         .expect(httpStatus.OK);
 
-      expect(res.body).toHaveLength(3);
-      expect(res.body[2].id).toBe(subDeviceParamOne._id.toHexString());
+      expect(res.body).toHaveLength(2);
+      expect(res.body[0].id).toBe(subDeviceParamThree._id.toHexString());
     });
 
     it('should limit returned array if limit param is specified', async () => {
@@ -361,7 +361,7 @@ describe('Sub-Device Params Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(subDeviceParamTwo._id.toHexString());
+      expect(res.body[0].id).toBe(subDeviceParamThree._id.toHexString());
     });
   });
 
@@ -611,8 +611,8 @@ describe('Sub-Device Params Routes', () => {
     });
 
     it('should return 400 if sub-device paramName is already taken', async () => {
-      await insertSubDeviceParams([subDeviceParamTwo]);
-      updateBody = { paramName: subDeviceParamTwo.paramName };
+      await insertSubDeviceParams([subDeviceParamThree]);
+      updateBody = { paramName: subDeviceParamThree.paramName };
 
       await request(app)
         .patch(route)

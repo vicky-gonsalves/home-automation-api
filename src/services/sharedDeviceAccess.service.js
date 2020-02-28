@@ -78,6 +78,11 @@ const checkAndDeleteAccessIfExists = async (deviceId, email) => {
   return Promise.all(sharedDeviceAccesses.map(sharedDeviceAccess => sharedDeviceAccess.remove()));
 };
 
+const deleteSharedDeviceAccessByUserEmailService = async email => {
+  const sharedDeviceAccesses = await SharedDeviceAccess.find({ email });
+  return Promise.all(sharedDeviceAccesses.map(sharedDeviceAccess => sharedDeviceAccess.remove()));
+};
+
 module.exports = {
   checkDuplicateSharedDeviceAccessService,
   createSharedDeviceAccessService,
@@ -88,5 +93,6 @@ module.exports = {
   updateSharedDeviceAccessEmailService,
   deleteSharedDeviceAccessByDeviceIdService,
   deleteSharedDeviceAccessService,
+  deleteSharedDeviceAccessByUserEmailService,
   checkAndDeleteAccessIfExists,
 };

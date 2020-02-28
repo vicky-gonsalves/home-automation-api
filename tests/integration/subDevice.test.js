@@ -13,7 +13,6 @@ import {
   subDeviceParamFour,
   subDeviceParamOne,
   subDeviceParamThree,
-  subDeviceParamTwo,
 } from '../fixtures/subDeviceParam.fixture';
 import { adminAccessToken, userOneAccessToken } from '../fixtures/token.fixture';
 import { admin, insertUsers, userOne } from '../fixtures/user.fixture';
@@ -648,7 +647,10 @@ describe('Sub-Device Routes', () => {
         isDisabled: true,
       });
 
-      const dbSubDevice = await SubDevice.findOne({ deviceId: deviceOne.deviceId, subDeviceId: updateBody.subDeviceId });
+      const dbSubDevice = await SubDevice.findOne({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: updateBody.subDeviceId,
+      });
       expect(dbSubDevice).toBeDefined();
       expect(dbSubDevice).toMatchObject({
         deviceId: deviceOne.deviceId,
@@ -661,7 +663,7 @@ describe('Sub-Device Routes', () => {
     });
 
     it('should return 200 and update sub-device and all sub-device-params of a device', async () => {
-      await insertSubDeviceParams([subDeviceParamOne, subDeviceParamTwo, subDeviceParamThree]);
+      await insertSubDeviceParams([subDeviceParamOne, subDeviceParamThree]);
       await request(app)
         .patch(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
@@ -671,10 +673,6 @@ describe('Sub-Device Routes', () => {
       const dbSubDeviceParamOne = await SubDeviceParam.findById(subDeviceParamOne._id);
       expect(dbSubDeviceParamOne).toBeDefined();
       expect(dbSubDeviceParamOne.subDeviceId).toBe(updateBody.subDeviceId);
-
-      const dbSubDeviceParamTwo = await SubDeviceParam.findById(subDeviceParamTwo._id);
-      expect(dbSubDeviceParamTwo).toBeDefined();
-      expect(dbSubDeviceParamTwo.subDeviceId).toBe(updateBody.subDeviceId);
 
       const dbSubDeviceParamThree = await SubDeviceParam.findById(subDeviceParamThree._id);
       expect(dbSubDeviceParamThree).toBeDefined();
