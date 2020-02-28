@@ -11,6 +11,8 @@ roleRights.set(roles[1], [
   'manageSubDevices',
   'getSubDeviceParams',
   'manageSubDeviceParams',
+  'getSharedDeviceAccess',
+  'manageSharedDeviceAccess',
 ]);
 
 module.exports = {

@@ -2,7 +2,7 @@ import { omit, pick } from 'lodash';
 import mongoose from 'mongoose';
 import validator from 'validator';
 
-const userDeviceAccessSchema = mongoose.Schema(
+const sharedDeviceAccessSchema = mongoose.Schema(
   {
     deviceId: {
       type: String,
@@ -46,16 +46,16 @@ const userDeviceAccessSchema = mongoose.Schema(
   }
 );
 
-userDeviceAccessSchema.methods.toJSON = function() {
-  const userDeviceAccess = this;
-  return omit(userDeviceAccess.toObject(), []);
+sharedDeviceAccessSchema.methods.toJSON = function() {
+  const sharedDeviceAccess = this;
+  return omit(sharedDeviceAccess.toObject(), []);
 };
 
-userDeviceAccessSchema.methods.transform = function() {
-  const userDeviceAccess = this;
-  return pick(userDeviceAccess.toJSON(), ['id', 'deviceId', 'email', 'sharedBy', 'isDisabled', 'createdAt', 'updatedAt']);
+sharedDeviceAccessSchema.methods.transform = function() {
+  const sharedDeviceAccess = this;
+  return pick(sharedDeviceAccess.toJSON(), ['id', 'deviceId', 'email', 'sharedBy', 'isDisabled', 'createdAt', 'updatedAt']);
 };
 
-const UserDeviceAccess = mongoose.model('UserDeviceAccess', userDeviceAccessSchema);
+const SharedDeviceAccess = mongoose.model('SharedDeviceAccess', sharedDeviceAccessSchema);
 
-export default UserDeviceAccess;
+export default SharedDeviceAccess;
