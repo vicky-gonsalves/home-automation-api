@@ -1,5 +1,5 @@
 import Joi from '@hapi/joi';
-import { passwordValidation, objectIdValidation } from './custom.validation';
+import { objectIdValidation, passwordValidation } from './custom.validation';
 
 const createUserValidation = {
   body: Joi.object().keys({

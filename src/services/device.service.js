@@ -55,6 +55,14 @@ const getDeviceByDeviceIdService = async deviceId => {
   return device;
 };
 
+const getActiveDeviceByDeviceIdService = async deviceId => {
+  const device = await Device.findOne({ deviceId, isDisabled: false });
+  if (!device) {
+    throw new AppError(httpStatus.NOT_FOUND, 'No active device found with this deviceId');
+  }
+  return device;
+};
+
 const getDevicesByDeviceOwnerService = deviceOwner => {
   return Device.find({ deviceOwner });
 };
@@ -143,9 +151,14 @@ const deleteDevicesByDeviceOwnerService = async deviceOwner => {
 };
 
 const registerDeviceService = async deviceId => {
-  const device = await getDeviceByDeviceIdService(deviceId);
-  Object.assign(device, { registeredAt: new Date() });
-  return device.save();
+  const device = await getActiveDeviceByDeviceIdService(deviceId);
+  if (device && !device.registeredAt) {
+    Object.assign(device, { registeredAt: new Date() });
+    device.save();
+  } else {
+    device.save();
+  }
+  return device;
 };
 
 module.exports = {
@@ -161,4 +174,5 @@ module.exports = {
   deleteDeviceService,
   deleteDevicesByDeviceOwnerService,
   registerDeviceService,
+  getActiveDeviceByDeviceIdService,
 };

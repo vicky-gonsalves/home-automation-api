@@ -32,9 +32,20 @@ const deleteSocketIdByUserEmailService = async email => {
   return Promise.all(socketIds.map(socketId => socketId.remove()));
 };
 
+const deleteSocketIdBySocketIdService = async socketId => {
+  const socketIds = await SocketId.find({ socketId });
+  return Promise.all(socketIds.map(_socketId => _socketId.remove()));
+};
+
+const registerSocketService = async (type, idType, bindedTo, socketId) => {
+  return SocketId.create({ type, idType, bindedTo, socketId });
+};
+
 module.exports = {
   updateSocketEmailService,
   updateSocketDeviceIdService,
   deleteSocketIdByDeviceIdService,
   deleteSocketIdByUserEmailService,
+  registerSocketService,
+  deleteSocketIdBySocketIdService,
 };

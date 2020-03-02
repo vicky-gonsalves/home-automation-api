@@ -314,17 +314,6 @@ describe('Device Routes', () => {
         .expect(httpStatus.BAD_REQUEST);
     });
 
-    it('should return 400 error if registeredAt is missing', async () => {
-      await insertUsers([admin]);
-      delete newDevice.registeredAt;
-
-      await request(app)
-        .post(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(newDevice)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
     it('should return 400 error if createdBy is invalid', async () => {
       await insertUsers([admin]);
       newDevice.createdBy = 'invalid';
@@ -1187,32 +1176,48 @@ describe('Device Routes', () => {
     });
   });
 
-  describe('GET /v1/devices/register-device/:deviceId', () => {
-    it('should return 200 and registered:true', async () => {
+  describe('GET /v1/devices/authorize-device/:deviceId', () => {
+    it('should return 200 and authorize device', async () => {
+      await insertUsers([admin]);
       await insertDevices([deviceOne]);
 
       const res = await request(app)
-        .get(`${route}/register-device/${deviceOne.deviceId}`)
+        .get(`${route}/authorize-device/${deviceOne.deviceId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
         .send()
         .expect(httpStatus.OK);
 
       expect(res.body).toBeInstanceOf(Object);
-      expect(res.body).toHaveProperty('registered');
-      expect(res.body.registered).toBe(true);
+      expect(res.body).toHaveProperty('access');
+      expect(res.body.access).toHaveProperty('token');
+      expect(res.body.access).toHaveProperty('expires');
+      expect(res.body.access.token).not.toBeNull();
     });
 
     it('should return 400 error if deviceId is not valid', async () => {
+      await insertUsers([admin]);
       await request(app)
-        .get(`${route}/register-device/invalidId`)
+        .get(`${route}/authorize-device/invalidId`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
         .send()
         .expect(httpStatus.BAD_REQUEST);
     });
 
     it('should return 404 error if device is not found', async () => {
+      await insertUsers([admin]);
       await request(app)
-        .get(`${route}/register-device/${deviceOne.deviceId}`)
+        .get(`${route}/authorize-device/${deviceOne.deviceId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
         .send()
         .expect(httpStatus.NOT_FOUND);
+    });
+
+    it('should return 401 error if user trying to authorize device', async () => {
+      await request(app)
+        .get(`${route}/authorize-device/${deviceOne.deviceId}`)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send()
+        .expect(httpStatus.UNAUTHORIZED);
     });
   });
 });

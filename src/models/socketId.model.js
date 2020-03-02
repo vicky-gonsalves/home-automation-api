@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { omit, pick } from 'lodash';
-import { socketUserType, socketUserIdType } from '../config/socketUser';
+import { socketUserIdType, socketUserType } from '../config/socketUser';
 
 const socketIdSchema = mongoose.Schema(
   {

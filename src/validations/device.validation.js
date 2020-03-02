@@ -12,9 +12,7 @@ const createDeviceValidation = {
     type: Joi.string()
       .valid(...deviceType)
       .required(),
-    registeredAt: Joi.date()
-      .iso()
-      .required(),
+    registeredAt: Joi.date().iso(),
     deviceOwner: Joi.string()
       .email()
       .required(),
@@ -85,6 +83,14 @@ const registerDeviceValidation = {
   }),
 };
 
+const authorizeDeviceValidation = {
+  params: Joi.object().keys({
+    deviceId: Joi.string()
+      .required()
+      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+  }),
+};
+
 module.exports = {
   createDeviceValidation,
   getDevicesValidation,
@@ -93,4 +99,5 @@ module.exports = {
   updateDeviceValidation,
   deleteDeviceValidation,
   registerDeviceValidation,
+  authorizeDeviceValidation,
 };

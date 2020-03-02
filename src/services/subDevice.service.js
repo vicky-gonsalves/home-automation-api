@@ -1,6 +1,6 @@
 import httpStatus from 'http-status';
 import { pick } from 'lodash';
-import { updateSubDeviceParamSubDeviceIdService, deleteSubDeviceParamByDeviceIdService } from './subDeviceParam.service';
+import { deleteSubDeviceParamByDeviceIdService, updateSubDeviceParamSubDeviceIdService } from './subDeviceParam.service';
 import AppError from '../utils/AppError';
 import SubDevice from '../models/subDevice.model';
 import { getQueryOptions } from '../utils/service.util';

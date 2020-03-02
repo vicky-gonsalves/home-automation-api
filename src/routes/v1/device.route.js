@@ -1,12 +1,12 @@
 import express from 'express';
 import auth from '../../middlewares/auth';
 import {
+  authorizeDevice,
   createDevice,
   deleteDevice,
   getByDeviceOwner,
   getDevice,
   getDevices,
-  registerDevice,
   updateDevice,
 } from '../../controllers/device.controller';
 import {
@@ -25,12 +25,12 @@ import {
 } from '../../controllers/subDeviceParam.controller';
 import validate from '../../middlewares/validate';
 import {
+  authorizeDeviceValidation,
   createDeviceValidation,
   deleteDeviceValidation,
   getDeviceByDeviceOwnerValidation,
   getDevicesValidation,
   getDeviceValidation,
-  registerDeviceValidation,
   updateDeviceValidation,
 } from '../../validations/device.validation';
 import {
@@ -66,7 +66,7 @@ router
   .route('/get-by-device-owner/:deviceOwner')
   .get(auth('getDevices'), validate(getDeviceByDeviceOwnerValidation), getByDeviceOwner);
 
-router.route('/register-device/:deviceId').get(validate(registerDeviceValidation), registerDevice);
+router.route('/authorize-device/:deviceId').get(auth('manageDevices'), validate(authorizeDeviceValidation), authorizeDevice);
 
 // --------------------------------SubDevices------------------------------------------------------------------------------------------------
 

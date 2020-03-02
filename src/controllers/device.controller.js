@@ -5,10 +5,10 @@ import {
   getDeviceByDeviceIdService,
   getDevicesByDeviceOwnerService,
   getDevicesService,
-  registerDeviceService,
   updateDeviceService,
 } from '../services/device.service';
 import catchAsync from '../utils/catchAsync';
+import { generateDeviceAuthTokensService } from '../services/deviceAuth.service';
 
 const createDevice = catchAsync(async (req, res) => {
   req.body.createdBy = req.user.email;
@@ -44,9 +44,10 @@ const deleteDevice = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
-const registerDevice = catchAsync(async (req, res) => {
-  await registerDeviceService(req.params.deviceId);
-  res.send({ registered: true });
+const authorizeDevice = catchAsync(async (req, res) => {
+  const device = await getDeviceByDeviceIdService(req.params.deviceId);
+  const deviceAuth = generateDeviceAuthTokensService(device.deviceId);
+  res.send(deviceAuth);
 });
 
 module.exports = {
@@ -56,5 +57,5 @@ module.exports = {
   getByDeviceOwner,
   updateDevice,
   deleteDevice,
-  registerDevice,
+  authorizeDevice,
 };

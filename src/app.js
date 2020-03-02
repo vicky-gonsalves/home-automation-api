@@ -6,6 +6,7 @@ import passport from 'passport';
 import xss from 'xss-clean';
 import mongoSanitize from 'express-mongo-sanitize';
 import httpStatus from 'http-status';
+import path from 'path';
 import config from './config/config';
 import morgan from './config/morgan';
 import { jwtStrategy } from './config/passport';
@@ -53,8 +54,11 @@ if (config.env === 'production') {
 // v1 api routes
 app.use('/v1', routes);
 
-// default
-app.get('/', (req, res) => res.send('Home-Automation-API'));
+if (config.env === 'development') {
+  app.use(express.static(path.resolve(`${__dirname}/../public`)));
+} else {
+  app.get('/', (req, res) => res.send('Home-Automation-API'));
+}
 
 // send back a 404 error for any unknown api request
 app.use((req, res, next) => {

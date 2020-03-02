@@ -45,7 +45,6 @@ const deviceSchema = mongoose.Schema(
     },
     registeredAt: {
       type: Date,
-      required: true,
     },
     createdBy: {
       type: String,
