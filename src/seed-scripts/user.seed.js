@@ -1,4 +1,4 @@
-'use-strict';
+'use strict';
 
 import User from '../models/user.model';
 import logger from '../config/logger';
