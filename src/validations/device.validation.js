@@ -77,6 +77,14 @@ const deleteDeviceValidation = {
   }),
 };
 
+const registerDeviceValidation = {
+  params: Joi.object().keys({
+    deviceId: Joi.string()
+      .required()
+      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+  }),
+};
+
 module.exports = {
   createDeviceValidation,
   getDevicesValidation,
@@ -84,4 +92,5 @@ module.exports = {
   getDeviceByDeviceOwnerValidation,
   updateDeviceValidation,
   deleteDeviceValidation,
+  registerDeviceValidation,
 };

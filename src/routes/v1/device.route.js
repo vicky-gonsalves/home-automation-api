@@ -6,6 +6,7 @@ import {
   getByDeviceOwner,
   getDevice,
   getDevices,
+  registerDevice,
   updateDevice,
 } from '../../controllers/device.controller';
 import {
@@ -29,6 +30,7 @@ import {
   getDeviceByDeviceOwnerValidation,
   getDevicesValidation,
   getDeviceValidation,
+  registerDeviceValidation,
   updateDeviceValidation,
 } from '../../validations/device.validation';
 import {
@@ -63,6 +65,8 @@ router
 router
   .route('/get-by-device-owner/:deviceOwner')
   .get(auth('getDevices'), validate(getDeviceByDeviceOwnerValidation), getByDeviceOwner);
+
+router.route('/register-device/:deviceId').get(validate(registerDeviceValidation), registerDevice);
 
 // --------------------------------SubDevices------------------------------------------------------------------------------------------------
 

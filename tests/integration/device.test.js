@@ -1186,4 +1186,33 @@ describe('Device Routes', () => {
         .expect(httpStatus.BAD_REQUEST);
     });
   });
+
+  describe('GET /v1/devices/register-device/:deviceId', () => {
+    it('should return 200 and registered:true', async () => {
+      await insertDevices([deviceOne]);
+
+      const res = await request(app)
+        .get(`${route}/register-device/${deviceOne.deviceId}`)
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(res.body).toBeInstanceOf(Object);
+      expect(res.body).toHaveProperty('registered');
+      expect(res.body.registered).toBe(true);
+    });
+
+    it('should return 400 error if deviceId is not valid', async () => {
+      await request(app)
+        .get(`${route}/register-device/invalidId`)
+        .send()
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should return 404 error if device is not found', async () => {
+      await request(app)
+        .get(`${route}/register-device/${deviceOne.deviceId}`)
+        .send()
+        .expect(httpStatus.NOT_FOUND);
+    });
+  });
 });

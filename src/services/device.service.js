@@ -142,6 +142,12 @@ const deleteDevicesByDeviceOwnerService = async deviceOwner => {
   );
 };
 
+const registerDeviceService = async deviceId => {
+  const device = await getDeviceByDeviceIdService(deviceId);
+  Object.assign(device, { registeredAt: new Date() });
+  return device.save();
+};
+
 module.exports = {
   checkIfEmailIsDeviceOwnerAndFail,
   createDeviceService,
@@ -154,4 +160,5 @@ module.exports = {
   updateDeviceUpdatedByService,
   deleteDeviceService,
   deleteDevicesByDeviceOwnerService,
+  registerDeviceService,
 };

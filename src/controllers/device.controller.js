@@ -5,6 +5,7 @@ import {
   getDeviceByDeviceIdService,
   getDevicesByDeviceOwnerService,
   getDevicesService,
+  registerDeviceService,
   updateDeviceService,
 } from '../services/device.service';
 import catchAsync from '../utils/catchAsync';
@@ -43,6 +44,11 @@ const deleteDevice = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+const registerDevice = catchAsync(async (req, res) => {
+  await registerDeviceService(req.params.deviceId);
+  res.send({ registered: true });
+});
+
 module.exports = {
   createDevice,
   getDevices,
@@ -50,4 +56,5 @@ module.exports = {
   getByDeviceOwner,
   updateDevice,
   deleteDevice,
+  registerDevice,
 };
