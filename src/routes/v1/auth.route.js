@@ -7,10 +7,12 @@ import {
   registerValidation,
   resetPasswordValidation,
 } from '../../validations/auth.validation';
-import { forgotPassword, login, refreshTokens, register, resetPassword } from '../../controllers/auth.controller';
+import { forgotPassword, login, me, refreshTokens, register, resetPassword } from '../../controllers/auth.controller';
+import auth from '../../middlewares/auth';
 
 const router = express.Router();
 
+router.get('/me', auth('getMe'), me);
 router.post('/register', validate(registerValidation), register);
 router.post('/login', validate(loginValidation), login);
 router.post('/refresh-tokens', validate(refreshTokensValidation), refreshTokens);

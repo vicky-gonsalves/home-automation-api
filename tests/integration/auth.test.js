@@ -15,7 +15,7 @@ import User from '../../src/models/user.model';
 import Token from '../../src/models/token.model';
 import { roleRights } from '../../src/config/roles';
 import { userOne, admin, insertUsers } from '../fixtures/user.fixture';
-import { userOneAccessToken, adminAccessToken } from '../fixtures/token.fixture';
+import { userOneAccessToken, userTwoAccessToken, adminAccessToken } from '../fixtures/token.fixture';
 
 setupTestDB();
 
@@ -374,6 +374,51 @@ describe('Auth routes', () => {
         .query({ token: resetPasswordToken })
         .send({ password: '11111111' })
         .expect(httpStatus.BAD_REQUEST);
+    });
+  });
+
+  describe('GET /v1/auth/me', () => {
+    const route = `/v1/auth/me`;
+    beforeEach(() => {
+      insertUsers([admin, userOne]);
+    });
+
+    it('should return 200 and successfully get data of me for admin role', async () => {
+      const res = await request(app)
+        .get(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveProperty('id');
+      expect(res.body).toEqual({ id: expect.anything(), name: admin.name, email: admin.email, role: admin.role });
+    });
+
+    it('should return 200 and successfully get data of me for user role', async () => {
+      const res = await request(app)
+        .get(route)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveProperty('id');
+      expect(res.body).toEqual({ id: expect.anything(), name: userOne.name, email: userOne.email, role: userOne.role });
+    });
+
+    it('should return 401 error if access token is invalid', async () => {
+      await request(app)
+        .get(route)
+        .set('Authorization', `Bearer invalid`)
+        .send()
+        .expect(httpStatus.UNAUTHORIZED);
+    });
+
+    it('should return 401 error if user does not exists', async () => {
+      await request(app)
+        .get(route)
+        .set('Authorization', `Bearer ${userTwoAccessToken}`)
+        .send()
+        .expect(httpStatus.UNAUTHORIZED);
     });
   });
 });

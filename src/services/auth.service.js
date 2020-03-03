@@ -76,10 +76,15 @@ const resetUserPasswordService = async (resetPasswordToken, newPassword) => {
   await Token.deleteMany({ user: userId, type: 'resetPassword' });
 };
 
+const getMeService = async user => {
+  return user.transform();
+};
+
 module.exports = {
   generateAuthTokensService,
   loginUserService,
   refreshAuthTokensService,
   generateResetPasswordTokenService,
   resetUserPasswordService,
+  getMeService,
 };

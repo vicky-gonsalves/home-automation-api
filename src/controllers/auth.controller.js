@@ -2,6 +2,7 @@ import httpStatus from 'http-status';
 import {
   generateAuthTokensService,
   generateResetPasswordTokenService,
+  getMeService,
   loginUserService,
   refreshAuthTokensService,
   resetUserPasswordService,
@@ -42,10 +43,16 @@ const resetPassword = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+const me = catchAsync(async (req, res) => {
+  const user = await getMeService(req.user);
+  res.status(httpStatus.OK).send(user);
+});
+
 module.exports = {
   register,
   login,
   refreshTokens,
   forgotPassword,
   resetPassword,
+  me,
 };
