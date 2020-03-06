@@ -17,6 +17,7 @@
     "jest/expect-expect": "off",
     "security/detect-object-injection": "off",
     "import/named": "off",
-    "jest/no-test-callback": "off"
+    "jest/no-test-callback": "off",
+    "import/no-extraneous-dependencies": "off"
   }
 }
