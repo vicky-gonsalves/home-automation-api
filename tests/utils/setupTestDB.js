@@ -36,4 +36,23 @@ const setupTestDB = () => {
   });
 };
 
-module.exports = { setupTestDBWithActualTestDB, setupTestDB };
+const setupTestDBForSocket = () => {
+  const mockgoose = new Mockgoose(mongoose);
+  beforeAll(async done => {
+    await mockgoose.prepareStorage();
+    await mongoose.connect(config.mongoose.url, config.mongoose.options);
+    done();
+  });
+
+  beforeEach(async done => {
+    await mockgoose.helper.reset();
+    done();
+  });
+
+  afterAll(async done => {
+    await mongoose.disconnect();
+    done();
+  });
+};
+
+module.exports = { setupTestDBWithActualTestDB, setupTestDB, setupTestDBForSocket };

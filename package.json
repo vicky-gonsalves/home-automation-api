@@ -13,10 +13,10 @@
     "build": "babel src -d dist",
     "start": "babel src -d dist && pm2 start ecosystem.config.json --no-daemon",
     "dev": "cross-env NODE_ENV=development nodemon --exec babel-node ./src/index.js",
-    "test": "jest -i",
+    "test": "jest -i --forceExit",
     "test:watch": "jest -i --watchAll",
-    "coverage": "jest -i --coverage",
-    "coverage:coveralls": "jest -i --coverage --coverageReporters=text-lcov | coveralls",
+    "coverage": "jest -i --forceExit --coverage",
+    "coverage:coveralls": "jest -i --forceExit --coverage --coverageReporters=text-lcov | coveralls",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prettier": "prettier --check **/*.js",
@@ -49,6 +49,7 @@
     "passport": "^0.4.0",
     "passport-jwt": "^4.0.0",
     "pm2": "^4.1.2",
+    "rxjs": "^6.5.4",
     "socket.io": "^2.3.0",
     "socketio-jwt-auth": "^0.1.0",
     "validator": "^12.0.0",
@@ -58,6 +59,7 @@
   "devDependencies": {
     "@babel/cli": "^7.8.4",
     "@babel/core": "^7.8.4",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
     "@babel/plugin-transform-runtime": "^7.8.3",
     "@babel/preset-env": "^7.8.4",
     "babel-eslint": "^10.1.0",
@@ -78,6 +80,7 @@
     "node-mocks-http": "^1.8.0",
     "nodemon": "^2.0.0",
     "prettier": "^1.18.2",
+    "socket.io-mock": "^1.2.4",
     "supertest": "^4.0.2"
   }
 }

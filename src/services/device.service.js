@@ -67,30 +67,40 @@ const getDevicesByDeviceOwnerService = deviceOwner => {
   return Device.find({ deviceOwner });
 };
 
+const getActiveDevicesByDeviceIdService = async deviceIds => {
+  const devices = await Device.find({ deviceId: { $in: deviceIds }, isDisabled: false });
+  return devices.map(device => device.transform());
+};
+
+const getActiveDevicesByDeviceOwnerService = async deviceOwner => {
+  const devices = await Device.find({ deviceOwner, isDisabled: false });
+  return devices.map(device => device.transform());
+};
+
 const updateDeviceService = async (id, updateBody) => {
   let _dId;
   let _dOwner;
   const device = await getDeviceByDeviceIdService(id);
   const oldDeviceId = device.deviceId;
-  if (updateBody.deviceId) {
+  if (updateBody && updateBody.deviceId) {
     await checkDuplicateDeviceIdService(updateBody.deviceId, device.id);
   }
   Object.assign(device, updateBody);
   await device.save();
-  if (updateBody.deviceId) {
+  if (updateBody && updateBody.deviceId) {
     _dId = updateBody.deviceId;
   } else {
     _dId = device.deviceId;
   }
-  if (updateBody.deviceOwner) {
+  if (updateBody && updateBody.deviceOwner) {
     _dOwner = updateBody.deviceOwner;
   } else {
     _dOwner = device.deviceOwner;
   }
-  if (updateBody.deviceId || updateBody.deviceOwner) {
+  if ((updateBody && updateBody.deviceId) || (updateBody && updateBody.deviceOwner)) {
     await checkAndDeleteAccessIfExists(_dId, _dOwner);
   }
-  if (updateBody.deviceId) {
+  if (updateBody && updateBody.deviceId) {
     await updateDeviceIdService(oldDeviceId, updateBody.deviceId);
     await updateSubDeviceParamDeviceIdService(oldDeviceId, updateBody.deviceId);
     await updateSocketDeviceIdService(oldDeviceId, updateBody.deviceId);
@@ -175,4 +185,6 @@ module.exports = {
   deleteDevicesByDeviceOwnerService,
   registerDeviceService,
   getActiveDeviceByDeviceIdService,
+  getActiveDevicesByDeviceIdService,
+  getActiveDevicesByDeviceOwnerService,
 };

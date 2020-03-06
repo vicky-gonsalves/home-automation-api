@@ -1,5 +1,5 @@
 import httpStatus from 'http-status';
-import { pick } from 'lodash';
+import { flatten, pick } from 'lodash';
 import AppError from '../utils/AppError';
 import SubDeviceParam from '../models/subDeviceParam.model';
 import { getQueryOptions } from '../utils/service.util';
@@ -116,6 +116,20 @@ const deleteSubDeviceParamByDeviceIdService = async deviceId => {
   await Promise.all(subDeviceParams.map(subDeviceParam => subDeviceParam.remove()));
 };
 
+const getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService = async subDevices => {
+  let subDeviceParams = [];
+  subDeviceParams = await Promise.all(
+    subDevices.map(subDevice =>
+      SubDeviceParam.find({
+        deviceId: subDevice.deviceId,
+        subDeviceId: subDevice.subDeviceId,
+        isDisabled: false,
+      })
+    )
+  );
+  return flatten(subDeviceParams);
+};
+
 module.exports = {
   createSubDeviceParamService,
   getSubDeviceParamsService,
@@ -127,4 +141,5 @@ module.exports = {
   updateSubDeviceParamUpdatedByService,
   deleteSubDeviceParamService,
   deleteSubDeviceParamByDeviceIdService,
+  getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService,
 };

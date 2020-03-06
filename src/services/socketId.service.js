@@ -41,6 +41,14 @@ const registerSocketService = async (type, idType, bindedTo, socketId) => {
   return SocketId.create({ type, idType, bindedTo, socketId });
 };
 
+const getSocketIdsByEmailsService = emails => {
+  return SocketId.find({ type: 'user', idType: 'email', bindedTo: { $in: emails } }).select('socketId');
+};
+
+const getSocketIdsByDeviceIdService = deviceId => {
+  return SocketId.find({ type: 'device', idType: 'deviceId', bindedTo: deviceId }).select('socketId');
+};
+
 module.exports = {
   updateSocketEmailService,
   updateSocketDeviceIdService,
@@ -48,4 +56,6 @@ module.exports = {
   deleteSocketIdByUserEmailService,
   registerSocketService,
   deleteSocketIdBySocketIdService,
+  getSocketIdsByEmailsService,
+  getSocketIdsByDeviceIdService,
 };

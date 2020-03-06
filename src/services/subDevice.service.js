@@ -104,6 +104,11 @@ const deleteSubDevicesByDeviceIdService = async deviceId => {
   return Promise.all(subDevices.map(subDevice => subDevice.remove()));
 };
 
+const getActiveSubDevicesByDeviceIdService = async deviceIds => {
+  const subDevices = await SubDevice.find({ deviceId: { $in: deviceIds }, isDisabled: false });
+  return subDevices.map(subDevice => subDevice.transform());
+};
+
 module.exports = {
   createSubDeviceService,
   getSubDevicesService,
@@ -114,4 +119,5 @@ module.exports = {
   updateSubDeviceUpdatedByService,
   deleteSubDeviceService,
   deleteSubDevicesByDeviceIdService,
+  getActiveSubDevicesByDeviceIdService,
 };
