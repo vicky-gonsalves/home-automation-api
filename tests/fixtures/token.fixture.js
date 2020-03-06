@@ -16,6 +16,7 @@ const noDeviceAccessToken = generateDeviceTokenService(null, deviceAccessTokenEx
 const noUserAccessToken = generateTokenService(null, accessTokenExpires);
 
 module.exports = {
+  accessTokenExpires,
   userOneAccessToken,
   userTwoAccessToken,
   adminAccessToken,
