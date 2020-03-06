@@ -32,6 +32,15 @@ const devices = [
     createdBy: config.defaultAdmin.email,
     updatedBy: config.defaultAdmin.email,
   },
+  {
+    deviceId: 'bedroom000000002',
+    name: 'Bedroom 2',
+    type: 'arduino',
+    deviceOwner: 'johndoe@email.com',
+    registeredAt: new Date(),
+    createdBy: config.defaultAdmin.email,
+    updatedBy: config.defaultAdmin.email,
+  },
 ];
 
 const SeedDeviceFn = async () => {
