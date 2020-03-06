@@ -54,7 +54,7 @@ if (config.env === 'production') {
 // v1 api routes
 app.use('/v1', routes);
 
-if (config.env === 'development') {
+if (config.env === 'development' || config.env === 'test') {
   app.use(express.static(path.resolve(`${__dirname}/../public`)));
 } else {
   app.get('/', (req, res) => res.send('Home-Automation-API'));
