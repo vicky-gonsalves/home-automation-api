@@ -2,7 +2,6 @@ import httpStatus from 'http-status';
 import {
   createDeviceService,
   deleteDeviceService,
-  getActiveDeviceByDeviceIdService,
   getDeviceByDeviceIdService,
   getDevicesByDeviceOwnerService,
   getDevicesService,
@@ -58,7 +57,7 @@ const updateDevice = catchAsync(async (req, res) => {
 });
 
 const deleteDevice = catchAsync(async (req, res) => {
-  const device = await getActiveDeviceByDeviceIdService(req.params.deviceId);
+  const device = await getDeviceByDeviceIdService(req.params.deviceId);
   await sendDeviceSocketNotification(device, 'DEVICE_DELETED');
   await deleteDeviceService(req.params.deviceId);
   res.status(httpStatus.NO_CONTENT).send();
