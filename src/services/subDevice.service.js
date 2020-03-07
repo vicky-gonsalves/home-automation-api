@@ -109,6 +109,10 @@ const getActiveSubDevicesByDeviceIdService = async deviceIds => {
   return subDevices.map(subDevice => subDevice.transform());
 };
 
+const getActiveSubDeviceByDeviceIdAndSubDeviceIdService = (deviceId, subDeviceId) => {
+  return SubDevice.findOne({ deviceId, subDeviceId, isDisabled: false });
+};
+
 module.exports = {
   createSubDeviceService,
   getSubDevicesService,
@@ -120,4 +124,5 @@ module.exports = {
   deleteSubDeviceService,
   deleteSubDevicesByDeviceIdService,
   getActiveSubDevicesByDeviceIdService,
+  getActiveSubDeviceByDeviceIdAndSubDeviceIdService,
 };
