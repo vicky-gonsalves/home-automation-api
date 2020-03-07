@@ -17,6 +17,9 @@ import {
 import { adminAccessToken, userOneAccessToken } from '../fixtures/token.fixture';
 import { admin, insertUsers, userOne } from '../fixtures/user.fixture';
 import { setupTestDB } from '../utils/setupTestDB';
+import { accessOne, insertSharedDeviceAccess } from '../fixtures/sharedDeviceAccess.fixture';
+import { insertSocketIds, socketIdFour, socketIdTwo } from '../fixtures/socketId.fixture';
+import NotificationService from '../../src/services/notification.service';
 
 setupTestDB();
 
@@ -64,6 +67,23 @@ describe('Sub-Device Routes', () => {
         isDisabled: false,
         createdBy: admin.email,
       });
+    });
+
+    it('should return 201 and successfully create new sub-device if data is ok and send notification to users', async () => {
+      await insertSharedDeviceAccess([accessOne]);
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const _subDevice = {
+        subDeviceId: subDeviceOne.subDeviceId,
+        name: subDeviceOne.name,
+        type: subDeviceOne.type,
+      };
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+      await request(app)
+        .post(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(_subDevice)
+        .expect(httpStatus.CREATED);
+      expect(spy).toBeCalled();
     });
 
     it('should return 401 error is access token is missing', async () => {
@@ -556,6 +576,18 @@ describe('Sub-Device Routes', () => {
       expect(dbSubDevice).toBeNull();
     });
 
+    it('should return 204 and successfully delete sub-device and send notification to users', async () => {
+      await insertSharedDeviceAccess([accessOne]);
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+      await request(app)
+        .delete(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.NO_CONTENT);
+      expect(spy).toBeCalled();
+    });
+
     it('should return 204 and delete sub-device and all sub-device-params of a device', async () => {
       await insertDevices([deviceTwo]);
       await insertSubDevices([subDeviceThree]);
@@ -660,6 +692,18 @@ describe('Sub-Device Routes', () => {
         isDisabled: true,
         updatedBy: admin.email,
       });
+    });
+
+    it('should return 200 and successfully update sub-device and send notification to users', async () => {
+      await insertSharedDeviceAccess([accessOne]);
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+      await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+      expect(spy).toBeCalled();
     });
 
     it('should return 200 and update sub-device and all sub-device-params of a device', async () => {
