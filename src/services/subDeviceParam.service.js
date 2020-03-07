@@ -51,6 +51,10 @@ const getSubDeviceParamByParamNameService = async (deviceId, subDeviceId, paramN
   return subDeviceParam;
 };
 
+const getActiveSubDeviceParamByParamNameService = (deviceId, subDeviceId, paramName) => {
+  return SubDeviceParam.findOne({ deviceId, subDeviceId, paramName, isDisabled: false });
+};
+
 const updateSubDeviceParamService = async (deviceId, subDeviceId, paramName, updateBody) => {
   const subDeviceParam = await getSubDeviceParamByParamNameService(deviceId, subDeviceId, paramName);
   if (updateBody.paramName) {
@@ -142,4 +146,5 @@ module.exports = {
   deleteSubDeviceParamService,
   deleteSubDeviceParamByDeviceIdService,
   getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService,
+  getActiveSubDeviceParamByParamNameService,
 };

@@ -1,9 +1,14 @@
 import httpStatus from 'http-status';
-import { getDeviceByDeviceIdService } from '../services/device.service';
-import { getActiveSubDevicesByDeviceIdService, getSubDeviceBySubDeviceIdService } from '../services/subDevice.service';
+import { getActiveDeviceByDeviceIdService, getDeviceByDeviceIdService } from '../services/device.service';
+import {
+  getActiveSubDeviceByDeviceIdAndSubDeviceIdService,
+  getActiveSubDevicesByDeviceIdService,
+  getSubDeviceBySubDeviceIdService,
+} from '../services/subDevice.service';
 import {
   createSubDeviceParamService,
   deleteSubDeviceParamService,
+  getActiveSubDeviceParamByParamNameService,
   getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService,
   getSubDeviceParamByParamNameService,
   getSubDeviceParamsService,
@@ -14,13 +19,19 @@ import catchAsync from '../utils/catchAsync';
 import { getSharedDeviceAccessByDeviceIdService } from '../services/sharedDeviceAccess.service';
 import { getSocketIdsByDeviceIdService, getSocketIdsByEmailsService } from '../services/socketId.service';
 
-const sendSubDeviceParamSocketNotification = async (device, event, subDeviceParam) => {
-  const deviceAccees = await getSharedDeviceAccessByDeviceIdService(device.deviceId);
-  const emails = [device.deviceOwner, ...deviceAccees.map(access => access.email)];
-  const socketIds = [
-    ...(await getSocketIdsByDeviceIdService(device.deviceId)), // send to device
-    ...(await getSocketIdsByEmailsService(emails)), // send to users
-  ];
+const sendSubDeviceParamSocketNotification = async (device, event, subDeviceParam, sendOnlyToDevice = false) => {
+  let socketIds = [];
+  const deviceSocketIds = await getSocketIdsByDeviceIdService(device.deviceId);
+  if (sendOnlyToDevice) {
+    socketIds = [...deviceSocketIds];
+  } else {
+    const deviceAccees = await getSharedDeviceAccessByDeviceIdService(device.deviceId);
+    const emails = [device.deviceOwner, ...deviceAccees.map(access => access.email)];
+    socketIds = [
+      ...deviceSocketIds, // send to device
+      ...(await getSocketIdsByEmailsService(emails)), // send to users
+    ];
+  }
   if (socketIds.length) {
     NotificationService.sendMessage(socketIds, event, subDeviceParam);
   }
@@ -85,15 +96,30 @@ const getAllSubDeviceParamsOfDevice = async (socketId, device) => {
 };
 
 const updateSubDeviceParamsToSocketUsers = async (socketDevice, _updateData) => {
-  await getDeviceByDeviceIdService(socketDevice.deviceId);
-  await getSubDeviceBySubDeviceIdService(socketDevice.deviceId, _updateData.subDeviceId);
-  const subDeviceParam = await updateSubDeviceParamService(
-    socketDevice.deviceId,
-    _updateData.subDeviceId,
+  const errorEvent = 'ERROR_SUB_DEVICE_PARAM_UPDATE';
+  const device = await getActiveDeviceByDeviceIdService(socketDevice.deviceId);
+  if (!device) {
+    return sendSubDeviceParamSocketNotification(socketDevice, errorEvent, { error: 'no active device' }, true);
+  }
+  const subDevice = await getActiveSubDeviceByDeviceIdAndSubDeviceIdService(socketDevice.deviceId, _updateData.subDeviceId);
+  if (!subDevice) {
+    return sendSubDeviceParamSocketNotification(device, errorEvent, { error: 'no active sub device' }, true);
+  }
+  const subDeviceParam = await getActiveSubDeviceParamByParamNameService(
+    device.deviceId,
+    subDevice.subDeviceId,
+    _updateData.paramName
+  );
+  if (!subDeviceParam) {
+    return sendSubDeviceParamSocketNotification(device, errorEvent, { error: 'no active sub device param' }, true);
+  }
+  const updatedSubDeviceParam = await updateSubDeviceParamService(
+    device.deviceId,
+    subDevice.subDeviceId,
     _updateData.paramName,
     _updateData.updatedBody
   );
-  await sendSubDeviceParamSocketNotification(socketDevice, 'SUB_DEVICE_PARAMS_UPDATED', subDeviceParam);
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAMS_UPDATED', updatedSubDeviceParam);
 };
 
 module.exports = {
