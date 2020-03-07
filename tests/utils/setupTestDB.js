@@ -30,6 +30,7 @@ const setupTestDB = () => {
   });
 
   afterAll(async done => {
+    await mockgoose.helper.reset();
     await mongoose.disconnect();
     await mockgoose.shutdown();
     done();
