@@ -7,10 +7,25 @@ import SocketId from '../../src/models/socketId.model';
 import SubDevice from '../../src/models/subDevice.model';
 import SubDeviceParam from '../../src/models/subDeviceParam.model';
 import User from '../../src/models/user.model';
-import { deviceThree, deviceTwo, insertDevices } from '../fixtures/device.fixture';
-import { insertSocketIds, socketIdFive, socketIdFour, socketIdOne, socketIdSix } from '../fixtures/socketId.fixture';
-import { insertSubDevices, subDeviceFour, subDeviceThree } from '../fixtures/subDevice.fixture';
-import { insertSubDeviceParams, subDeviceParamFive, subDeviceParamFour } from '../fixtures/subDeviceParam.fixture';
+import { deviceOne, deviceThree, deviceTwo, insertDevices } from '../fixtures/device.fixture';
+import {
+  insertSocketIds,
+  socketIdFive,
+  socketIdFour,
+  socketIdOne,
+  socketIdSix,
+  socketIdThree,
+  socketIdTwo,
+} from '../fixtures/socketId.fixture';
+import { insertSubDevices, subDeviceFour, subDeviceOne, subDeviceThree, subDeviceTwo } from '../fixtures/subDevice.fixture';
+import {
+  insertSubDeviceParams,
+  subDeviceParamFive,
+  subDeviceParamFour,
+  subDeviceParamOne,
+  subDeviceParamThree,
+  subDeviceParamTwo,
+} from '../fixtures/subDeviceParam.fixture';
 import { adminAccessToken, userOneAccessToken } from '../fixtures/token.fixture';
 import { admin, insertUsers, userOne, userTwo } from '../fixtures/user.fixture';
 import { setupTestDB } from '../utils/setupTestDB';
@@ -354,17 +369,77 @@ describe('User routes', () => {
       expect(dbUser).toBeNull();
     });
 
+    it('should return 204 and delete user, all devices, all sub-devices, all sub-device-params, all shared device access and all socket ids of admin', async () => {
+      await insertUsers([admin]);
+      await insertDevices([deviceOne, deviceThree]);
+      await insertSubDevices([subDeviceOne, subDeviceTwo, subDeviceThree, subDeviceFour]);
+      await insertSubDeviceParams([
+        subDeviceParamOne,
+        subDeviceParamTwo,
+        subDeviceParamThree,
+        subDeviceParamFour,
+        subDeviceParamFive,
+      ]);
+      await insertSocketIds([socketIdOne, socketIdTwo, socketIdThree, socketIdFour, socketIdFive, socketIdSix]);
+      await insertSharedDeviceAccess([accessOne, accessFour]);
+
+      await request(app)
+        .delete(`/v1/users/${admin._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.NO_CONTENT);
+
+      const dbUser = await User.findById(admin._id);
+      expect(dbUser).toBeNull();
+      const dbDeviceOne = await Device.findById(deviceOne._id);
+      expect(dbDeviceOne).toBeNull();
+      const dbDeviceTwo = await Device.findById(deviceThree._id);
+      expect(dbDeviceTwo).toBeDefined();
+      const dbSubDeviceOne = await SubDevice.findById(subDeviceOne._id);
+      expect(dbSubDeviceOne).toBeNull();
+      const dbSubDeviceTwo = await SubDevice.findById(subDeviceTwo._id);
+      expect(dbSubDeviceTwo).toBeNull();
+      const dbSubDeviceParamOne = await SubDeviceParam.findById(subDeviceParamOne._id);
+      expect(dbSubDeviceParamOne).toBeNull();
+      const dbSubDeviceParamTwo = await SubDeviceParam.findById(subDeviceParamTwo._id);
+      expect(dbSubDeviceParamTwo).toBeNull();
+      const dbSubDeviceParamThree = await SubDeviceParam.findById(subDeviceParamThree._id);
+      expect(dbSubDeviceParamThree).toBeNull();
+      const dbSocketIdOne = await SocketId.findById(socketIdOne._id);
+      expect(dbSocketIdOne).toBeNull();
+      const dbSocketIdTwo = await SocketId.findById(socketIdTwo._id);
+      expect(dbSocketIdTwo).toBeNull();
+      const dbSocketIdThree = await SocketId.findById(socketIdThree._id);
+      expect(dbSocketIdThree).toBeNull();
+      const dbSocketFour = await SocketId.findById(socketIdFour._id);
+      expect(dbSocketFour).toBeDefined();
+      const dbSocketFive = await SocketId.findById(socketIdFive._id);
+      expect(dbSocketFive).toBeDefined();
+      const dbSocketSix = await SocketId.findById(socketIdSix._id);
+      expect(dbSocketSix).toBeDefined();
+      const dbAccess = await SharedDeviceAccess.findById(accessOne._id);
+      expect(dbAccess).toBeNull();
+      const dbAccessFour = await SharedDeviceAccess.findById(accessFour._id);
+      expect(dbAccessFour).toBeDefined();
+    });
+
     it('should return 204 and delete user, all devices, all sub-devices, all sub-device-params, all shared device access and all socket ids of user', async () => {
-      await insertUsers([userOne]);
-      await insertDevices([deviceTwo, deviceThree]);
-      await insertSubDevices([subDeviceThree, subDeviceFour]);
-      await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
-      await insertSocketIds([socketIdOne, socketIdFour, socketIdFive, socketIdSix]);
-      await insertSharedDeviceAccess([accessFour]);
+      await insertUsers([admin, userOne]);
+      await insertDevices([deviceOne, deviceTwo, deviceThree]);
+      await insertSubDevices([subDeviceOne, subDeviceTwo, subDeviceThree, subDeviceFour]);
+      await insertSubDeviceParams([
+        subDeviceParamOne,
+        subDeviceParamTwo,
+        subDeviceParamThree,
+        subDeviceParamFour,
+        subDeviceParamFive,
+      ]);
+      await insertSocketIds([socketIdOne, socketIdTwo, socketIdThree, socketIdFour, socketIdFive, socketIdSix]);
+      await insertSharedDeviceAccess([accessOne, accessFour]);
 
       await request(app)
         .delete(`/v1/users/${userOne._id}`)
-        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
         .send()
         .expect(httpStatus.NO_CONTENT);
 
@@ -382,16 +457,22 @@ describe('User routes', () => {
       expect(dbSubDeviceParamOne).toBeNull();
       const dbSubDeviceParamTwo = await SubDeviceParam.findById(subDeviceParamFive._id);
       expect(dbSubDeviceParamTwo).toBeNull();
-      const dbSocketIdOne = await SocketId.findById(socketIdFour._id);
-      expect(dbSocketIdOne).toBeNull();
-      const dbSocketIdTwo = await SocketId.findById(socketIdFive._id);
-      expect(dbSocketIdTwo).toBeNull();
-      const dbSocketIdThree = await SocketId.findById(socketIdSix._id);
-      expect(dbSocketIdThree).toBeNull();
-      const dbSocketFour = await SocketId.findById(socketIdOne._id);
-      expect(dbSocketFour).not.toBeNull();
-      const dbAccess = await SharedDeviceAccess.findById(accessFour._id);
+      const dbSocketIdOne = await SocketId.findById(socketIdOne._id);
+      expect(dbSocketIdOne).toBeDefined();
+      const dbSocketIdTwo = await SocketId.findById(socketIdTwo._id);
+      expect(dbSocketIdTwo).toBeDefined();
+      const dbSocketIdThree = await SocketId.findById(socketIdThree._id);
+      expect(dbSocketIdThree).toBeDefined();
+      const dbSocketFour = await SocketId.findById(socketIdFour._id);
+      expect(dbSocketFour).toBeNull();
+      const dbSocketFive = await SocketId.findById(socketIdFive._id);
+      expect(dbSocketFive).toBeNull();
+      const dbSocketSix = await SocketId.findById(socketIdSix._id);
+      expect(dbSocketSix).toBeNull();
+      const dbAccess = await SharedDeviceAccess.findById(accessOne._id);
       expect(dbAccess).toBeNull();
+      const dbAccessFour = await SharedDeviceAccess.findById(accessFour._id);
+      expect(dbAccessFour).toBeNull();
     });
 
     it('should return 401 error if access token is missing', async () => {

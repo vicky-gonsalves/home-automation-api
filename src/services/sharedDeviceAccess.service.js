@@ -53,17 +53,6 @@ const updateSharedDeviceAccessService = async (id, updateBody) => {
   return sharedDeviceAccess;
 };
 
-const updateSharedDeviceAccessDeviceIdService = async (oldDeviceId, newDeviceId) => {
-  const sharedDeviceAccesses = await SharedDeviceAccess.find({ deviceId: oldDeviceId });
-  return Promise.all(
-    sharedDeviceAccesses.map(async sharedDeviceAccess => {
-      Object.assign(sharedDeviceAccess, { deviceId: newDeviceId });
-      await sharedDeviceAccess.save();
-      return sharedDeviceAccess;
-    })
-  );
-};
-
 const updateSharedDeviceAccessEmailService = async (oldEmail, newEmail) => {
   const sharedDeviceAccesses = await SharedDeviceAccess.find({ email: oldEmail });
   return Promise.all(
@@ -105,7 +94,6 @@ module.exports = {
   getSharedDeviceAccessByIdService,
   getSharedDeviceAccessesService,
   updateSharedDeviceAccessService,
-  updateSharedDeviceAccessDeviceIdService,
   updateSharedDeviceAccessEmailService,
   deleteSharedDeviceAccessByDeviceIdService,
   deleteSharedDeviceAccessService,

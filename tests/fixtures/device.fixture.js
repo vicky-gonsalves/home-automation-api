@@ -1,15 +1,15 @@
 import mongoose from 'mongoose';
-import faker from 'faker';
 import { deviceType } from '../../src/config/device';
 import Device from '../../src/models/device.model';
 import { admin, userOne } from './user.fixture';
+import uniqid from 'uniqid';
 
 const email1 = admin.email;
 const email2 = userOne.email;
 
 const deviceOne = {
   _id: mongoose.Types.ObjectId(),
-  deviceId: faker.random.alphaNumeric(16),
+  deviceId: uniqid(),
   name: 'Motor',
   type: deviceType[0],
   deviceOwner: email1,
@@ -20,7 +20,7 @@ const deviceOne = {
 
 const deviceTwo = {
   _id: mongoose.Types.ObjectId(),
-  deviceId: faker.random.alphaNumeric(16),
+  deviceId: uniqid(),
   name: 'Light',
   type: deviceType[1],
   deviceOwner: email2,
@@ -31,7 +31,7 @@ const deviceTwo = {
 
 const deviceThree = {
   _id: mongoose.Types.ObjectId(),
-  deviceId: faker.random.alphaNumeric(16),
+  deviceId: uniqid(),
   name: 'Light',
   type: deviceType[1],
   deviceOwner: email2,

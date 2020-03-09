@@ -12,6 +12,7 @@ import { generateDeviceAuthTokensService } from '../services/deviceAuth.service'
 import { getSharedDeviceAccessByDeviceIdService } from '../services/sharedDeviceAccess.service';
 import { getSocketIdsByDeviceIdService, getSocketIdsByEmailsService } from '../services/socketId.service';
 import NotificationService from '../services/notification.service';
+import uniqid from 'uniqid';
 
 const sendDeviceSocketNotification = async (device, event) => {
   const deviceAccees = await getSharedDeviceAccessByDeviceIdService(device.deviceId);
@@ -27,6 +28,7 @@ const sendDeviceSocketNotification = async (device, event) => {
 
 const createDevice = catchAsync(async (req, res) => {
   req.body.createdBy = req.user.email;
+  req.body.deviceId = uniqid();
   const device = await createDeviceService(req.body);
   await sendDeviceSocketNotification(device, 'DEVICE_CREATED');
   res.status(httpStatus.CREATED).send(device.transform());

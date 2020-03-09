@@ -8,9 +8,6 @@ const createSubDeviceValidation = {
       .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
   }),
   body: Joi.object().keys({
-    subDeviceId: Joi.string()
-      .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
     name: Joi.string()
       .required()
       .pattern(new RegExp('^[A-Za-z_\\s\\d]{1,20}$')),
@@ -60,7 +57,6 @@ const updateSubDeviceValidation = {
   }),
   body: Joi.object()
     .keys({
-      subDeviceId: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
       name: Joi.string().pattern(new RegExp('^[A-Za-z_\\s\\d]{1,20}$')),
       type: Joi.string().valid(...subDeviceType),
       isDisabled: Joi.boolean(),

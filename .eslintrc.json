@@ -18,6 +18,7 @@
     "security/detect-object-injection": "off",
     "import/named": "off",
     "jest/no-test-callback": "off",
-    "import/no-extraneous-dependencies": "off"
+    "import/no-extraneous-dependencies": "off",
+    "import/order": "off"
   }
 }

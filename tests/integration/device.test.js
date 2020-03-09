@@ -27,11 +27,9 @@ describe('Device Routes', () => {
     beforeEach(() => {
       const email = faker.internet.email().toLowerCase();
       newDevice = {
-        deviceId: faker.random.alphaNumeric(16),
         name: faker.name.firstName(),
         type: faker.random.arrayElement(deviceType),
         deviceOwner: email,
-        registeredAt: new Date().toISOString(),
       };
     });
 
@@ -45,8 +43,10 @@ describe('Device Routes', () => {
         .expect(httpStatus.CREATED);
 
       expect(res.body).toHaveProperty('isDisabled');
+      expect(res.body).toHaveProperty('deviceId');
       expect(res.body).toMatchObject({
         id: expect.anything(),
+        deviceId: expect.anything(),
         isDisabled: false,
         createdAt: expect.anything(),
         updatedAt: expect.anything(),
@@ -56,13 +56,14 @@ describe('Device Routes', () => {
       const dbDevice = await Device.findById(res.body.id);
       expect(dbDevice).toBeDefined();
       expect(dbDevice.isDisabled).toBe(false);
+      expect(dbDevice.deviceId).toBeDefined();
+      expect(dbDevice.deviceId.length).toBeGreaterThanOrEqual(16);
+      expect(dbDevice.deviceId.length).toBeLessThanOrEqual(20);
       expect(dbDevice).toMatchObject({
         name: newDevice.name,
-        deviceId: newDevice.deviceId,
         type: newDevice.type,
         deviceOwner: newDevice.deviceOwner,
         isDisabled: false,
-        registeredAt: new Date(newDevice.registeredAt),
         createdBy: admin.email,
       });
     });
@@ -72,7 +73,6 @@ describe('Device Routes', () => {
       await insertSharedDeviceAccess([accessOne]);
       await insertSocketIds([socketIdTwo, socketIdFour]);
       const _device = {
-        deviceId: deviceOne.deviceId,
         name: deviceOne.name,
         type: deviceOne.type,
         deviceOwner: deviceOne.deviceOwner,
@@ -101,81 +101,6 @@ describe('Device Routes', () => {
         .set('Authorization', `Bearer ${userOneAccessToken}`)
         .send(newDevice)
         .expect(httpStatus.FORBIDDEN);
-    });
-
-    it('should return 400 error if deviceId is invalid', async () => {
-      await insertUsers([admin]);
-      newDevice.deviceId = 'invalid device id';
-
-      await request(app)
-        .post(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(newDevice)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 error if deviceId is already used', async () => {
-      await insertUsers([admin]);
-      await insertDevices([deviceOne]);
-      newDevice.deviceId = deviceOne.deviceId;
-
-      await request(app)
-        .post(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(newDevice)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 error if deviceId length is less than 16 characters', async () => {
-      await insertUsers([admin]);
-      newDevice.deviceId = faker.random.alphaNumeric(14);
-
-      await request(app)
-        .post(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(newDevice)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 error if deviceId length is greater than 20 characters', async () => {
-      await insertUsers([admin]);
-      newDevice.deviceId = faker.random.alphaNumeric(21);
-
-      await request(app)
-        .post(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(newDevice)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 error if deviceId is not string', async () => {
-      await insertUsers([admin]);
-      newDevice.deviceId = 31231;
-
-      await request(app)
-        .post(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(newDevice)
-        .expect(httpStatus.BAD_REQUEST);
-
-      newDevice.deviceId = {};
-
-      await request(app)
-        .post(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(newDevice)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 error if deviceId is missing', async () => {
-      await insertUsers([admin]);
-      delete newDevice.deviceId;
-
-      await request(app)
-        .post(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(newDevice)
-        .expect(httpStatus.BAD_REQUEST);
     });
 
     it('should return 400 error if name is invalid', async () => {
@@ -834,7 +759,6 @@ describe('Device Routes', () => {
     beforeEach(() => {
       const email = faker.internet.email().toLowerCase();
       updateBody = {
-        deviceId: faker.random.alphaNumeric(16),
         name: faker.name.firstName(),
         type: faker.random.arrayElement(deviceType),
         deviceOwner: email,
@@ -853,18 +777,20 @@ describe('Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveProperty('isDisabled');
+      expect(res.body).toHaveProperty('deviceId');
       expect(res.body).toMatchObject({
-        deviceId: updateBody.deviceId,
         name: updateBody.name,
         type: updateBody.type,
         isDisabled: true,
         deviceOwner: updateBody.deviceOwner,
       });
 
-      const dbDevice = await Device.findOne({ deviceId: updateBody.deviceId });
+      const dbDevice = await Device.findOne({ deviceId: deviceOne.deviceId });
       expect(dbDevice).toBeDefined();
+      expect(dbDevice.deviceId).toBeDefined();
+      expect(dbDevice.deviceId.length).toBeGreaterThanOrEqual(16);
+      expect(dbDevice.deviceId.length).toBeLessThanOrEqual(20);
       expect(dbDevice).toMatchObject({
-        deviceId: updateBody.deviceId,
         name: updateBody.name,
         type: updateBody.type,
         isDisabled: true,
@@ -903,23 +829,23 @@ describe('Device Routes', () => {
 
       const dbSubDeviceTwo = await SubDevice.findById(subDeviceFour._id);
       expect(dbSubDeviceTwo).toBeDefined();
-      expect(dbSubDeviceTwo.deviceId).toBe(updateBody.deviceId);
+      expect(dbSubDeviceTwo.deviceId).toBe(deviceTwo.deviceId);
 
       const dbSubDeviceParamOne = await SubDeviceParam.findById(subDeviceParamFour._id);
       expect(dbSubDeviceParamOne).toBeDefined();
-      expect(dbSubDeviceParamOne.deviceId).toBe(updateBody.deviceId);
+      expect(dbSubDeviceParamOne.deviceId).toBe(deviceTwo.deviceId);
 
       const dbSubDeviceParamTwo = await SubDeviceParam.findById(subDeviceParamFive._id);
       expect(dbSubDeviceParamTwo).toBeDefined();
-      expect(dbSubDeviceParamTwo.deviceId).toBe(updateBody.deviceId);
+      expect(dbSubDeviceParamTwo.deviceId).toBe(deviceTwo.deviceId);
 
       const dbSocketIdTwo = await SocketId.findById(socketIdSix._id);
       expect(dbSocketIdTwo).toBeDefined();
-      expect(dbSocketIdTwo.bindedTo).toBe(updateBody.deviceId);
+      expect(dbSocketIdTwo.bindedTo).toBe(deviceTwo.deviceId);
 
       const dbAccessOne = await SharedDeviceAccess.findById(accessThree._id);
       expect(dbAccessOne).toBeDefined();
-      expect(dbAccessOne.deviceId).toBe(updateBody.deviceId);
+      expect(dbAccessOne.deviceId).toBe(deviceTwo.deviceId);
     });
 
     it('should return 200 and update device and delete all shared device access if deviceOwner already has access', async () => {
@@ -944,7 +870,7 @@ describe('Device Routes', () => {
       await insertDevices([deviceOne]);
       await insertSharedDeviceAccess([accessOne]);
 
-      updateBody = { deviceId: accessOne.deviceId, deviceOwner: userOne.email };
+      updateBody = { deviceOwner: userOne.email };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)
@@ -1007,89 +933,6 @@ describe('Device Routes', () => {
 
       await request(app)
         .patch(`${route}/invalidid`)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(updateBody)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 if deviceId is invalid', async () => {
-      await insertUsers([admin]);
-      await insertDevices([deviceOne]);
-      updateBody = { deviceId: 'invalidId' };
-
-      await request(app)
-        .patch(`${route}/${deviceOne.deviceId}`)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(updateBody)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 if deviceId is already taken', async () => {
-      await insertUsers([admin]);
-      await insertDevices([deviceOne, deviceTwo]);
-      updateBody = { deviceId: deviceTwo.deviceId };
-
-      await request(app)
-        .patch(`${route}/${deviceOne.deviceId}`)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(updateBody)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should not return 400 if deviceId is my deviceId', async () => {
-      await insertUsers([admin]);
-      await insertDevices([deviceOne]);
-      updateBody = { deviceId: userOne.deviceId };
-
-      await request(app)
-        .patch(`${route}/${deviceOne.deviceId}`)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(updateBody)
-        .expect(httpStatus.OK);
-    });
-
-    it('should return 400 if deviceId length is less than 16 characters', async () => {
-      await insertUsers([admin]);
-      await insertDevices([deviceOne]);
-
-      updateBody = { deviceId: faker.random.alphaNumeric(15) };
-
-      await request(app)
-        .patch(`${route}/${deviceOne.deviceId}`)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(updateBody)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 error if deviceId length is greater than 20 characters', async () => {
-      await insertUsers([admin]);
-      await insertDevices([deviceOne]);
-
-      updateBody = { deviceId: faker.random.alphaNumeric(21) };
-
-      await request(app)
-        .patch(`${route}/${deviceOne.deviceId}`)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(updateBody)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 error if deviceId is not string', async () => {
-      await insertUsers([admin]);
-      await insertDevices([deviceOne]);
-
-      updateBody = { deviceId: 31231 };
-
-      await request(app)
-        .patch(`${route}/${deviceOne.deviceId}`)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(updateBody)
-        .expect(httpStatus.BAD_REQUEST);
-
-      updateBody = { deviceId: {} };
-
-      await request(app)
-        .patch(`${route}/${deviceOne.deviceId}`)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updateBody)
         .expect(httpStatus.BAD_REQUEST);
