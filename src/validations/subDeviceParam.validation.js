@@ -1,4 +1,5 @@
 import Joi from '@hapi/joi';
+import NotificationService from '../services/notification.service';
 
 const createSubDeviceParamValidation = {
   params: Joi.object().keys({
@@ -13,7 +14,7 @@ const createSubDeviceParamValidation = {
     paramName: Joi.string()
       .required()
       .pattern(new RegExp('^[A-Za-z_\\d]{1,50}$')),
-    paramValue: Joi.any().required(),
+    paramValue: Joi.alternatives(Joi.string(), Joi.number(), Joi.object(), Joi.array()).required(),
     isDisabled: Joi.boolean(),
   }),
 };
@@ -29,7 +30,7 @@ const getSubDeviceParamsValidation = {
   }),
   query: Joi.object().keys({
     paramName: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{1,50}$')),
-    paramValue: Joi.any(),
+    paramValue: Joi.alternatives(Joi.string(), Joi.number(), Joi.object(), Joi.array()),
     isDisabled: Joi.boolean(),
     sortBy: Joi.string(),
     limit: Joi.number().integer(),
@@ -66,7 +67,7 @@ const updateSubDeviceParamValidation = {
   body: Joi.object()
     .keys({
       paramName: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{1,50}$')),
-      paramValue: Joi.any(),
+      paramValue: Joi.alternatives(Joi.string(), Joi.number(), Joi.object(), Joi.array()),
       isDisabled: Joi.boolean(),
     })
     .min(0),
@@ -105,6 +106,60 @@ const deleteSubDeviceParamValidation = {
   }),
 };
 
+const validateGetSubDeviceParamsSocket = async (socket, listener) => {
+  const schema = Joi.object({
+    id: Joi.string().required(),
+    deviceId: Joi.string()
+      .required()
+      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+  });
+
+  const validate = schema.validate({
+    id: socket.id,
+    deviceId: socket && socket.device && socket.device.deviceId ? socket.device.deviceId : null,
+  });
+
+  if (validate.error) {
+    NotificationService.sendMessage([{ socketId: socket.id }], 'ERROR_SUB_DEVICE_PARAM_GET', {
+      error: validate.error.details[0].message,
+    });
+  } else {
+    await listener(socket.id, socket.device);
+  }
+};
+
+const validatePutSubDeviceParamsSocket = async (socket, data, listener) => {
+  const schema = Joi.object({
+    id: Joi.string().required(),
+    deviceId: Joi.string()
+      .required()
+      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+    subDeviceId: Joi.string()
+      .required()
+      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+    paramName: Joi.string()
+      .required()
+      .pattern(new RegExp('^[A-Za-z_\\d]{1,50}$')),
+    paramValue: Joi.alternatives(Joi.string(), Joi.number(), Joi.object(), Joi.array()).required(),
+  });
+
+  const validate = schema.validate({
+    id: socket.id,
+    deviceId: socket && socket.device && socket.device.deviceId ? socket.device.deviceId : null,
+    subDeviceId: data && data.subDeviceId ? data.subDeviceId : null,
+    paramName: data && data.paramName ? data.paramName : null,
+    paramValue: data && data.updatedBody && data.updatedBody.paramValue ? data.updatedBody.paramValue : null,
+  });
+
+  if (validate.error) {
+    NotificationService.sendMessage([{ socketId: socket.id }], 'ERROR_SUB_DEVICE_PARAM_UPDATE', {
+      error: validate.error.details[0].message,
+    });
+  } else {
+    await listener(socket.device, data, listener);
+  }
+};
+
 module.exports = {
   createSubDeviceParamValidation,
   getSubDeviceParamsValidation,
@@ -112,4 +167,6 @@ module.exports = {
   updateSubDeviceParamValidation,
   deleteSubDeviceParamValidation,
   updateSubDeviceParamValueValidation,
+  validateGetSubDeviceParamsSocket,
+  validatePutSubDeviceParamsSocket,
 };
