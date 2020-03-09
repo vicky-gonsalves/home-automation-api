@@ -371,6 +371,7 @@ describe('Socket Tests', () => {
         await insertSubDeviceParams([subDeviceParamOne]);
         await insertSharedDeviceAccess([accessOne]);
 
+        let spy;
         const userOptions = {
           forceNew: true,
           transportOptions: {
@@ -389,7 +390,7 @@ describe('Socket Tests', () => {
         });
 
         deviceIOClient.on('GET_ALL_SUB_DEVICE_PARAMS', async data => {
-          const spy = jest.spyOn(NotificationService, 'sendMessage');
+          spy = jest.spyOn(NotificationService, 'sendMessage');
           const subDeviceParam = data[0];
           await SocketId.deleteMany();
           deviceIOClient.emit('subDeviceParam/update', {
@@ -400,11 +401,12 @@ describe('Socket Tests', () => {
               paramValue: 'on',
             },
           });
-          setTimeout(() => {
-            expect(spy).not.toBeCalled();
-            done();
-          }, 10);
         });
+
+        setTimeout(() => {
+          expect(spy).not.toBeCalled();
+          done();
+        }, 100);
       });
 
       it('should listen subDeviceParam/update event, and receive error if there is no active device', async done => {
