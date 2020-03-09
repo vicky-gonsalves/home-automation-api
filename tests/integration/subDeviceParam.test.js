@@ -162,14 +162,14 @@ describe('Sub-Device Params Routes', () => {
         .expect(httpStatus.BAD_REQUEST);
     });
 
-    it('should return 500 error if paramValue is empty', async () => {
+    it('should return 400 error if paramValue is empty', async () => {
       subDeviceParam.paramValue = '';
 
       await request(app)
         .post(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(subDeviceParam)
-        .expect(httpStatus.INTERNAL_SERVER_ERROR);
+        .expect(httpStatus.BAD_REQUEST);
     });
 
     it('should return 400 error if paramValue is missing', async () => {
@@ -711,14 +711,14 @@ describe('Sub-Device Params Routes', () => {
         .expect(httpStatus.BAD_REQUEST);
     });
 
-    it('should return 500 error if paramValue is invalid', async () => {
+    it('should return 400 error if paramValue is invalid', async () => {
       updateBody = { paramValue: '' };
 
       await request(app)
         .patch(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updateBody)
-        .expect(httpStatus.INTERNAL_SERVER_ERROR);
+        .expect(httpStatus.BAD_REQUEST);
     });
   });
 
