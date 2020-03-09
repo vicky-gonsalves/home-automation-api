@@ -57,7 +57,7 @@ const getActiveSubDeviceParamByParamNameService = (deviceId, subDeviceId, paramN
 
 const updateSubDeviceParamService = async (deviceId, subDeviceId, paramName, updateBody) => {
   const subDeviceParam = await getSubDeviceParamByParamNameService(deviceId, subDeviceId, paramName);
-  if (updateBody.paramName) {
+  if (updateBody && updateBody.paramName) {
     await checkDuplicateSubDeviceParamService(deviceId, subDeviceId, updateBody.paramName, subDeviceParam.id);
   }
   Object.assign(subDeviceParam, updateBody);

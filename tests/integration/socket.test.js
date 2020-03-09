@@ -225,6 +225,23 @@ describe('Socket Tests', () => {
         });
       });
 
+      it('should listen subDeviceParam/get event, and return error if emitted by user', async done => {
+        await insertDevices([deviceTwo]);
+        await insertSubDevices([subDeviceThree]);
+        await insertSubDeviceParams([subDeviceParamFour]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${userOneAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('subDeviceParam/getAll');
+        });
+
+        deviceIOClient.on('ERROR_SUB_DEVICE_PARAM_GET', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('"deviceId" must be a string');
+          done();
+        });
+      });
+
       it('should listen subDeviceParam/get event and return error if device has no sub device', done => {
         deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceAccessToken}`, deviceOptions);
         deviceIOClient.on('CONNECTED', () => {
@@ -311,6 +328,124 @@ describe('Socket Tests', () => {
               paramValue: 'on',
             },
           });
+        });
+      });
+
+      it('should listen subDeviceParam/update event, and return error if emitted by user', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+        await insertSubDevices([subDeviceThree]);
+        await insertSubDeviceParams([subDeviceParamFour]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${userOneAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('subDeviceParam/update', {
+            subDeviceId: subDeviceParamFour.subDeviceId,
+            paramName: subDeviceParamFour.paramName,
+            updatedBody: {
+              paramValue: 'on',
+            },
+          });
+        });
+
+        deviceIOClient.on('ERROR_SUB_DEVICE_PARAM_UPDATE', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('"deviceId" must be a string');
+          done();
+        });
+      });
+
+      it('should listen subDeviceParam/update event, and return error if subDeviceId is invalid and emitted by device', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+        await insertSubDevices([subDeviceThree]);
+        await insertSubDeviceParams([subDeviceParamFour]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceTwoAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('subDeviceParam/update', {
+            subDeviceId: 'invalid',
+            paramName: subDeviceParamFour.paramName,
+            updatedBody: {
+              paramValue: 'on',
+            },
+          });
+        });
+
+        deviceIOClient.on('ERROR_SUB_DEVICE_PARAM_UPDATE', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe(
+            '"subDeviceId" with value "invalid" fails to match the required pattern: /^[A-Za-z_\\d]{16,20}$/'
+          );
+          done();
+        });
+      });
+
+      it('should listen subDeviceParam/update event, and return error if subDeviceId is missing and emitted by device', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+        await insertSubDevices([subDeviceThree]);
+        await insertSubDeviceParams([subDeviceParamFour]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceTwoAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('subDeviceParam/update', {
+            paramName: subDeviceParamFour.paramName,
+            updatedBody: {
+              paramValue: 'on',
+            },
+          });
+        });
+
+        deviceIOClient.on('ERROR_SUB_DEVICE_PARAM_UPDATE', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('"subDeviceId" must be a string');
+          done();
+        });
+      });
+
+      it('should listen subDeviceParam/update event, and return error if paramName is missing and emitted by device', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+        await insertSubDevices([subDeviceThree]);
+        await insertSubDeviceParams([subDeviceParamFour]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceTwoAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('subDeviceParam/update', {
+            subDeviceId: subDeviceParamFour.subDeviceId,
+            updatedBody: {
+              paramValue: 'on',
+            },
+          });
+        });
+
+        deviceIOClient.on('ERROR_SUB_DEVICE_PARAM_UPDATE', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('"paramName" must be a string');
+          done();
+        });
+      });
+
+      it('should listen subDeviceParam/update event, and return error if paramValue is missing and emitted by device', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+        await insertSubDevices([subDeviceThree]);
+        await insertSubDeviceParams([subDeviceParamFour]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceTwoAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('subDeviceParam/update', {
+            subDeviceId: subDeviceParamFour.subDeviceId,
+            paramName: subDeviceParamFour.paramName,
+            updatedBody: {},
+          });
+        });
+
+        deviceIOClient.on('ERROR_SUB_DEVICE_PARAM_UPDATE', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('"paramValue" must be one of [string, number, object, array]');
+          done();
         });
       });
 
