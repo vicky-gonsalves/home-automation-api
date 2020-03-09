@@ -16,7 +16,7 @@ import {
 } from '../services/subDeviceParam.service';
 import NotificationService from '../services/notification.service';
 import catchAsync from '../utils/catchAsync';
-import { getSharedDeviceAccessByDeviceIdService } from '../services/sharedDeviceAccess.service';
+import { checkAccessIfExists, getSharedDeviceAccessByDeviceIdService } from '../services/sharedDeviceAccess.service';
 import { getSocketIdsByDeviceIdService, getSocketIdsByEmailsService } from '../services/socketId.service';
 
 const sendSubDeviceParamSocketNotification = async (device, event, subDeviceParam, sendOnlyToDevice = false) => {
@@ -65,6 +65,23 @@ const updateSubDeviceParam = catchAsync(async (req, res) => {
   req.body._updatedBy = req.user.email;
   const device = await getDeviceByDeviceIdService(req.params.deviceId);
   await getSubDeviceBySubDeviceIdService(req.params.deviceId, req.params.subDeviceId);
+  const subDeviceParam = await updateSubDeviceParamService(
+    req.params.deviceId,
+    req.params.subDeviceId,
+    req.params.paramName,
+    req.body
+  );
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_UPDATED', subDeviceParam);
+  res.send(subDeviceParam.transform());
+});
+
+const updateSubDeviceParamValue = catchAsync(async (req, res) => {
+  req.body._updatedBy = req.user.email;
+  const device = await getDeviceByDeviceIdService(req.params.deviceId);
+  await getSubDeviceBySubDeviceIdService(req.params.deviceId, req.params.subDeviceId);
+  if (req.user.role !== 'admin' && req.user.email !== device.deviceOwner) {
+    await checkAccessIfExists(device.deviceId, req.user.email);
+  }
   const subDeviceParam = await updateSubDeviceParamService(
     req.params.deviceId,
     req.params.subDeviceId,
@@ -139,4 +156,5 @@ module.exports = {
   deleteSubDeviceParam,
   getAllSubDeviceParamsOfDevice,
   updateSubDeviceParamsToSocketUsers,
+  updateSubDeviceParamValue,
 };

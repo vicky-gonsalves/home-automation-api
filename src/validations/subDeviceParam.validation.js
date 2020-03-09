@@ -72,6 +72,25 @@ const updateSubDeviceParamValidation = {
     .min(0),
 };
 
+const updateSubDeviceParamValueValidation = {
+  params: Joi.object().keys({
+    deviceId: Joi.string()
+      .required()
+      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+    subDeviceId: Joi.string()
+      .required()
+      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+    paramName: Joi.string()
+      .required()
+      .pattern(new RegExp('^[A-Za-z_\\d]{1,50}$')),
+  }),
+  body: Joi.object()
+    .keys({
+      paramValue: Joi.any().required(),
+    })
+    .min(1),
+};
+
 const deleteSubDeviceParamValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
@@ -92,4 +111,5 @@ module.exports = {
   getSubDeviceParamValidation,
   updateSubDeviceParamValidation,
   deleteSubDeviceParamValidation,
+  updateSubDeviceParamValueValidation,
 };

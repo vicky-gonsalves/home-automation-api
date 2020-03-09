@@ -22,6 +22,7 @@ import {
   getSubDeviceParam,
   getSubDeviceParams,
   updateSubDeviceParam,
+  updateSubDeviceParamValue,
 } from '../../controllers/subDeviceParam.controller';
 import validate from '../../middlewares/validate';
 import {
@@ -46,6 +47,7 @@ import {
   getSubDeviceParamsValidation,
   getSubDeviceParamValidation,
   updateSubDeviceParamValidation,
+  updateSubDeviceParamValueValidation,
 } from '../../validations/subDeviceParam.validation';
 
 const router = express.Router();
@@ -93,5 +95,9 @@ router
   .get(auth('getSubDeviceParams'), validate(getSubDeviceParamValidation), getSubDeviceParam)
   .patch(auth('manageSubDeviceParams'), validate(updateSubDeviceParamValidation), updateSubDeviceParam)
   .delete(auth('manageSubDeviceParams'), validate(deleteSubDeviceParamValidation), deleteSubDeviceParam);
+
+router
+  .route('/:deviceId/sub-devices/:subDeviceId/sub-device-param-value/:paramName')
+  .patch(auth('updateSubDeviceParamsValue'), validate(updateSubDeviceParamValueValidation), updateSubDeviceParamValue);
 
 module.exports = router;
