@@ -39,9 +39,10 @@ const sendSubDeviceParamSocketNotification = async (device, event, subDevicePara
 
 const createSubDeviceParam = catchAsync(async (req, res) => {
   req.body.createdBy = req.user.email;
-  await getDeviceByDeviceIdService(req.params.deviceId);
+  const device = await getDeviceByDeviceIdService(req.params.deviceId);
   await getSubDeviceBySubDeviceIdService(req.params.deviceId, req.params.subDeviceId);
   const subDeviceParam = await createSubDeviceParamService(req.params.deviceId, req.params.subDeviceId, req.body);
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_CREATED', subDeviceParam);
   res.status(httpStatus.CREATED).send(subDeviceParam.transform());
 });
 
@@ -62,7 +63,7 @@ const getSubDeviceParam = catchAsync(async (req, res) => {
 
 const updateSubDeviceParam = catchAsync(async (req, res) => {
   req.body._updatedBy = req.user.email;
-  await getDeviceByDeviceIdService(req.params.deviceId);
+  const device = await getDeviceByDeviceIdService(req.params.deviceId);
   await getSubDeviceBySubDeviceIdService(req.params.deviceId, req.params.subDeviceId);
   const subDeviceParam = await updateSubDeviceParamService(
     req.params.deviceId,
@@ -70,10 +71,18 @@ const updateSubDeviceParam = catchAsync(async (req, res) => {
     req.params.paramName,
     req.body
   );
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_UPDATED', subDeviceParam);
   res.send(subDeviceParam.transform());
 });
 
 const deleteSubDeviceParam = catchAsync(async (req, res) => {
+  const device = await getDeviceByDeviceIdService(req.params.deviceId);
+  const subDeviceParam = await getSubDeviceParamByParamNameService(
+    req.params.deviceId,
+    req.params.subDeviceId,
+    req.params.paramName
+  );
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_DELETED', subDeviceParam);
   await deleteSubDeviceParamService(req.params.deviceId, req.params.subDeviceId, req.params.paramName);
   res.status(httpStatus.NO_CONTENT).send();
 });

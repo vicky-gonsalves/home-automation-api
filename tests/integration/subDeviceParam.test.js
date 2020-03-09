@@ -3,18 +3,21 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 import { setupTestDB } from '../utils/setupTestDB';
 import app from '../../src/app';
-import { userOneAccessToken, adminAccessToken } from '../fixtures/token.fixture';
-import { userOne, admin, insertUsers } from '../fixtures/user.fixture';
+import { adminAccessToken, userOneAccessToken } from '../fixtures/token.fixture';
+import { admin, insertUsers, userOne } from '../fixtures/user.fixture';
 import { deviceOne, insertDevices } from '../fixtures/device.fixture';
-import { subDeviceOne, subDeviceTwo, subDeviceThree, subDeviceFour, insertSubDevices } from '../fixtures/subDevice.fixture';
+import { insertSubDevices, subDeviceFour, subDeviceOne, subDeviceThree, subDeviceTwo } from '../fixtures/subDevice.fixture';
 import {
-  subDeviceParamOne,
-  subDeviceParamTwo,
-  subDeviceParamThree,
-  subDeviceParamFour,
   insertSubDeviceParams,
+  subDeviceParamFour,
+  subDeviceParamOne,
+  subDeviceParamThree,
+  subDeviceParamTwo,
 } from '../fixtures/subDeviceParam.fixture';
 import SubDeviceParam from '../../src/models/subDeviceParam.model';
+import { accessOne, insertSharedDeviceAccess } from '../fixtures/sharedDeviceAccess.fixture';
+import { insertSocketIds, socketIdFour, socketIdTwo } from '../fixtures/socketId.fixture';
+import NotificationService from '../../src/services/notification.service';
 
 setupTestDB();
 
@@ -64,6 +67,22 @@ describe('Sub-Device Params Routes', () => {
         isDisabled: false,
         createdBy: admin.email,
       });
+    });
+
+    it('should return 201 and successfully create new sub-device-param if data is ok and send notification to users', async () => {
+      await insertSharedDeviceAccess([accessOne]);
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const _subDeviceParam = {
+        paramName: subDeviceParamOne.paramName,
+        paramValue: subDeviceParamOne.paramValue,
+      };
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+      await request(app)
+        .post(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(_subDeviceParam)
+        .expect(httpStatus.CREATED);
+      expect(spy).toBeCalled();
     });
 
     it('should return 401 error is access token is missing', async () => {
@@ -460,6 +479,17 @@ describe('Sub-Device Params Routes', () => {
       expect(dbSubDeviceParam).toBeNull();
     });
 
+    it('should return 204 and successfully delete sub-device-param if data is ok and send notification to users', async () => {
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+      await request(app)
+        .delete(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.NO_CONTENT);
+      expect(spy).toBeCalled();
+    });
+
     it('should return 401 error if access token is missing', async () => {
       await request(app)
         .delete(route)
@@ -547,6 +577,17 @@ describe('Sub-Device Params Routes', () => {
         isDisabled: true,
         updatedBy: admin.email,
       });
+    });
+
+    it('should return 204 and successfully delete sub-device-param if data is ok and send notification to users', async () => {
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+      await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+      expect(spy).toBeCalled();
     });
 
     it('should return 401 error if access token is missing', async () => {
