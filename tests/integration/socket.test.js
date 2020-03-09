@@ -25,7 +25,9 @@ import config from '../../src/config/config';
 import SocketServer from '../../src/socketServer';
 import NotificationService from '../../src/services/notification.service';
 import SocketId from '../../src/models/socketId.model';
+import Device from '../../src/models/device.model';
 
+const port = 4000;
 setupTestDBForSocket();
 describe('Socket Tests', () => {
   let deviceIOClient;
@@ -33,7 +35,7 @@ describe('Socket Tests', () => {
   let httpServer;
   // eslint-disable-next-line no-unused-vars
   let socketServer;
-  const socketUrl = `http://localhost:${config.port}`;
+  const socketUrl = `http://localhost:${port}`;
   const deviceOptions = {
     transports: ['websocket'],
     forceNew: true,
@@ -41,17 +43,21 @@ describe('Socket Tests', () => {
 
   beforeAll(done => {
     httpServer = http.createServer();
-    httpServer.listen(config.port);
+    httpServer.listen(port);
     socketServer = new SocketServer(httpServer);
     done();
   });
 
   afterAll(done => {
     setTimeout(async () => {
-      deviceIOClient.close();
-      userIOClient.close();
-      deviceIOClient.destroy();
-      userIOClient.destroy();
+      if (deviceIOClient && deviceIOClient.connected) {
+        deviceIOClient.disconnect();
+        deviceIOClient.destroy();
+      }
+      if (userIOClient && userIOClient.connected) {
+        userIOClient.disconnect();
+        userIOClient.destroy();
+      }
       NotificationService.sendCommand('shutdownSocketServer');
       await httpServer.close();
       done();
@@ -219,6 +225,23 @@ describe('Socket Tests', () => {
         });
       });
 
+      it('should listen subDeviceParam/get event, and return error if emitted by user', async done => {
+        await insertDevices([deviceTwo]);
+        await insertSubDevices([subDeviceThree]);
+        await insertSubDeviceParams([subDeviceParamFour]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${userOneAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('subDeviceParam/getAll');
+        });
+
+        deviceIOClient.on('ERROR_SUB_DEVICE_PARAM_GET', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('"deviceId" must be a string');
+          done();
+        });
+      });
+
       it('should listen subDeviceParam/get event and return error if device has no sub device', done => {
         deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceAccessToken}`, deviceOptions);
         deviceIOClient.on('CONNECTED', () => {
@@ -308,6 +331,124 @@ describe('Socket Tests', () => {
         });
       });
 
+      it('should listen subDeviceParam/update event, and return error if emitted by user', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+        await insertSubDevices([subDeviceThree]);
+        await insertSubDeviceParams([subDeviceParamFour]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${userOneAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('subDeviceParam/update', {
+            subDeviceId: subDeviceParamFour.subDeviceId,
+            paramName: subDeviceParamFour.paramName,
+            updatedBody: {
+              paramValue: 'on',
+            },
+          });
+        });
+
+        deviceIOClient.on('ERROR_SUB_DEVICE_PARAM_UPDATE', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('"deviceId" must be a string');
+          done();
+        });
+      });
+
+      it('should listen subDeviceParam/update event, and return error if subDeviceId is invalid and emitted by device', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+        await insertSubDevices([subDeviceThree]);
+        await insertSubDeviceParams([subDeviceParamFour]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceTwoAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('subDeviceParam/update', {
+            subDeviceId: 'invalid',
+            paramName: subDeviceParamFour.paramName,
+            updatedBody: {
+              paramValue: 'on',
+            },
+          });
+        });
+
+        deviceIOClient.on('ERROR_SUB_DEVICE_PARAM_UPDATE', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe(
+            '"subDeviceId" with value "invalid" fails to match the required pattern: /^[A-Za-z_\\d]{16,20}$/'
+          );
+          done();
+        });
+      });
+
+      it('should listen subDeviceParam/update event, and return error if subDeviceId is missing and emitted by device', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+        await insertSubDevices([subDeviceThree]);
+        await insertSubDeviceParams([subDeviceParamFour]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceTwoAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('subDeviceParam/update', {
+            paramName: subDeviceParamFour.paramName,
+            updatedBody: {
+              paramValue: 'on',
+            },
+          });
+        });
+
+        deviceIOClient.on('ERROR_SUB_DEVICE_PARAM_UPDATE', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('"subDeviceId" must be a string');
+          done();
+        });
+      });
+
+      it('should listen subDeviceParam/update event, and return error if paramName is missing and emitted by device', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+        await insertSubDevices([subDeviceThree]);
+        await insertSubDeviceParams([subDeviceParamFour]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceTwoAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('subDeviceParam/update', {
+            subDeviceId: subDeviceParamFour.subDeviceId,
+            updatedBody: {
+              paramValue: 'on',
+            },
+          });
+        });
+
+        deviceIOClient.on('ERROR_SUB_DEVICE_PARAM_UPDATE', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('"paramName" must be a string');
+          done();
+        });
+      });
+
+      it('should listen subDeviceParam/update event, and return error if paramValue is missing and emitted by device', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+        await insertSubDevices([subDeviceThree]);
+        await insertSubDeviceParams([subDeviceParamFour]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceTwoAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('subDeviceParam/update', {
+            subDeviceId: subDeviceParamFour.subDeviceId,
+            paramName: subDeviceParamFour.paramName,
+            updatedBody: {},
+          });
+        });
+
+        deviceIOClient.on('ERROR_SUB_DEVICE_PARAM_UPDATE', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('"paramValue" must be one of [string, number, object, array]');
+          done();
+        });
+      });
+
       it('should listen subDeviceParam/update event, update it in database and emit sub device params to shared users', async done => {
         await insertUsers([admin, userOne]);
         await insertDevices([deviceOne]);
@@ -365,6 +506,7 @@ describe('Socket Tests', () => {
         await insertSubDeviceParams([subDeviceParamOne]);
         await insertSharedDeviceAccess([accessOne]);
 
+        let spy;
         const userOptions = {
           forceNew: true,
           transportOptions: {
@@ -383,7 +525,7 @@ describe('Socket Tests', () => {
         });
 
         deviceIOClient.on('GET_ALL_SUB_DEVICE_PARAMS', async data => {
-          const spy = jest.spyOn(NotificationService, 'sendMessage');
+          spy = jest.spyOn(NotificationService, 'sendMessage');
           const subDeviceParam = data[0];
           await SocketId.deleteMany();
           deviceIOClient.emit('subDeviceParam/update', {
@@ -394,14 +536,15 @@ describe('Socket Tests', () => {
               paramValue: 'on',
             },
           });
-          setTimeout(() => {
-            expect(spy).not.toBeCalled();
-            done();
-          }, 10);
         });
+
+        setTimeout(() => {
+          expect(spy).not.toBeCalled();
+          done();
+        }, 100);
       });
 
-      it('should listen subDeviceParam/update event, and receive error if there is no sub-device', async done => {
+      it('should listen subDeviceParam/update event, and receive error if there is no active device', async done => {
         await insertUsers([userOne]);
         await insertDevices([deviceTwo]);
 
@@ -410,14 +553,58 @@ describe('Socket Tests', () => {
           deviceIOClient.emit('subDeviceParam/getAll');
         });
 
-        deviceIOClient.on('GET_ALL_SUB_DEVICE_PARAMS', data => {
+        deviceIOClient.on('ERROR_SUB_DEVICE_PARAM_UPDATE', data => {
           expect(data).toHaveProperty('error');
-          expect(data.error).toBe('no sub device');
+          expect(data.error).toBe('no active device');
           done();
+        });
+
+        deviceIOClient.on('GET_ALL_SUB_DEVICE_PARAMS', async () => {
+          const dbDevice = await Device.findById(deviceTwo._id);
+          Object.assign(dbDevice, { isDisabled: true });
+          await dbDevice.save();
+          deviceIOClient.emit('subDeviceParam/update', {
+            deviceId: subDeviceParamFour.deviceId,
+            subDeviceId: subDeviceParamFour.subDeviceId,
+            paramName: subDeviceParamFour.paramName,
+            updatedBody: {
+              paramValue: 'on',
+            },
+          });
         });
       });
 
-      it('should listen subDeviceParam/update event, and receive error if there is no sub-device-params', async done => {
+      it('should listen subDeviceParam/update event, and receive error if there is no active sub-device', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceTwoAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('subDeviceParam/getAll');
+        });
+
+        deviceIOClient.on('ERROR_SUB_DEVICE_PARAM_UPDATE', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('no active sub device');
+          done();
+        });
+
+        deviceIOClient.on('GET_ALL_SUB_DEVICE_PARAMS', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('no sub device');
+
+          deviceIOClient.emit('subDeviceParam/update', {
+            deviceId: subDeviceParamFour.deviceId,
+            subDeviceId: subDeviceParamFour.subDeviceId,
+            paramName: subDeviceParamFour.paramName,
+            updatedBody: {
+              paramValue: 'on',
+            },
+          });
+        });
+      });
+
+      it('should listen subDeviceParam/update event, and receive error if there is no active sub-device-param', async done => {
         await insertUsers([userOne]);
         await insertDevices([deviceTwo]);
         await insertSubDevices([subDeviceThree]);
@@ -427,10 +614,21 @@ describe('Socket Tests', () => {
           deviceIOClient.emit('subDeviceParam/getAll');
         });
 
-        deviceIOClient.on('GET_ALL_SUB_DEVICE_PARAMS', data => {
+        deviceIOClient.on('ERROR_SUB_DEVICE_PARAM_UPDATE', data => {
           expect(data).toHaveProperty('error');
-          expect(data.error).toBe('no sub device params');
+          expect(data.error).toBe('no active sub device param');
           done();
+        });
+
+        deviceIOClient.on('GET_ALL_SUB_DEVICE_PARAMS', () => {
+          deviceIOClient.emit('subDeviceParam/update', {
+            deviceId: subDeviceParamFour.deviceId,
+            subDeviceId: subDeviceParamFour.subDeviceId,
+            paramName: subDeviceParamFour.paramName,
+            updatedBody: {
+              paramValue: 'on',
+            },
+          });
         });
       });
     });

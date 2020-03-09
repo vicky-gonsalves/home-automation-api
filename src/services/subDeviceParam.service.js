@@ -51,9 +51,13 @@ const getSubDeviceParamByParamNameService = async (deviceId, subDeviceId, paramN
   return subDeviceParam;
 };
 
+const getActiveSubDeviceParamByParamNameService = (deviceId, subDeviceId, paramName) => {
+  return SubDeviceParam.findOne({ deviceId, subDeviceId, paramName, isDisabled: false });
+};
+
 const updateSubDeviceParamService = async (deviceId, subDeviceId, paramName, updateBody) => {
   const subDeviceParam = await getSubDeviceParamByParamNameService(deviceId, subDeviceId, paramName);
-  if (updateBody.paramName) {
+  if (updateBody && updateBody.paramName) {
     await checkDuplicateSubDeviceParamService(deviceId, subDeviceId, updateBody.paramName, subDeviceParam.id);
   }
   Object.assign(subDeviceParam, updateBody);
@@ -142,4 +146,5 @@ module.exports = {
   deleteSubDeviceParamService,
   deleteSubDeviceParamByDeviceIdService,
   getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService,
+  getActiveSubDeviceParamByParamNameService,
 };

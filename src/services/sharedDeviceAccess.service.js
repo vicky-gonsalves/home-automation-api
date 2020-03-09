@@ -11,6 +11,14 @@ const checkDuplicateSharedDeviceAccessService = async (deviceId, email, excludeD
   }
 };
 
+const checkAccessIfExists = async (deviceId, email) => {
+  const sharedDeviceAccess = await SharedDeviceAccess.findOne({ deviceId, email });
+  if (!sharedDeviceAccess) {
+    throw new AppError(httpStatus.FORBIDDEN, "User doesn't have access to the device");
+  }
+  return sharedDeviceAccess;
+};
+
 const createSharedDeviceAccessService = async sharedDeviceAccessBody => {
   await checkDuplicateSharedDeviceAccessService(sharedDeviceAccessBody.deviceId, sharedDeviceAccessBody.email);
   return SharedDeviceAccess.create(sharedDeviceAccessBody);
@@ -105,4 +113,5 @@ module.exports = {
   checkAndDeleteAccessIfExists,
   getSharedDeviceAccessByDeviceIdService,
   getSharedDeviceAccessByEmailService,
+  checkAccessIfExists,
 };

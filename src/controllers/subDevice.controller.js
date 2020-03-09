@@ -8,11 +8,27 @@ import {
   updateSubDeviceService,
 } from '../services/subDevice.service';
 import catchAsync from '../utils/catchAsync';
+import { getSharedDeviceAccessByDeviceIdService } from '../services/sharedDeviceAccess.service';
+import { getSocketIdsByDeviceIdService, getSocketIdsByEmailsService } from '../services/socketId.service';
+import NotificationService from '../services/notification.service';
+
+const sendSubDeviceSocketNotification = async (device, event, subDevice) => {
+  const deviceAccees = await getSharedDeviceAccessByDeviceIdService(device.deviceId);
+  const emails = [device.deviceOwner, ...deviceAccees.map(access => access.email)];
+  const socketIds = [
+    ...(await getSocketIdsByDeviceIdService(device.deviceId)), // send to device
+    ...(await getSocketIdsByEmailsService(emails)), // send to users
+  ];
+  if (socketIds.length) {
+    NotificationService.sendMessage(socketIds, event, subDevice);
+  }
+};
 
 const createSubDevice = catchAsync(async (req, res) => {
   req.body.createdBy = req.user.email;
-  await getDeviceByDeviceIdService(req.params.deviceId);
+  const device = await getDeviceByDeviceIdService(req.params.deviceId);
   const subDevice = await createSubDeviceService(req.params.deviceId, req.body);
+  await sendSubDeviceSocketNotification(device, 'SUB_DEVICE_CREATED', subDevice);
   res.status(httpStatus.CREATED).send(subDevice.transform());
 });
 
@@ -29,12 +45,16 @@ const getSubDevice = catchAsync(async (req, res) => {
 
 const updateSubDevice = catchAsync(async (req, res) => {
   req.body._updatedBy = req.user.email;
-  await getDeviceByDeviceIdService(req.params.deviceId);
+  const device = await getDeviceByDeviceIdService(req.params.deviceId);
   const subDevice = await updateSubDeviceService(req.params.deviceId, req.params.subDeviceId, req.body);
+  await sendSubDeviceSocketNotification(device, 'SUB_DEVICE_UPDATED', subDevice);
   res.send(subDevice.transform());
 });
 
 const deleteSubDevice = catchAsync(async (req, res) => {
+  const device = await getDeviceByDeviceIdService(req.params.deviceId);
+  const subDevice = await getSubDeviceBySubDeviceIdService(req.params.deviceId, req.params.subDeviceId);
+  await sendSubDeviceSocketNotification(device, 'SUB_DEVICE_DELETED', subDevice);
   await deleteSubDeviceService(req.params.deviceId, req.params.subDeviceId);
   res.status(httpStatus.NO_CONTENT).send();
 });

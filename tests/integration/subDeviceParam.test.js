@@ -3,18 +3,21 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 import { setupTestDB } from '../utils/setupTestDB';
 import app from '../../src/app';
-import { userOneAccessToken, adminAccessToken } from '../fixtures/token.fixture';
-import { userOne, admin, insertUsers } from '../fixtures/user.fixture';
-import { deviceOne, insertDevices } from '../fixtures/device.fixture';
-import { subDeviceOne, subDeviceTwo, subDeviceThree, subDeviceFour, insertSubDevices } from '../fixtures/subDevice.fixture';
+import { adminAccessToken, userOneAccessToken } from '../fixtures/token.fixture';
+import { admin, insertUsers, userOne } from '../fixtures/user.fixture';
+import { deviceOne, deviceTwo, insertDevices } from '../fixtures/device.fixture';
+import { insertSubDevices, subDeviceFour, subDeviceOne, subDeviceThree, subDeviceTwo } from '../fixtures/subDevice.fixture';
 import {
-  subDeviceParamOne,
-  subDeviceParamTwo,
-  subDeviceParamThree,
-  subDeviceParamFour,
   insertSubDeviceParams,
+  subDeviceParamFour,
+  subDeviceParamOne,
+  subDeviceParamThree,
+  subDeviceParamTwo,
 } from '../fixtures/subDeviceParam.fixture';
 import SubDeviceParam from '../../src/models/subDeviceParam.model';
+import { accessOne, insertSharedDeviceAccess } from '../fixtures/sharedDeviceAccess.fixture';
+import { insertSocketIds, socketIdFour, socketIdTwo } from '../fixtures/socketId.fixture';
+import NotificationService from '../../src/services/notification.service';
 
 setupTestDB();
 
@@ -64,6 +67,22 @@ describe('Sub-Device Params Routes', () => {
         isDisabled: false,
         createdBy: admin.email,
       });
+    });
+
+    it('should return 201 and successfully create new sub-device-param if data is ok and send notification to users', async () => {
+      await insertSharedDeviceAccess([accessOne]);
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const _subDeviceParam = {
+        paramName: subDeviceParamOne.paramName,
+        paramValue: subDeviceParamOne.paramValue,
+      };
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+      await request(app)
+        .post(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(_subDeviceParam)
+        .expect(httpStatus.CREATED);
+      expect(spy).toBeCalled();
     });
 
     it('should return 401 error is access token is missing', async () => {
@@ -143,14 +162,14 @@ describe('Sub-Device Params Routes', () => {
         .expect(httpStatus.BAD_REQUEST);
     });
 
-    it('should return 500 error if paramValue is empty', async () => {
+    it('should return 400 error if paramValue is empty', async () => {
       subDeviceParam.paramValue = '';
 
       await request(app)
         .post(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(subDeviceParam)
-        .expect(httpStatus.INTERNAL_SERVER_ERROR);
+        .expect(httpStatus.BAD_REQUEST);
     });
 
     it('should return 400 error if paramValue is missing', async () => {
@@ -460,6 +479,17 @@ describe('Sub-Device Params Routes', () => {
       expect(dbSubDeviceParam).toBeNull();
     });
 
+    it('should return 204 and successfully delete sub-device-param if data is ok and send notification to users', async () => {
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+      await request(app)
+        .delete(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.NO_CONTENT);
+      expect(spy).toBeCalled();
+    });
+
     it('should return 401 error if access token is missing', async () => {
       await request(app)
         .delete(route)
@@ -547,6 +577,17 @@ describe('Sub-Device Params Routes', () => {
         isDisabled: true,
         updatedBy: admin.email,
       });
+    });
+
+    it('should return 200 and successfully update sub-device-param if data is ok and send notification to users', async () => {
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+      await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+      expect(spy).toBeCalled();
     });
 
     it('should return 401 error if access token is missing', async () => {
@@ -670,14 +711,220 @@ describe('Sub-Device Params Routes', () => {
         .expect(httpStatus.BAD_REQUEST);
     });
 
-    it('should return 500 error if paramValue is invalid', async () => {
+    it('should return 400 error if paramValue is invalid', async () => {
       updateBody = { paramValue: '' };
 
       await request(app)
         .patch(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updateBody)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+  });
+
+  describe('PATCH /v1/devices/:deviceId/sub-devices/:subDeviceId/sub-device-param-value/:paramName', () => {
+    let updateBody;
+    beforeEach(async () => {
+      updateBody = {
+        paramValue: faker.random.arrayElement(['something', 2131231, { data: 'something' }]),
+      };
+      await insertUsers([admin, userOne]);
+      await insertDevices([deviceOne, deviceTwo]);
+      await insertSubDevices([subDeviceOne, subDeviceThree]);
+      await insertSubDeviceParams([subDeviceParamOne, subDeviceParamFour]);
+    });
+
+    it('should return 200 and successfully update sub-device param value if data is ok and if user is admin', async () => {
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-param-value/${subDeviceParamOne.paramName}`;
+      const res = await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveProperty('isDisabled');
+      expect(res.body).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        paramName: subDeviceParamOne.paramName,
+        paramValue: updateBody.paramValue,
+        isDisabled: false,
+      });
+
+      const dbSubDeviceParam = await SubDeviceParam.findOne({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        paramName: subDeviceParamOne.paramName,
+      });
+      expect(dbSubDeviceParam).toBeDefined();
+      expect(dbSubDeviceParam).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        paramName: subDeviceParamOne.paramName,
+        paramValue: updateBody.paramValue,
+        isDisabled: false,
+        updatedBy: admin.email,
+      });
+    });
+
+    it('should return 200 and successfully update sub-device param value if data is ok and if user is having role user and access to the device', async () => {
+      await insertSharedDeviceAccess([accessOne]);
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-param-value/${subDeviceParamOne.paramName}`;
+      const res = await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveProperty('isDisabled');
+      expect(res.body).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        paramName: subDeviceParamOne.paramName,
+        paramValue: updateBody.paramValue,
+        isDisabled: false,
+      });
+
+      const dbSubDeviceParam = await SubDeviceParam.findOne({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        paramName: subDeviceParamOne.paramName,
+      });
+      expect(dbSubDeviceParam).toBeDefined();
+      expect(dbSubDeviceParam).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        paramName: subDeviceParamOne.paramName,
+        paramValue: updateBody.paramValue,
+        isDisabled: false,
+        updatedBy: userOne.email,
+      });
+    });
+
+    it('should return 200 and successfully update sub-device param value if data is ok and if user is having role user and user is trying to update his own device', async () => {
+      route = `/v1/devices/${deviceTwo.deviceId}/sub-devices/${subDeviceThree.subDeviceId}/sub-device-param-value/${subDeviceParamFour.paramName}`;
+      const res = await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveProperty('isDisabled');
+      expect(res.body).toMatchObject({
+        deviceId: deviceTwo.deviceId,
+        subDeviceId: subDeviceThree.subDeviceId,
+        paramName: subDeviceParamFour.paramName,
+        paramValue: updateBody.paramValue,
+        isDisabled: false,
+      });
+
+      const dbSubDeviceParam = await SubDeviceParam.findOne({
+        deviceId: deviceTwo.deviceId,
+        subDeviceId: subDeviceThree.subDeviceId,
+        paramName: subDeviceParamFour.paramName,
+      });
+      expect(dbSubDeviceParam).toBeDefined();
+      expect(dbSubDeviceParam).toMatchObject({
+        deviceId: deviceTwo.deviceId,
+        subDeviceId: subDeviceThree.subDeviceId,
+        paramName: subDeviceParamFour.paramName,
+        paramValue: updateBody.paramValue,
+        isDisabled: false,
+        updatedBy: userOne.email,
+      });
+    });
+
+    it('should return 200 and successfully update sub-device-param if data is ok and send notification to users', async () => {
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-param-value/${subDeviceParamOne.paramName}`;
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+      await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+      expect(spy).toBeCalled();
+    });
+
+    it('should return 403 if user is having role user and no access to the device', async () => {
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-param-value/${subDeviceParamOne.paramName}`;
+      await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${userOneAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.FORBIDDEN);
+    });
+
+    it('should return 401 error if access token is missing', async () => {
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-param-value/${subDeviceParamOne.paramName}`;
+      await request(app)
+        .patch(route)
+        .send(updateBody)
+        .expect(httpStatus.UNAUTHORIZED);
+    });
+
+    it('should return 404 if admin is updating sub-device paramName that is not found', async () => {
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-param-value/${subDeviceParamTwo.paramName}`;
+      await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.NOT_FOUND);
+    });
+
+    it('should return 400 error if sub-device paramName is not valid', async () => {
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-param-value/invalid@`;
+      await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should return 400 if sub-device paramValue is missing', async () => {
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-param-value/${subDeviceParamOne.paramName}`;
+      const _updateBody = {};
+      await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(_updateBody)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should return 500 and 400 if sub-device paramValue is blank or null or undefined', async () => {
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-param-value/${subDeviceParamOne.paramName}`;
+      let _updateBody = { paramValue: '' };
+      let res = await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(_updateBody)
         .expect(httpStatus.INTERNAL_SERVER_ERROR);
+      expect(JSON.parse(res.error.text)).toMatchObject({
+        code: 500,
+        message: 'SubDeviceParam validation failed: paramValue: Invalid paramValue',
+      });
+
+      _updateBody = { paramValue: null };
+      res = await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(_updateBody)
+        .expect(httpStatus.INTERNAL_SERVER_ERROR);
+      expect(JSON.parse(res.error.text)).toMatchObject({
+        code: 500,
+        message: 'SubDeviceParam validation failed: paramValue: Path `paramValue` is required.',
+      });
+
+      _updateBody = { paramValue: undefined };
+      res = await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(_updateBody)
+        .expect(httpStatus.BAD_REQUEST);
+      expect(JSON.parse(res.error.text)).toMatchObject({
+        code: 400,
+        message: '"paramValue" is required',
+      });
     });
   });
 });
