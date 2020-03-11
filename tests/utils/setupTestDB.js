@@ -19,7 +19,7 @@ const setupTestDBWithActualTestDB = () => {
 const setupTestDB = () => {
   const mockgoose = new Mockgoose(mongoose);
   beforeAll(async done => {
-    await mockgoose.prepareStorage();
+    mockgoose.prepareStorage();
     await mongoose.connect(config.mongoose.url, config.mongoose.options);
     done();
   });
