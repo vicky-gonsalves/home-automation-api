@@ -260,15 +260,21 @@ describe('Sub-Device Params Routes', () => {
       expect(res.body).toHaveLength(2);
       expect(res.body[0]).toHaveProperty('createdAt');
       expect(res.body[0]).toHaveProperty('updatedAt');
-      expect(res.body[0]).toMatchObject({
-        id: subDeviceParamOne._id.toHexString(),
-        deviceId: deviceOne.deviceId,
-        subDeviceId: subDeviceOne.subDeviceId,
-        paramName: subDeviceParamOne.paramName,
-        paramValue: subDeviceParamOne.paramValue,
-        isDisabled: false,
-        createdBy: admin.email,
-      });
+      expect(res.body[0]).toHaveProperty('deviceId');
+      expect(res.body[0]).toHaveProperty('subDeviceId');
+      expect(res.body[0]).toHaveProperty('paramName');
+      expect(res.body[0]).toHaveProperty('paramValue');
+      expect(res.body[0]).toHaveProperty('isDisabled');
+      expect(res.body[0]).toHaveProperty('createdBy');
+
+      expect(res.body[1]).toHaveProperty('createdAt');
+      expect(res.body[1]).toHaveProperty('updatedAt');
+      expect(res.body[1]).toHaveProperty('deviceId');
+      expect(res.body[1]).toHaveProperty('subDeviceId');
+      expect(res.body[1]).toHaveProperty('paramName');
+      expect(res.body[1]).toHaveProperty('paramValue');
+      expect(res.body[1]).toHaveProperty('isDisabled');
+      expect(res.body[1]).toHaveProperty('createdBy');
     });
 
     it('should return 401 if access token is missing', async () => {
@@ -297,7 +303,7 @@ describe('Sub-Device Params Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(subDeviceParamOne._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
     });
 
     it('should correctly apply filter on paramValue field', async () => {
@@ -311,7 +317,7 @@ describe('Sub-Device Params Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(subDeviceParamThree._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
     });
 
     it('should correctly apply filter on isDisabled field', async () => {
@@ -320,12 +326,13 @@ describe('Sub-Device Params Routes', () => {
       const res = await request(app)
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({ isDisabled: subDeviceParamOne.isDisabled })
+        .query({ isDisabled: subDeviceParamThree.isDisabled })
         .send()
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(2);
-      expect(res.body[0].id).toBe(subDeviceParamOne._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
+      expect(res.body[1].id).toBeDefined();
     });
 
     it('should correctly sort returned array if descending sort param is specified', async () => {
@@ -339,7 +346,8 @@ describe('Sub-Device Params Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(2);
-      expect(res.body[0].id).toBe(subDeviceParamOne._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
+      expect(res.body[1].id).toBeDefined();
     });
 
     it('should correctly sort returned array if ascending sort param is specified', async () => {
@@ -353,7 +361,8 @@ describe('Sub-Device Params Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(2);
-      expect(res.body[0].id).toBe(subDeviceParamThree._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
+      expect(res.body[1].id).toBeDefined();
     });
 
     it('should limit returned array if limit param is specified', async () => {
@@ -367,6 +376,7 @@ describe('Sub-Device Params Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
+      expect(res.body[0].id).toBeDefined();
     });
 
     it('should return the correct page if page and limit params are specified', async () => {
@@ -380,7 +390,7 @@ describe('Sub-Device Params Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(subDeviceParamThree._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
     });
   });
 
@@ -406,7 +416,7 @@ describe('Sub-Device Params Routes', () => {
       expect(res.body).toHaveProperty('paramName');
       expect(res.body).toHaveProperty('paramValue');
       expect(res.body).toMatchObject({
-        id: subDeviceParamOne._id.toHexString(),
+        id: subDeviceParamOne._id.toString(),
         deviceId: deviceOne.deviceId,
         subDeviceId: subDeviceOne.subDeviceId,
         paramName: subDeviceParamOne.paramName,

@@ -14,8 +14,8 @@ import { setupTestDB } from '../utils/setupTestDB';
 import User from '../../src/models/user.model';
 import Token from '../../src/models/token.model';
 import { roleRights } from '../../src/config/roles';
-import { userOne, admin, insertUsers } from '../fixtures/user.fixture';
-import { userOneAccessToken, userTwoAccessToken, adminAccessToken } from '../fixtures/token.fixture';
+import { admin, insertUsers, userOne } from '../fixtures/user.fixture';
+import { adminAccessToken, userOneAccessToken, userTwoAccessToken } from '../fixtures/token.fixture';
 
 setupTestDB();
 
@@ -511,7 +511,12 @@ describe('Auth middleware', () => {
     await auth('anyRight')(req, httpMocks.createResponse(), next);
 
     expect(next).toHaveBeenCalledWith(expect.any(AppError));
-    expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: httpStatus.FORBIDDEN, message: 'Forbidden' }));
+    expect(next).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statusCode: httpStatus.FORBIDDEN,
+        message: 'Forbidden',
+      })
+    );
   });
 
   it('should call next with no errors if user does not have required rights but userId is in params', async () => {

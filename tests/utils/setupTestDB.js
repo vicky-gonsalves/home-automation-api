@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import { Mockgoose } from 'mockgoose';
 import config from '../../src/config/config';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 
 const setupTestDBWithActualTestDB = () => {
   beforeAll(async () => {
@@ -17,50 +17,23 @@ const setupTestDBWithActualTestDB = () => {
 };
 
 const setupTestDB = () => {
-  const mockgoose = new Mockgoose(mongoose);
+  const mongod = new MongoMemoryServer();
   beforeAll(async done => {
-    mockgoose.prepareStorage().then(function() {
-      mongoose.connect(config.mongoose.url, config.mongoose.options, function(err) {
-        done(err);
-      });
-      done();
-    });
-  });
-
-  beforeEach(async done => {
-    await mockgoose.helper.reset();
+    const uri = await mongod.getUri();
+    await mongoose.connect(uri, config.mongoose.options);
     done();
   });
 
+  beforeEach(async () => {
+    await mongoose.connection.dropDatabase();
+  });
+
   afterAll(async done => {
-    await mockgoose.helper.reset();
-    await mongoose.disconnect();
-    await mockgoose.shutdown();
+    await mongoose.connection.dropDatabase();
+    mongoose.connection.close();
+    await mongod.stop();
     done();
   });
 };
 
-const setupTestDBForSocket = () => {
-  const mockgoose = new Mockgoose(mongoose);
-  beforeAll(done => {
-    mockgoose.prepareStorage().then(function() {
-      mongoose.connect(config.mongoose.url, config.mongoose.options, function(err) {
-        done(err);
-      });
-      done();
-    });
-  });
-
-  beforeEach(async done => {
-    await mockgoose.helper.reset();
-    done();
-  });
-
-  afterAll(async done => {
-    await mockgoose.helper.reset();
-    await mongoose.disconnect();
-    done();
-  });
-};
-
-module.exports = { setupTestDBWithActualTestDB, setupTestDB, setupTestDBForSocket };
+module.exports = { setupTestDBWithActualTestDB, setupTestDB };
