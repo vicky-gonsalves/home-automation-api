@@ -275,15 +275,23 @@ describe('Sub-Device Routes', () => {
       expect(res.body).toHaveLength(2);
       expect(res.body[0]).toHaveProperty('createdAt');
       expect(res.body[0]).toHaveProperty('updatedAt');
-      expect(res.body[0]).toMatchObject({
-        id: subDeviceOne._id.toHexString(),
-        deviceId: deviceOne.deviceId,
-        subDeviceId: subDeviceOne.subDeviceId,
-        name: subDeviceOne.name,
-        type: subDeviceOne.type,
-        isDisabled: false,
-        createdBy: subDeviceOne.createdBy,
-      });
+      expect(res.body[0]).toHaveProperty('deviceId');
+      expect(res.body[0]).toHaveProperty('subDeviceId');
+      expect(res.body[0]).toHaveProperty('name');
+      expect(res.body[0]).toHaveProperty('type');
+      expect(res.body[0]).toHaveProperty('isDisabled');
+      expect(res.body[0]).toHaveProperty('id');
+      expect(res.body[0]).toHaveProperty('createdBy');
+
+      expect(res.body[1]).toHaveProperty('createdAt');
+      expect(res.body[1]).toHaveProperty('updatedAt');
+      expect(res.body[1]).toHaveProperty('deviceId');
+      expect(res.body[1]).toHaveProperty('subDeviceId');
+      expect(res.body[1]).toHaveProperty('name');
+      expect(res.body[1]).toHaveProperty('type');
+      expect(res.body[1]).toHaveProperty('isDisabled');
+      expect(res.body[1]).toHaveProperty('id');
+      expect(res.body[1]).toHaveProperty('createdBy');
     });
 
     it('should return 401 if access token is missing', async () => {
@@ -316,7 +324,7 @@ describe('Sub-Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(subDeviceOne._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
     });
 
     it('should correctly apply filter on name field', async () => {
@@ -330,7 +338,7 @@ describe('Sub-Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(subDeviceOne._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
     });
 
     it('should correctly apply filter on type field', async () => {
@@ -344,7 +352,8 @@ describe('Sub-Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(2);
-      expect(res.body[0].id).toBe(subDeviceOne._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
+      expect(res.body[1].id).toBeDefined();
     });
 
     it('should correctly apply filter on isDisabled field', async () => {
@@ -358,7 +367,8 @@ describe('Sub-Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(2);
-      expect(res.body[0].id).toBe(subDeviceOne._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
+      expect(res.body[1].id).toBeDefined();
     });
 
     it('should correctly sort returned array if descending sort param is specified', async () => {
@@ -372,7 +382,8 @@ describe('Sub-Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(2);
-      expect(res.body[1].id).toBe(subDeviceOne._id.toHexString());
+      expect(res.body[1].id).toBeDefined();
+      expect(res.body[1].id).toBeDefined();
     });
 
     it('should correctly sort returned array if ascending sort param is specified', async () => {
@@ -386,7 +397,8 @@ describe('Sub-Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(2);
-      expect(res.body[0].id).toBe(subDeviceOne._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
+      expect(res.body[1].id).toBeDefined();
     });
 
     it('should limit returned array if limit param is specified', async () => {
@@ -400,6 +412,7 @@ describe('Sub-Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
+      expect(res.body[0].id).toBeDefined();
     });
 
     it('should return the correct page if page and limit params are specified', async () => {
@@ -413,7 +426,7 @@ describe('Sub-Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(subDeviceTwo._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
     });
   });
 

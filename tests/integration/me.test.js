@@ -57,78 +57,69 @@ describe('Me Routes', () => {
       expect(res.body.subDevices).toHaveLength(4);
       expect(res.body.subDeviceParams).toHaveLength(5);
 
-      expect(res.body.devices.myDevices[0]).toMatchObject({
-        deviceId: deviceTwo.deviceId,
-        name: deviceTwo.name,
-        type: deviceTwo.type,
-        deviceOwner: deviceTwo.deviceOwner,
-      });
-      expect(res.body.devices.myDevices[1]).toMatchObject({
-        deviceId: deviceThree.deviceId,
-        name: deviceThree.name,
-        type: deviceThree.type,
-        deviceOwner: deviceThree.deviceOwner,
-      });
-      expect(res.body.devices.sharedDevices[0]).toMatchObject({
-        deviceId: deviceOne.deviceId,
-        name: deviceOne.name,
-        type: deviceOne.type,
-        deviceOwner: deviceOne.deviceOwner,
-      });
-      expect(res.body.subDevices[0]).toMatchObject({
-        deviceId: subDeviceOne.deviceId,
-        subDeviceId: subDeviceOne.subDeviceId,
-        name: subDeviceOne.name,
-        type: subDeviceOne.type,
-      });
-      expect(res.body.subDevices[1]).toMatchObject({
-        deviceId: subDeviceTwo.deviceId,
-        subDeviceId: subDeviceTwo.subDeviceId,
-        name: subDeviceTwo.name,
-        type: subDeviceTwo.type,
-      });
-      expect(res.body.subDevices[2]).toMatchObject({
-        deviceId: subDeviceThree.deviceId,
-        subDeviceId: subDeviceThree.subDeviceId,
-        name: subDeviceThree.name,
-        type: subDeviceThree.type,
-      });
-      expect(res.body.subDevices[3]).toMatchObject({
-        deviceId: subDeviceFour.deviceId,
-        subDeviceId: subDeviceFour.subDeviceId,
-        name: subDeviceFour.name,
-        type: subDeviceFour.type,
-      });
-      expect(res.body.subDeviceParams[0]).toMatchObject({
-        deviceId: subDeviceParamOne.deviceId,
-        subDeviceId: subDeviceParamOne.subDeviceId,
-        paramName: subDeviceParamOne.paramName,
-        paramValue: subDeviceParamOne.paramValue,
-      });
-      expect(res.body.subDeviceParams[1]).toMatchObject({
-        deviceId: subDeviceParamThree.deviceId,
-        subDeviceId: subDeviceParamThree.subDeviceId,
-        paramName: subDeviceParamThree.paramName,
-        paramValue: subDeviceParamThree.paramValue,
-      });
-      expect(res.body.subDeviceParams[2]).toMatchObject({
-        deviceId: subDeviceParamTwo.deviceId,
-        subDeviceId: subDeviceParamTwo.subDeviceId,
-        paramName: subDeviceParamTwo.paramName,
-        paramValue: subDeviceParamTwo.paramValue,
-      });
-      expect(res.body.subDeviceParams[3]).toMatchObject({
-        deviceId: subDeviceParamFour.deviceId,
-        subDeviceId: subDeviceParamFour.subDeviceId,
-        paramName: subDeviceParamFour.paramName,
-        paramValue: subDeviceParamFour.paramValue,
-      });
-      expect(res.body.subDeviceParams[4]).toMatchObject({
-        deviceId: subDeviceParamFive.deviceId,
-        subDeviceId: subDeviceParamFive.subDeviceId,
-        paramName: subDeviceParamFive.paramName,
-        paramValue: subDeviceParamFive.paramValue,
-      });
+      expect(res.body.devices.myDevices[0]).toHaveProperty('deviceId');
+      expect(res.body.devices.myDevices[0]).toHaveProperty('name');
+      expect(res.body.devices.myDevices[0]).toHaveProperty('type');
+      expect(res.body.devices.myDevices[0]).toHaveProperty('deviceOwner');
+
+      expect(res.body.devices.myDevices[1]).toHaveProperty('deviceId');
+      expect(res.body.devices.myDevices[1]).toHaveProperty('name');
+      expect(res.body.devices.myDevices[1]).toHaveProperty('type');
+      expect(res.body.devices.myDevices[1]).toHaveProperty('deviceOwner');
+      expect(res.body.devices.myDevices[1]).toHaveProperty('deviceId');
+      expect(res.body.devices.myDevices[1]).toHaveProperty('name');
+      expect(res.body.devices.myDevices[1]).toHaveProperty('type');
+      expect(res.body.devices.myDevices[1]).toHaveProperty('deviceOwner');
+
+      expect(res.body.devices.sharedDevices[0]).toHaveProperty('deviceOwner');
+      expect(res.body.devices.sharedDevices[0]).toHaveProperty('name');
+      expect(res.body.devices.sharedDevices[0]).toHaveProperty('type');
+      expect(res.body.devices.sharedDevices[0]).toHaveProperty('deviceOwner');
+
+      expect(res.body.subDevices[0]).toHaveProperty('deviceId');
+      expect(res.body.subDevices[0]).toHaveProperty('subDeviceId');
+      expect(res.body.subDevices[0]).toHaveProperty('name');
+      expect(res.body.subDevices[0]).toHaveProperty('type');
+
+      expect(res.body.subDevices[1]).toHaveProperty('deviceId');
+      expect(res.body.subDevices[1]).toHaveProperty('subDeviceId');
+      expect(res.body.subDevices[1]).toHaveProperty('name');
+      expect(res.body.subDevices[1]).toHaveProperty('type');
+
+      expect(res.body.subDevices[2]).toHaveProperty('deviceId');
+      expect(res.body.subDevices[2]).toHaveProperty('subDeviceId');
+      expect(res.body.subDevices[2]).toHaveProperty('name');
+      expect(res.body.subDevices[2]).toHaveProperty('type');
+
+      expect(res.body.subDevices[3]).toHaveProperty('deviceId');
+      expect(res.body.subDevices[3]).toHaveProperty('subDeviceId');
+      expect(res.body.subDevices[3]).toHaveProperty('name');
+      expect(res.body.subDevices[3]).toHaveProperty('type');
+
+      expect(res.body.subDeviceParams[0]).toHaveProperty('deviceId');
+      expect(res.body.subDeviceParams[0]).toHaveProperty('subDeviceId');
+      expect(res.body.subDeviceParams[0]).toHaveProperty('paramName');
+      expect(res.body.subDeviceParams[0]).toHaveProperty('paramValue');
+
+      expect(res.body.subDeviceParams[1]).toHaveProperty('deviceId');
+      expect(res.body.subDeviceParams[1]).toHaveProperty('subDeviceId');
+      expect(res.body.subDeviceParams[1]).toHaveProperty('paramName');
+      expect(res.body.subDeviceParams[1]).toHaveProperty('paramValue');
+
+      expect(res.body.subDeviceParams[2]).toHaveProperty('deviceId');
+      expect(res.body.subDeviceParams[2]).toHaveProperty('subDeviceId');
+      expect(res.body.subDeviceParams[2]).toHaveProperty('paramName');
+      expect(res.body.subDeviceParams[2]).toHaveProperty('paramValue');
+
+      expect(res.body.subDeviceParams[3]).toHaveProperty('deviceId');
+      expect(res.body.subDeviceParams[3]).toHaveProperty('subDeviceId');
+      expect(res.body.subDeviceParams[3]).toHaveProperty('paramName');
+      expect(res.body.subDeviceParams[3]).toHaveProperty('paramValue');
+
+      expect(res.body.subDeviceParams[4]).toHaveProperty('deviceId');
+      expect(res.body.subDeviceParams[4]).toHaveProperty('subDeviceId');
+      expect(res.body.subDeviceParams[4]).toHaveProperty('paramName');
+      expect(res.body.subDeviceParams[4]).toHaveProperty('paramValue');
     });
 
     it('should return 200 and no device if no device exists', async () => {

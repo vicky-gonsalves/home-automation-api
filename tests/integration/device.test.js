@@ -335,17 +335,13 @@ describe('Device Routes', () => {
       expect(res.body).toHaveLength(2);
       expect(res.body[0]).toHaveProperty('createdAt');
       expect(res.body[0]).toHaveProperty('updatedAt');
-      expect(res.body[0]).toMatchObject({
-        id: deviceOne._id.toHexString(),
-        deviceId: deviceOne.deviceId,
-        name: deviceOne.name,
-        type: deviceOne.type,
-        isDisabled: false,
-        deviceOwner: deviceOne.deviceOwner,
-        registeredAt: deviceOne.registeredAt,
-        createdBy: deviceOne.createdBy,
-        updatedBy: deviceOne.updatedBy,
-      });
+      expect(res.body[0]).toHaveProperty('deviceId');
+      expect(res.body[0]).toHaveProperty('name');
+      expect(res.body[0]).toHaveProperty('type');
+      expect(res.body[0]).toHaveProperty('isDisabled');
+      expect(res.body[0]).toHaveProperty('deviceOwner');
+      expect(res.body[0]).toHaveProperty('registeredAt');
+      expect(res.body[0]).toHaveProperty('id');
     });
 
     it('should return 401 if access token is missing', async () => {
@@ -381,7 +377,7 @@ describe('Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(deviceOne._id.toHexString());
+      expect(res.body[0]).toHaveProperty('id');
     });
 
     it('should correctly apply filter on name field', async () => {
@@ -396,7 +392,7 @@ describe('Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(deviceOne._id.toHexString());
+      expect(res.body[0]).toHaveProperty('id');
     });
 
     it('should correctly apply filter on type field', async () => {
@@ -411,7 +407,7 @@ describe('Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(deviceOne._id.toHexString());
+      expect(res.body[0]).toHaveProperty('id');
     });
 
     it('should correctly apply filter on registeredAt field', async () => {
@@ -426,7 +422,7 @@ describe('Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(deviceOne._id.toHexString());
+      expect(res.body[0]).toHaveProperty('id');
     });
 
     it('should correctly apply filter on isDisabled field', async () => {
@@ -441,7 +437,7 @@ describe('Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(deviceOne._id.toHexString());
+      expect(res.body[0]).toHaveProperty('id');
     });
 
     it('should correctly sort returned array if descending sort param is specified', async () => {
@@ -456,7 +452,7 @@ describe('Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(2);
-      expect(res.body[0].id).toBe(deviceTwo._id.toHexString());
+      expect(res.body[0]).toHaveProperty('id');
     });
 
     it('should correctly sort returned array if ascending sort param is specified', async () => {
@@ -471,7 +467,7 @@ describe('Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(2);
-      expect(res.body[0].id).toBe(deviceOne._id.toHexString());
+      expect(res.body[0]).toHaveProperty('id');
     });
 
     it('should limit returned array if limit param is specified', async () => {
@@ -486,6 +482,7 @@ describe('Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
+      expect(res.body[0]).toHaveProperty('id');
     });
 
     it('should return the correct page if page and limit params are specified', async () => {
@@ -500,7 +497,7 @@ describe('Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(deviceTwo._id.toHexString());
+      expect(res.body[0]).toHaveProperty('id');
     });
   });
 
@@ -519,17 +516,13 @@ describe('Device Routes', () => {
       expect(res.body).toHaveLength(1);
       expect(res.body[0]).toHaveProperty('createdAt');
       expect(res.body[0]).toHaveProperty('updatedAt');
-      expect(res.body[0]).toMatchObject({
-        id: deviceOne._id.toHexString(),
-        deviceId: deviceOne.deviceId,
-        name: deviceOne.name,
-        type: deviceOne.type,
-        isDisabled: false,
-        deviceOwner: deviceOne.deviceOwner,
-        registeredAt: deviceOne.registeredAt,
-        createdBy: deviceOne.createdBy,
-        updatedBy: deviceOne.updatedBy,
-      });
+      expect(res.body[0]).toHaveProperty('deviceId');
+      expect(res.body[0]).toHaveProperty('name');
+      expect(res.body[0]).toHaveProperty('type');
+      expect(res.body[0]).toHaveProperty('isDisabled');
+      expect(res.body[0]).toHaveProperty('deviceOwner');
+      expect(res.body[0]).toHaveProperty('registeredAt');
+      expect(res.body[0]).toHaveProperty('id');
     });
 
     it('should return 401 if access token is missing', async () => {
