@@ -91,8 +91,8 @@ describe('Shared Device Access Routes', () => {
         .expect(httpStatus.BAD_REQUEST);
     });
 
-    it('should return 400 error if deviceId length is less than 16 characters', async () => {
-      newAccess.deviceId = faker.random.alphaNumeric(14);
+    it('should return 400 error if deviceId length is less than 10 characters', async () => {
+      newAccess.deviceId = faker.random.alphaNumeric(9);
 
       await request(app)
         .post(route)
@@ -222,13 +222,11 @@ describe('Shared Device Access Routes', () => {
       expect(res.body).toHaveLength(2);
       expect(res.body[0]).toHaveProperty('createdAt');
       expect(res.body[0]).toHaveProperty('updatedAt');
-      expect(res.body[0]).toMatchObject({
-        id: accessOne._id.toHexString(),
-        deviceId: deviceOne.deviceId,
-        isDisabled: false,
-        email: accessOne.email,
-        sharedBy: admin.email,
-      });
+      expect(res.body[0]).toHaveProperty('id');
+      expect(res.body[0]).toHaveProperty('deviceId');
+      expect(res.body[0]).toHaveProperty('isDisabled');
+      expect(res.body[0]).toHaveProperty('email');
+      expect(res.body[0]).toHaveProperty('sharedBy');
     });
 
     it('should return 401 if access token is missing', async () => {
@@ -255,8 +253,8 @@ describe('Shared Device Access Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(2);
-      expect(res.body[0].id).toBe(accessOne._id.toHexString());
-      expect(res.body[1].id).toBe(accessTwo._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
+      expect(res.body[1].id).toBeDefined();
     });
 
     it('should correctly apply filter on email field', async () => {
@@ -268,7 +266,7 @@ describe('Shared Device Access Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(accessOne._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
     });
 
     it('should correctly apply filter on isDisabled field', async () => {
@@ -280,7 +278,8 @@ describe('Shared Device Access Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(2);
-      expect(res.body[0].id).toBe(accessOne._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
+      expect(res.body[1].id).toBeDefined();
     });
 
     it('should correctly sort returned array if descending sort param is specified', async () => {
@@ -292,7 +291,8 @@ describe('Shared Device Access Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(2);
-      expect(res.body[0].id).toBe(accessOne._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
+      expect(res.body[1].id).toBeDefined();
     });
 
     it('should correctly sort returned array if ascending sort param is specified', async () => {
@@ -304,7 +304,8 @@ describe('Shared Device Access Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(2);
-      expect(res.body[0].id).toBe(accessOne._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
+      expect(res.body[1].id).toBeDefined();
     });
 
     it('should limit returned array if limit param is specified', async () => {
@@ -316,6 +317,7 @@ describe('Shared Device Access Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
+      expect(res.body[0].id).toBeDefined();
     });
 
     it('should return the correct page if page and limit params are specified', async () => {
@@ -327,7 +329,7 @@ describe('Shared Device Access Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(accessTwo._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
     });
   });
 
@@ -350,7 +352,7 @@ describe('Shared Device Access Routes', () => {
       expect(res.body).toHaveProperty('createdAt');
       expect(res.body).toHaveProperty('updatedAt');
       expect(res.body).toMatchObject({
-        id: accessOne._id.toHexString(),
+        id: accessOne._id.toString(),
         deviceId: accessOne.deviceId,
         email: accessOne.email,
         sharedBy: accessOne.sharedBy,
@@ -464,7 +466,7 @@ describe('Shared Device Access Routes', () => {
     beforeEach(async () => {
       const email = faker.internet.email().toLowerCase();
       updateBody = {
-        deviceId: faker.random.alphaNumeric(16),
+        deviceId: faker.random.alphaNumeric(10),
         email,
         isDisabled: true,
       };
@@ -580,8 +582,8 @@ describe('Shared Device Access Routes', () => {
         .expect(httpStatus.OK);
     });
 
-    it('should return 400 if deviceId length is less than 16 characters', async () => {
-      updateBody = { deviceId: faker.random.alphaNumeric(15) };
+    it('should return 400 if deviceId length is less than 10 characters', async () => {
+      updateBody = { deviceId: faker.random.alphaNumeric(9) };
 
       await request(app)
         .patch(`${route}/${accessOne._id}`)

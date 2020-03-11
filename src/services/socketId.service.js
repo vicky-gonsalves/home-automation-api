@@ -1,16 +1,5 @@
 import SocketId from '../models/socketId.model';
 
-const updateSocketDeviceIdService = async (oldDeviceId, newDeviceId) => {
-  const socketIds = await SocketId.find({ type: 'device', idType: 'deviceId', bindedTo: oldDeviceId });
-  return Promise.all(
-    socketIds.map(async socketId => {
-      Object.assign(socketId, { bindedTo: newDeviceId });
-      await socketId.save();
-      return socketId;
-    })
-  );
-};
-
 const updateSocketEmailService = async (oldEmail, newEmail) => {
   const socketIds = await SocketId.find({ type: 'user', idType: 'email', bindedTo: oldEmail });
   return Promise.all(
@@ -51,7 +40,6 @@ const getSocketIdsByDeviceIdService = deviceId => {
 
 module.exports = {
   updateSocketEmailService,
-  updateSocketDeviceIdService,
   deleteSocketIdByDeviceIdService,
   deleteSocketIdByUserEmailService,
   registerSocketService,

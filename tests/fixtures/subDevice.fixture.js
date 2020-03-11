@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
-import faker from 'faker';
 import { subDeviceType } from '../../src/config/device';
-import { userOne, admin } from './user.fixture';
+import { admin, userOne } from './user.fixture';
 import { deviceOne, deviceTwo } from './device.fixture';
 import SubDevice from '../../src/models/subDevice.model';
+import uniqid from 'uniqid';
 
 const email1 = admin.email;
 const email2 = userOne.email;
@@ -13,7 +13,7 @@ const type2 = subDeviceType[1];
 const subDeviceOne = {
   _id: mongoose.Types.ObjectId(),
   deviceId: deviceOne.deviceId,
-  subDeviceId: faker.random.alphaNumeric(16),
+  subDeviceId: uniqid(),
   name: 'ASomeName',
   type: type1,
   createdBy: email1,
@@ -23,7 +23,7 @@ const subDeviceOne = {
 const subDeviceTwo = {
   _id: mongoose.Types.ObjectId(),
   deviceId: deviceOne.deviceId,
-  subDeviceId: faker.random.alphaNumeric(16),
+  subDeviceId: uniqid(),
   name: 'BSomeOtherName',
   type: type1,
   createdBy: email1,
@@ -33,7 +33,7 @@ const subDeviceTwo = {
 const subDeviceThree = {
   _id: mongoose.Types.ObjectId(),
   deviceId: deviceTwo.deviceId,
-  subDeviceId: faker.random.alphaNumeric(16),
+  subDeviceId: uniqid(),
   name: 'CSomething',
   type: type2,
   createdBy: email2,
@@ -43,7 +43,7 @@ const subDeviceThree = {
 const subDeviceFour = {
   _id: mongoose.Types.ObjectId(),
   deviceId: deviceTwo.deviceId,
-  subDeviceId: faker.random.alphaNumeric(16),
+  subDeviceId: uniqid(),
   name: 'DSomeMore',
   type: type2,
   createdBy: email2,

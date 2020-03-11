@@ -11,7 +11,7 @@ const deviceSchema = mongoose.Schema(
       trim: true,
       unique: true,
       match: /^[A-Za-z_\d]+$/,
-      minlength: 16,
+      minlength: 10,
       maxlength: 20,
     },
     name: {

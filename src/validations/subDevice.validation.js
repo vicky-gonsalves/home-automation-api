@@ -5,12 +5,9 @@ const createSubDeviceValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
   }),
   body: Joi.object().keys({
-    subDeviceId: Joi.string()
-      .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
     name: Joi.string()
       .required()
       .pattern(new RegExp('^[A-Za-z_\\s\\d]{1,20}$')),
@@ -25,10 +22,10 @@ const getSubDevicesValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
   }),
   query: Joi.object().keys({
-    subDeviceId: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+    subDeviceId: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     name: Joi.string().pattern(new RegExp('^[A-Za-z_\\s\\d]{1,20}$')),
     type: Joi.string().valid(...subDeviceType),
     isDisabled: Joi.boolean(),
@@ -42,10 +39,10 @@ const getSubDeviceValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     subDeviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
   }),
 };
 
@@ -53,14 +50,13 @@ const updateSubDeviceValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     subDeviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
   }),
   body: Joi.object()
     .keys({
-      subDeviceId: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
       name: Joi.string().pattern(new RegExp('^[A-Za-z_\\s\\d]{1,20}$')),
       type: Joi.string().valid(...subDeviceType),
       isDisabled: Joi.boolean(),
@@ -72,10 +68,10 @@ const deleteSubDeviceValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     subDeviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
   }),
 };
 

@@ -5,10 +5,10 @@ const createSubDeviceParamValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     subDeviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
   }),
   body: Joi.object().keys({
     paramName: Joi.string()
@@ -23,10 +23,10 @@ const getSubDeviceParamsValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     subDeviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
   }),
   query: Joi.object().keys({
     paramName: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{1,50}$')),
@@ -42,10 +42,10 @@ const getSubDeviceParamValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     subDeviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     paramName: Joi.string()
       .required()
       .pattern(new RegExp('^[A-Za-z_\\d]{1,50}$')),
@@ -56,10 +56,10 @@ const updateSubDeviceParamValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     subDeviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     paramName: Joi.string()
       .required()
       .pattern(new RegExp('^[A-Za-z_\\d]{1,50}$')),
@@ -77,10 +77,10 @@ const updateSubDeviceParamValueValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     subDeviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     paramName: Joi.string()
       .required()
       .pattern(new RegExp('^[A-Za-z_\\d]{1,50}$')),
@@ -96,10 +96,10 @@ const deleteSubDeviceParamValidation = {
   params: Joi.object().keys({
     deviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     subDeviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     paramName: Joi.string()
       .required()
       .pattern(new RegExp('^[A-Za-z_\\d]{1,50}$')),
@@ -111,7 +111,7 @@ const validateGetSubDeviceParamsSocket = async (socket, listener) => {
     id: Joi.string().required(),
     deviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
   });
 
   const validate = schema.validate({
@@ -133,10 +133,10 @@ const validatePutSubDeviceParamsSocket = async (socket, data, listener) => {
     id: Joi.string().required(),
     deviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     subDeviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     paramName: Joi.string()
       .required()
       .pattern(new RegExp('^[A-Za-z_\\d]{1,50}$')),

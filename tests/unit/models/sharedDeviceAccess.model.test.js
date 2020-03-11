@@ -25,8 +25,8 @@ describe('SharedDeviceAccess Model', () => {
       await expect(new SharedDeviceAccess(newAccess).validate()).rejects.toThrow();
     });
 
-    test('should throw a validation error if deviceId length is less than 16', async () => {
-      newAccess.deviceId = 'invalidDevice';
+    test('should throw a validation error if deviceId length is less than 10', async () => {
+      newAccess.deviceId = faker.random.alphaNumeric(9);
       await expect(new SharedDeviceAccess(newAccess).validate()).rejects.toThrow();
     });
 

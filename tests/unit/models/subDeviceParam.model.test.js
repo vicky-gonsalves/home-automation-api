@@ -7,8 +7,8 @@ describe('SubDeviceParam Model', () => {
     beforeEach(() => {
       const email = faker.internet.email();
       newSubDeviceParam = {
-        deviceId: faker.random.alphaNumeric(16),
-        subDeviceId: faker.random.alphaNumeric(16),
+        deviceId: faker.random.alphaNumeric(10),
+        subDeviceId: faker.random.alphaNumeric(10),
         paramName: faker.name.firstName(),
         paramValue: faker.random.alphaNumeric(50),
         createdBy: email,
@@ -25,8 +25,8 @@ describe('SubDeviceParam Model', () => {
       await expect(new SubDeviceParam(newSubDeviceParam).validate()).rejects.toThrow();
     });
 
-    test('should throw a validation error if deviceId length is less than 16', async () => {
-      newSubDeviceParam.deviceId = faker.random.alphaNumeric(14);
+    test('should throw a validation error if deviceId length is less than 10', async () => {
+      newSubDeviceParam.deviceId = faker.random.alphaNumeric(9);
       await expect(new SubDeviceParam(newSubDeviceParam).validate()).rejects.toThrow();
     });
 
@@ -40,8 +40,8 @@ describe('SubDeviceParam Model', () => {
       await expect(new SubDeviceParam(newSubDeviceParam).validate()).rejects.toThrow();
     });
 
-    test('should throw a validation error if subDeviceId length is less than 16', async () => {
-      newSubDeviceParam.subDeviceId = faker.random.alphaNumeric(14);
+    test('should throw a validation error if subDeviceId length is less than 10', async () => {
+      newSubDeviceParam.subDeviceId = faker.random.alphaNumeric(9);
       await expect(new SubDeviceParam(newSubDeviceParam).validate()).rejects.toThrow();
     });
 
@@ -106,8 +106,8 @@ describe('SubDeviceParam Model', () => {
     beforeEach(() => {
       const email = faker.internet.email();
       newSubDeviceParam = {
-        deviceId: faker.random.alphaNumeric(16),
-        subDeviceId: faker.random.alphaNumeric(16),
+        deviceId: faker.random.alphaNumeric(10),
+        subDeviceId: faker.random.alphaNumeric(10),
         paramName: faker.name.firstName(),
         paramValue: faker.random.alphaNumeric(50),
         createdBy: email,

@@ -29,7 +29,6 @@ describe('Sub-Device Routes', () => {
     let subDevice;
     beforeEach(async () => {
       subDevice = {
-        subDeviceId: faker.random.alphaNumeric(16),
         name: faker.name.firstName(),
         type: faker.random.arrayElement(subDeviceType),
       };
@@ -47,6 +46,7 @@ describe('Sub-Device Routes', () => {
 
       expect(res.body).toHaveProperty('isDisabled');
       expect(res.body).toHaveProperty('deviceId');
+      expect(res.body).toHaveProperty('subDeviceId');
       expect(res.body).toMatchObject({
         id: expect.anything(),
         isDisabled: false,
@@ -59,10 +59,12 @@ describe('Sub-Device Routes', () => {
       const dbSubDevice = await SubDevice.findById(res.body.id);
       expect(dbSubDevice).toBeDefined();
       expect(dbSubDevice.isDisabled).toBe(false);
+      expect(dbSubDevice.subDeviceId).toBeDefined();
+      expect(dbSubDevice.subDeviceId.length).toBeGreaterThanOrEqual(10);
+      expect(dbSubDevice.subDeviceId.length).toBeLessThanOrEqual(20);
       expect(dbSubDevice).toMatchObject({
         name: subDevice.name,
         deviceId: deviceOne.deviceId,
-        subDeviceId: subDevice.subDeviceId,
         type: subDevice.type,
         isDisabled: false,
         createdBy: admin.email,
@@ -73,7 +75,6 @@ describe('Sub-Device Routes', () => {
       await insertSharedDeviceAccess([accessOne]);
       await insertSocketIds([socketIdTwo, socketIdFour]);
       const _subDevice = {
-        subDeviceId: subDeviceOne.subDeviceId,
         name: subDeviceOne.name,
         type: subDeviceOne.type,
       };
@@ -99,75 +100,6 @@ describe('Sub-Device Routes', () => {
         .set('Authorization', `Bearer ${userOneAccessToken}`)
         .send(subDevice)
         .expect(httpStatus.FORBIDDEN);
-    });
-
-    it('should return 400 error if subDeviceId is invalid', async () => {
-      subDevice.subDeviceId = 'invalid device id';
-
-      await request(app)
-        .post(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(subDevice)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 error if subDeviceId is already used', async () => {
-      await insertSubDevices([subDeviceOne]);
-      subDevice.subDeviceId = subDeviceOne.subDeviceId;
-
-      await request(app)
-        .post(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(subDevice)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 error if subDeviceId length is less than 16 characters', async () => {
-      subDevice.subDeviceId = faker.random.alphaNumeric(14);
-
-      await request(app)
-        .post(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(subDevice)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 error if subDeviceId length is greater than 20 characters', async () => {
-      subDevice.subDeviceId = faker.random.alphaNumeric(21);
-
-      await request(app)
-        .post(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(subDevice)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 error if subDeviceId is not string', async () => {
-      subDevice.subDeviceId = 31231;
-
-      await request(app)
-        .post(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(subDevice)
-        .expect(httpStatus.BAD_REQUEST);
-
-      subDevice.subDeviceId = {};
-
-      await request(app)
-        .post(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(subDevice)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 error if subDeviceId is missing', async () => {
-      delete subDevice.subDeviceId;
-
-      await request(app)
-        .post(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(subDevice)
-        .expect(httpStatus.BAD_REQUEST);
     });
 
     it('should return 400 error if name is invalid', async () => {
@@ -343,15 +275,23 @@ describe('Sub-Device Routes', () => {
       expect(res.body).toHaveLength(2);
       expect(res.body[0]).toHaveProperty('createdAt');
       expect(res.body[0]).toHaveProperty('updatedAt');
-      expect(res.body[0]).toMatchObject({
-        id: subDeviceOne._id.toHexString(),
-        deviceId: deviceOne.deviceId,
-        subDeviceId: subDeviceOne.subDeviceId,
-        name: subDeviceOne.name,
-        type: subDeviceOne.type,
-        isDisabled: false,
-        createdBy: subDeviceOne.createdBy,
-      });
+      expect(res.body[0]).toHaveProperty('deviceId');
+      expect(res.body[0]).toHaveProperty('subDeviceId');
+      expect(res.body[0]).toHaveProperty('name');
+      expect(res.body[0]).toHaveProperty('type');
+      expect(res.body[0]).toHaveProperty('isDisabled');
+      expect(res.body[0]).toHaveProperty('id');
+      expect(res.body[0]).toHaveProperty('createdBy');
+
+      expect(res.body[1]).toHaveProperty('createdAt');
+      expect(res.body[1]).toHaveProperty('updatedAt');
+      expect(res.body[1]).toHaveProperty('deviceId');
+      expect(res.body[1]).toHaveProperty('subDeviceId');
+      expect(res.body[1]).toHaveProperty('name');
+      expect(res.body[1]).toHaveProperty('type');
+      expect(res.body[1]).toHaveProperty('isDisabled');
+      expect(res.body[1]).toHaveProperty('id');
+      expect(res.body[1]).toHaveProperty('createdBy');
     });
 
     it('should return 401 if access token is missing', async () => {
@@ -384,7 +324,7 @@ describe('Sub-Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(subDeviceOne._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
     });
 
     it('should correctly apply filter on name field', async () => {
@@ -398,7 +338,7 @@ describe('Sub-Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(subDeviceOne._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
     });
 
     it('should correctly apply filter on type field', async () => {
@@ -412,7 +352,8 @@ describe('Sub-Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(2);
-      expect(res.body[0].id).toBe(subDeviceOne._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
+      expect(res.body[1].id).toBeDefined();
     });
 
     it('should correctly apply filter on isDisabled field', async () => {
@@ -426,7 +367,8 @@ describe('Sub-Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(2);
-      expect(res.body[0].id).toBe(subDeviceOne._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
+      expect(res.body[1].id).toBeDefined();
     });
 
     it('should correctly sort returned array if descending sort param is specified', async () => {
@@ -440,7 +382,8 @@ describe('Sub-Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(2);
-      expect(res.body[1].id).toBe(subDeviceOne._id.toHexString());
+      expect(res.body[1].id).toBeDefined();
+      expect(res.body[1].id).toBeDefined();
     });
 
     it('should correctly sort returned array if ascending sort param is specified', async () => {
@@ -454,7 +397,8 @@ describe('Sub-Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(2);
-      expect(res.body[0].id).toBe(subDeviceOne._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
+      expect(res.body[1].id).toBeDefined();
     });
 
     it('should limit returned array if limit param is specified', async () => {
@@ -468,6 +412,7 @@ describe('Sub-Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
+      expect(res.body[0].id).toBeDefined();
     });
 
     it('should return the correct page if page and limit params are specified', async () => {
@@ -481,7 +426,7 @@ describe('Sub-Device Routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBe(subDeviceTwo._id.toHexString());
+      expect(res.body[0].id).toBeDefined();
     });
   });
 
@@ -652,7 +597,6 @@ describe('Sub-Device Routes', () => {
     let updateBody;
     beforeEach(async () => {
       updateBody = {
-        subDeviceId: faker.random.alphaNumeric(16),
         name: 'someUnique',
         type: subDeviceType[1],
         isDisabled: true,
@@ -670,23 +614,23 @@ describe('Sub-Device Routes', () => {
         .send(updateBody)
         .expect(httpStatus.OK);
 
+      expect(res.body).toHaveProperty('id');
       expect(res.body).toHaveProperty('isDisabled');
+      expect(res.body).toHaveProperty('subDeviceId');
       expect(res.body).toMatchObject({
         deviceId: deviceOne.deviceId,
-        subDeviceId: updateBody.subDeviceId,
         name: updateBody.name,
         type: updateBody.type,
         isDisabled: true,
       });
 
-      const dbSubDevice = await SubDevice.findOne({
-        deviceId: deviceOne.deviceId,
-        subDeviceId: updateBody.subDeviceId,
-      });
+      const dbSubDevice = await SubDevice.findById(res.body.id);
       expect(dbSubDevice).toBeDefined();
+      expect(dbSubDevice.subDeviceId).toBeDefined();
+      expect(dbSubDevice.subDeviceId.length).toBeGreaterThanOrEqual(10);
+      expect(dbSubDevice.subDeviceId.length).toBeLessThanOrEqual(20);
       expect(dbSubDevice).toMatchObject({
         deviceId: deviceOne.deviceId,
-        subDeviceId: updateBody.subDeviceId,
         name: updateBody.name,
         type: updateBody.type,
         isDisabled: true,
@@ -716,11 +660,11 @@ describe('Sub-Device Routes', () => {
 
       const dbSubDeviceParamOne = await SubDeviceParam.findById(subDeviceParamOne._id);
       expect(dbSubDeviceParamOne).toBeDefined();
-      expect(dbSubDeviceParamOne.subDeviceId).toBe(updateBody.subDeviceId);
+      expect(dbSubDeviceParamOne.subDeviceId).toBe(subDeviceParamOne.subDeviceId);
 
       const dbSubDeviceParamThree = await SubDeviceParam.findById(subDeviceParamThree._id);
       expect(dbSubDeviceParamThree).toBeDefined();
-      expect(dbSubDeviceParamThree.subDeviceId).toBe(updateBody.subDeviceId);
+      expect(dbSubDeviceParamThree.subDeviceId).toBe(subDeviceParamThree.subDeviceId);
     });
 
     it('should return 401 error if access token is missing', async () => {
@@ -766,76 +710,6 @@ describe('Sub-Device Routes', () => {
     it('should return 400 error if subDeviceId is not valid', async () => {
       route = `/v1/devices/${deviceOne.deviceId}/sub-devices/invalid`;
       updateBody = { name: faker.name.firstName() };
-
-      await request(app)
-        .patch(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(updateBody)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 if subDeviceId is invalid', async () => {
-      updateBody = { subDeviceId: 'invalidId' };
-
-      await request(app)
-        .patch(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(updateBody)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 if subDeviceId is already taken', async () => {
-      await insertSubDevices([subDeviceTwo]);
-      updateBody = { subDeviceId: subDeviceTwo.subDeviceId };
-
-      await request(app)
-        .patch(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(updateBody)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should not return 400 if subDeviceId is my subDeviceId', async () => {
-      await insertSubDevices([subDeviceTwo]);
-      updateBody = { subDeviceId: subDeviceOne.subDeviceId };
-
-      await request(app)
-        .patch(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(updateBody)
-        .expect(httpStatus.OK);
-    });
-
-    it('should return 400 if subDeviceId length is less than 16 characters', async () => {
-      updateBody = { subDeviceId: faker.random.alphaNumeric(15) };
-
-      await request(app)
-        .patch(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(updateBody)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 error if subDeviceId length is greater than 20 characters', async () => {
-      updateBody = { subDeviceId: faker.random.alphaNumeric(21) };
-
-      await request(app)
-        .patch(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(updateBody)
-        .expect(httpStatus.BAD_REQUEST);
-    });
-
-    it('should return 400 error if subDeviceId is not string', async () => {
-      updateBody = { subDeviceId: 31231 };
-
-      await request(app)
-        .patch(route)
-        .set('Authorization', `Bearer ${adminAccessToken}`)
-        .send(updateBody)
-        .expect(httpStatus.BAD_REQUEST);
-
-      updateBody = { subDeviceId: {} };
 
       await request(app)
         .patch(route)

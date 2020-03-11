@@ -3,21 +3,9 @@ import { pick } from 'lodash';
 import Device from '../models/device.model';
 import AppError from '../utils/AppError';
 import { getQueryOptions } from '../utils/service.util';
-import {
-  checkAndDeleteAccessIfExists,
-  deleteSharedDeviceAccessByDeviceIdService,
-  updateSharedDeviceAccessDeviceIdService,
-} from './sharedDeviceAccess.service';
-import { deleteSocketIdByDeviceIdService, updateSocketDeviceIdService } from './socketId.service';
-import { deleteSubDevicesByDeviceIdService, updateDeviceIdService } from './subDevice.service';
-import { updateSubDeviceParamDeviceIdService } from './subDeviceParam.service';
-
-const checkDuplicateDeviceIdService = async (deviceId, excludeDeviceId) => {
-  const device = await Device.findOne({ deviceId, _id: { $ne: excludeDeviceId } });
-  if (device) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'deviceId already registered');
-  }
-};
+import { checkAndDeleteAccessIfExists, deleteSharedDeviceAccessByDeviceIdService } from './sharedDeviceAccess.service';
+import { deleteSocketIdByDeviceIdService } from './socketId.service';
+import { deleteSubDevicesByDeviceIdService } from './subDevice.service';
 
 const checkIfEmailIsDeviceOwnerAndFail = async (deviceId, deviceOwner) => {
   const device = await Device.findOne({ deviceId, deviceOwner });
@@ -26,8 +14,7 @@ const checkIfEmailIsDeviceOwnerAndFail = async (deviceId, deviceOwner) => {
   }
 };
 
-const createDeviceService = async deviceBody => {
-  await checkDuplicateDeviceIdService(deviceBody.deviceId);
+const createDeviceService = deviceBody => {
   return Device.create(deviceBody);
 };
 
@@ -82,33 +69,17 @@ const getActiveDevicesByDeviceOwnerService = async deviceOwner => {
 };
 
 const updateDeviceService = async (id, updateBody) => {
-  let _dId;
   let _dOwner;
   const device = await getDeviceByDeviceIdService(id);
-  const oldDeviceId = device.deviceId;
-  if (updateBody && updateBody.deviceId) {
-    await checkDuplicateDeviceIdService(updateBody.deviceId, device.id);
-  }
   Object.assign(device, updateBody);
   await device.save();
-  if (updateBody && updateBody.deviceId) {
-    _dId = updateBody.deviceId;
-  } else {
-    _dId = device.deviceId;
-  }
   if (updateBody && updateBody.deviceOwner) {
     _dOwner = updateBody.deviceOwner;
   } else {
     _dOwner = device.deviceOwner;
   }
-  if ((updateBody && updateBody.deviceId) || (updateBody && updateBody.deviceOwner)) {
-    await checkAndDeleteAccessIfExists(_dId, _dOwner);
-  }
-  if (updateBody && updateBody.deviceId) {
-    await updateDeviceIdService(oldDeviceId, updateBody.deviceId);
-    await updateSubDeviceParamDeviceIdService(oldDeviceId, updateBody.deviceId);
-    await updateSocketDeviceIdService(oldDeviceId, updateBody.deviceId);
-    await updateSharedDeviceAccessDeviceIdService(oldDeviceId, updateBody.deviceId);
+  if (updateBody && updateBody.deviceOwner) {
+    await checkAndDeleteAccessIfExists(device.deviceId, _dOwner);
   }
   return device;
 };

@@ -9,7 +9,7 @@ const sharedDeviceAccessSchema = mongoose.Schema(
       required: true,
       trim: true,
       match: /^[A-Za-z_\d]+$/,
-      minlength: 16,
+      minlength: 10,
       maxlength: 20,
     },
     email: {

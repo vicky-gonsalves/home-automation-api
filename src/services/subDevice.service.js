@@ -1,20 +1,12 @@
 import httpStatus from 'http-status';
 import { pick } from 'lodash';
-import { deleteSubDeviceParamByDeviceIdService, updateSubDeviceParamSubDeviceIdService } from './subDeviceParam.service';
+import { deleteSubDeviceParamByDeviceIdService } from './subDeviceParam.service';
 import AppError from '../utils/AppError';
 import SubDevice from '../models/subDevice.model';
 import { getQueryOptions } from '../utils/service.util';
 
-const checkDuplicateSubDeviceIdService = async (subDeviceId, excludeSubDeviceId) => {
-  const subDevice = await SubDevice.findOne({ subDeviceId, _id: { $ne: excludeSubDeviceId } });
-  if (subDevice) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'subDeviceId already registered');
-  }
-};
-
 const createSubDeviceService = async (deviceId, _subDeviceBody) => {
   const subDeviceBody = _subDeviceBody;
-  await checkDuplicateSubDeviceIdService(subDeviceBody.subDeviceId);
   subDeviceBody.deviceId = deviceId;
   return SubDevice.create(subDeviceBody);
 };
@@ -46,27 +38,9 @@ const getSubDeviceBySubDeviceIdService = async (deviceId, subDeviceId) => {
 
 const updateSubDeviceService = async (deviceId, subDeviceId, updateBody) => {
   const subDevice = await getSubDeviceBySubDeviceIdService(deviceId, subDeviceId);
-  const oldSubDeviceId = subDevice.subDeviceId;
-  if (updateBody.subDeviceId) {
-    await checkDuplicateSubDeviceIdService(updateBody.subDeviceId, subDevice.id);
-  }
   await Object.assign(subDevice, updateBody);
   await subDevice.save();
-  if (updateBody.subDeviceId) {
-    await updateSubDeviceParamSubDeviceIdService(oldSubDeviceId, updateBody.subDeviceId);
-  }
   return subDevice;
-};
-
-const updateDeviceIdService = async (oldDeviceId, newDeviceId) => {
-  const subDevices = await SubDevice.find({ deviceId: oldDeviceId });
-  return Promise.all(
-    subDevices.map(async subDevice => {
-      Object.assign(subDevice, { deviceId: newDeviceId });
-      await subDevice.save();
-      return subDevice;
-    })
-  );
 };
 
 const updateSubDeviceCreatedByService = async (oldEmail, newEmail) => {
@@ -118,7 +92,6 @@ module.exports = {
   getSubDevicesService,
   getSubDeviceBySubDeviceIdService,
   updateSubDeviceService,
-  updateDeviceIdService,
   updateSubDeviceCreatedByService,
   updateSubDeviceUpdatedByService,
   deleteSubDeviceService,

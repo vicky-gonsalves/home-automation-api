@@ -65,28 +65,6 @@ const updateSubDeviceParamService = async (deviceId, subDeviceId, paramName, upd
   return subDeviceParam;
 };
 
-const updateSubDeviceParamDeviceIdService = async (oldDeviceId, newDeviceId) => {
-  const subDeviceParams = await SubDeviceParam.find({ deviceId: oldDeviceId });
-  return Promise.all(
-    subDeviceParams.map(async subDeviceParam => {
-      Object.assign(subDeviceParam, { deviceId: newDeviceId });
-      await subDeviceParam.save();
-      return subDeviceParam;
-    })
-  );
-};
-
-const updateSubDeviceParamSubDeviceIdService = async (oldSubDeviceId, newSubDeviceId) => {
-  const subDeviceParams = await SubDeviceParam.find({ subDeviceId: oldSubDeviceId });
-  return Promise.all(
-    subDeviceParams.map(async subDeviceParam => {
-      Object.assign(subDeviceParam, { subDeviceId: newSubDeviceId });
-      await subDeviceParam.save();
-      return subDeviceParam;
-    })
-  );
-};
-
 const updateSubDeviceParamCreatedByService = async (oldEmail, newEmail) => {
   const subDeviceParams = await SubDeviceParam.find({ createdBy: oldEmail });
   return Promise.all(
@@ -139,8 +117,6 @@ module.exports = {
   getSubDeviceParamsService,
   getSubDeviceParamByParamNameService,
   updateSubDeviceParamService,
-  updateSubDeviceParamDeviceIdService,
-  updateSubDeviceParamSubDeviceIdService,
   updateSubDeviceParamCreatedByService,
   updateSubDeviceParamUpdatedByService,
   deleteSubDeviceParamService,

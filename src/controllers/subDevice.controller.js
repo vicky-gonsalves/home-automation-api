@@ -11,6 +11,7 @@ import catchAsync from '../utils/catchAsync';
 import { getSharedDeviceAccessByDeviceIdService } from '../services/sharedDeviceAccess.service';
 import { getSocketIdsByDeviceIdService, getSocketIdsByEmailsService } from '../services/socketId.service';
 import NotificationService from '../services/notification.service';
+import uniqid from 'uniqid';
 
 const sendSubDeviceSocketNotification = async (device, event, subDevice) => {
   const deviceAccees = await getSharedDeviceAccessByDeviceIdService(device.deviceId);
@@ -26,6 +27,7 @@ const sendSubDeviceSocketNotification = async (device, event, subDevice) => {
 
 const createSubDevice = catchAsync(async (req, res) => {
   req.body.createdBy = req.user.email;
+  req.body.subDeviceId = uniqid();
   const device = await getDeviceByDeviceIdService(req.params.deviceId);
   const subDevice = await createSubDeviceService(req.params.deviceId, req.body);
   await sendSubDeviceSocketNotification(device, 'SUB_DEVICE_CREATED', subDevice);
