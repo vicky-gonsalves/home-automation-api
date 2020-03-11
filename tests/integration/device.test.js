@@ -57,7 +57,7 @@ describe('Device Routes', () => {
       expect(dbDevice).toBeDefined();
       expect(dbDevice.isDisabled).toBe(false);
       expect(dbDevice.deviceId).toBeDefined();
-      expect(dbDevice.deviceId.length).toBeGreaterThanOrEqual(16);
+      expect(dbDevice.deviceId.length).toBeGreaterThanOrEqual(10);
       expect(dbDevice.deviceId.length).toBeLessThanOrEqual(20);
       expect(dbDevice).toMatchObject({
         name: newDevice.name,
@@ -788,7 +788,7 @@ describe('Device Routes', () => {
       const dbDevice = await Device.findOne({ deviceId: deviceOne.deviceId });
       expect(dbDevice).toBeDefined();
       expect(dbDevice.deviceId).toBeDefined();
-      expect(dbDevice.deviceId.length).toBeGreaterThanOrEqual(16);
+      expect(dbDevice.deviceId.length).toBeGreaterThanOrEqual(10);
       expect(dbDevice.deviceId.length).toBeLessThanOrEqual(20);
       expect(dbDevice).toMatchObject({
         name: updateBody.name,

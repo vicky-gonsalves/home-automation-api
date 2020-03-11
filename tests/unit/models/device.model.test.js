@@ -8,7 +8,7 @@ describe('Device Model', () => {
     beforeEach(() => {
       const email = faker.internet.email();
       newDevice = {
-        deviceId: faker.random.alphaNumeric(16),
+        deviceId: faker.random.alphaNumeric(10),
         name: faker.name.firstName(),
         type: faker.random.arrayElement(deviceType),
         deviceOwner: email,
@@ -27,8 +27,8 @@ describe('Device Model', () => {
       await expect(new Device(newDevice).validate()).rejects.toThrow();
     });
 
-    test('should throw a validation error if deviceId length is less than 16', async () => {
-      newDevice.deviceId = 'invalidDevice';
+    test('should throw a validation error if deviceId length is less than 10', async () => {
+      newDevice.deviceId = faker.random.alphaNumeric(9);
       await expect(new Device(newDevice).validate()).rejects.toThrow();
     });
 
@@ -88,7 +88,7 @@ describe('Device Model', () => {
     beforeEach(() => {
       const email = faker.internet.email();
       newDevice = {
-        deviceId: faker.random.alphaNumeric(16),
+        deviceId: faker.random.alphaNumeric(10),
         name: faker.name.firstName(),
         type: faker.random.arrayElement(deviceType),
         deviceOwner: email,

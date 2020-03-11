@@ -60,7 +60,7 @@ describe('Sub-Device Routes', () => {
       expect(dbSubDevice).toBeDefined();
       expect(dbSubDevice.isDisabled).toBe(false);
       expect(dbSubDevice.subDeviceId).toBeDefined();
-      expect(dbSubDevice.subDeviceId.length).toBeGreaterThanOrEqual(16);
+      expect(dbSubDevice.subDeviceId.length).toBeGreaterThanOrEqual(10);
       expect(dbSubDevice.subDeviceId.length).toBeLessThanOrEqual(20);
       expect(dbSubDevice).toMatchObject({
         name: subDevice.name,
@@ -614,7 +614,7 @@ describe('Sub-Device Routes', () => {
       const dbSubDevice = await SubDevice.findById(res.body.id);
       expect(dbSubDevice).toBeDefined();
       expect(dbSubDevice.subDeviceId).toBeDefined();
-      expect(dbSubDevice.subDeviceId.length).toBeGreaterThanOrEqual(16);
+      expect(dbSubDevice.subDeviceId.length).toBeGreaterThanOrEqual(10);
       expect(dbSubDevice.subDeviceId.length).toBeLessThanOrEqual(20);
       expect(dbSubDevice).toMatchObject({
         deviceId: deviceOne.deviceId,

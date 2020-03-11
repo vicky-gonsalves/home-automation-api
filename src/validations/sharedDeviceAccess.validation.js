@@ -5,7 +5,7 @@ const createSharedDeviceAccessValidation = {
   body: Joi.object().keys({
     deviceId: Joi.string()
       .required()
-      .pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     email: Joi.string()
       .email()
       .required(),
@@ -15,7 +15,7 @@ const createSharedDeviceAccessValidation = {
 
 const getSharedDeviceAccessesValidation = {
   query: Joi.object().keys({
-    deviceId: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+    deviceId: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     email: Joi.string().email(),
     sharedBy: Joi.string().email(),
     isDisabled: Joi.boolean(),
@@ -37,7 +37,7 @@ const updateSharedDeviceAccessValidation = {
   }),
   body: Joi.object()
     .keys({
-      deviceId: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{16,20}$')),
+      deviceId: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
       email: Joi.string().email(),
       isDisabled: Joi.boolean(),
     })

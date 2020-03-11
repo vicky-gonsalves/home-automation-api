@@ -10,7 +10,7 @@ const subDeviceSchema = mongoose.Schema(
       required: true,
       trim: true,
       match: /^[A-Za-z_\d]+$/,
-      minlength: 16,
+      minlength: 10,
       maxlength: 20,
     },
     subDeviceId: {
@@ -19,7 +19,7 @@ const subDeviceSchema = mongoose.Schema(
       required: true,
       trim: true,
       match: /^[A-Za-z_\d]+$/,
-      minlength: 16,
+      minlength: 10,
       maxlength: 20,
     },
     name: {

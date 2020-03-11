@@ -375,7 +375,7 @@ describe('Socket Tests', () => {
         deviceIOClient.on('ERROR_SUB_DEVICE_PARAM_UPDATE', data => {
           expect(data).toHaveProperty('error');
           expect(data.error).toBe(
-            '"subDeviceId" with value "invalid" fails to match the required pattern: /^[A-Za-z_\\d]{16,20}$/'
+            '"subDeviceId" with value "invalid" fails to match the required pattern: /^[A-Za-z_\\d]{10,20}$/'
           );
           done();
         });

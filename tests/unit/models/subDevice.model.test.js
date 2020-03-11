@@ -8,8 +8,8 @@ describe('SubDevice Model', () => {
     beforeEach(() => {
       const email = faker.internet.email();
       newSubDevice = {
-        deviceId: faker.random.alphaNumeric(16),
-        subDeviceId: faker.random.alphaNumeric(16),
+        deviceId: faker.random.alphaNumeric(10),
+        subDeviceId: faker.random.alphaNumeric(10),
         name: faker.name.firstName(),
         type: faker.random.arrayElement(subDeviceType),
         createdBy: email,
@@ -26,8 +26,8 @@ describe('SubDevice Model', () => {
       await expect(new SubDevice(newSubDevice).validate()).rejects.toThrow();
     });
 
-    test('should throw a validation error if deviceId length is less than 16', async () => {
-      newSubDevice.deviceId = faker.random.alphaNumeric(14);
+    test('should throw a validation error if deviceId length is less than 10', async () => {
+      newSubDevice.deviceId = faker.random.alphaNumeric(9);
       await expect(new SubDevice(newSubDevice).validate()).rejects.toThrow();
     });
 
@@ -41,8 +41,8 @@ describe('SubDevice Model', () => {
       await expect(new SubDevice(newSubDevice).validate()).rejects.toThrow();
     });
 
-    test('should throw a validation error if subDeviceId length is less than 16', async () => {
-      newSubDevice.subDeviceId = faker.random.alphaNumeric(14);
+    test('should throw a validation error if subDeviceId length is less than 10', async () => {
+      newSubDevice.subDeviceId = faker.random.alphaNumeric(9);
       await expect(new SubDevice(newSubDevice).validate()).rejects.toThrow();
     });
 
@@ -92,8 +92,8 @@ describe('SubDevice Model', () => {
     beforeEach(() => {
       const email = faker.internet.email();
       newSubDevice = {
-        deviceId: faker.random.alphaNumeric(16),
-        subDeviceId: faker.random.alphaNumeric(16),
+        deviceId: faker.random.alphaNumeric(10),
+        subDeviceId: faker.random.alphaNumeric(10),
         name: faker.name.firstName(),
         type: faker.random.arrayElement(subDeviceType),
         createdBy: email,

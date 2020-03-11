@@ -91,8 +91,8 @@ describe('Shared Device Access Routes', () => {
         .expect(httpStatus.BAD_REQUEST);
     });
 
-    it('should return 400 error if deviceId length is less than 16 characters', async () => {
-      newAccess.deviceId = faker.random.alphaNumeric(14);
+    it('should return 400 error if deviceId length is less than 10 characters', async () => {
+      newAccess.deviceId = faker.random.alphaNumeric(9);
 
       await request(app)
         .post(route)
@@ -464,7 +464,7 @@ describe('Shared Device Access Routes', () => {
     beforeEach(async () => {
       const email = faker.internet.email().toLowerCase();
       updateBody = {
-        deviceId: faker.random.alphaNumeric(16),
+        deviceId: faker.random.alphaNumeric(10),
         email,
         isDisabled: true,
       };
@@ -580,8 +580,8 @@ describe('Shared Device Access Routes', () => {
         .expect(httpStatus.OK);
     });
 
-    it('should return 400 if deviceId length is less than 16 characters', async () => {
-      updateBody = { deviceId: faker.random.alphaNumeric(15) };
+    it('should return 400 if deviceId length is less than 10 characters', async () => {
+      updateBody = { deviceId: faker.random.alphaNumeric(9) };
 
       await request(app)
         .patch(`${route}/${accessOne._id}`)
