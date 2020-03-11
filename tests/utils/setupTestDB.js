@@ -19,9 +19,12 @@ const setupTestDBWithActualTestDB = () => {
 const setupTestDB = () => {
   const mockgoose = new Mockgoose(mongoose);
   beforeAll(async done => {
-    mockgoose.prepareStorage();
-    await mongoose.connect(config.mongoose.url, config.mongoose.options);
-    done();
+    mockgoose.prepareStorage().then(function() {
+      mongoose.connect(config.mongoose.url, config.mongoose.options, function(err) {
+        done(err);
+      });
+      done();
+    });
   });
 
   beforeEach(async done => {
@@ -39,7 +42,7 @@ const setupTestDB = () => {
 
 const setupTestDBForSocket = () => {
   const mockgoose = new Mockgoose(mongoose);
-  beforeAll(async done => {
+  beforeAll(done => {
     mockgoose.prepareStorage().then(function() {
       mongoose.connect(config.mongoose.url, config.mongoose.options, function(err) {
         done(err);
