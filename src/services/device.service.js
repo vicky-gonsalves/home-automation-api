@@ -24,6 +24,7 @@ const getDevicesService = async query => {
     'deviceId',
     'name',
     'type',
+    'variant',
     'registeredAt',
     'isDisabled',
     'deviceOwner',

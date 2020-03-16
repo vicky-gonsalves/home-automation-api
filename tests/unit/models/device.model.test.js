@@ -1,5 +1,5 @@
 import faker from 'faker';
-import { deviceType } from '../../../src/config/device';
+import { deviceType, deviceVariant } from '../../../src/config/device';
 import Device from '../../../src/models/device.model';
 
 describe('Device Model', () => {
@@ -11,6 +11,7 @@ describe('Device Model', () => {
         deviceId: faker.random.alphaNumeric(10),
         name: faker.name.firstName(),
         type: faker.random.arrayElement(deviceType),
+        variant: faker.random.arrayElement(deviceVariant),
         deviceOwner: email,
         registeredAt: new Date().toISOString(),
         createdBy: email,
@@ -57,6 +58,11 @@ describe('Device Model', () => {
       await expect(new Device(newDevice).validate()).rejects.toThrow();
     });
 
+    test('should throw a validation error if variant is invalid', async () => {
+      newDevice.variant = 'invalidVariant';
+      await expect(new Device(newDevice).validate()).rejects.toThrow();
+    });
+
     test('should throw a validation error if isDisabled is invalid', async () => {
       newDevice.isDisabled = 'invalidType';
       await expect(new Device(newDevice).validate()).rejects.toThrow();
@@ -91,6 +97,7 @@ describe('Device Model', () => {
         deviceId: faker.random.alphaNumeric(10),
         name: faker.name.firstName(),
         type: faker.random.arrayElement(deviceType),
+        variant: faker.random.arrayElement(deviceVariant),
         deviceOwner: email,
         registeredAt: new Date().toISOString(),
         createdBy: email,

@@ -1,5 +1,5 @@
 import Joi from '@hapi/joi';
-import { deviceType } from '../config/device';
+import { deviceType, deviceVariant } from '../config/device';
 
 const createDeviceValidation = {
   body: Joi.object().keys({
@@ -8,6 +8,9 @@ const createDeviceValidation = {
       .pattern(new RegExp('^[A-Za-z_\\s\\d]{1,20}$')),
     type: Joi.string()
       .valid(...deviceType)
+      .required(),
+    variant: Joi.string()
+      .valid(...deviceVariant)
       .required(),
     deviceOwner: Joi.string()
       .email()
@@ -21,6 +24,7 @@ const getDevicesValidation = {
     deviceId: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     name: Joi.string().pattern(new RegExp('^[A-Za-z_\\s\\d]{1,20}$')),
     type: Joi.string().valid(...deviceType),
+    variant: Joi.string().valid(...deviceVariant),
     registeredAt: Joi.date().iso(),
     deviceOwner: Joi.string().email(),
     isDisabled: Joi.boolean(),
@@ -56,6 +60,7 @@ const updateDeviceValidation = {
     .keys({
       name: Joi.string().pattern(new RegExp('^[A-Za-z_\\s\\d]{1,20}$')),
       type: Joi.string().valid(...deviceType),
+      variant: Joi.string().valid(...deviceVariant),
       deviceOwner: Joi.string().email(),
       isDisabled: Joi.boolean(),
     })

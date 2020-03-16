@@ -2,7 +2,7 @@ import faker from 'faker';
 import httpStatus from 'http-status';
 import request from 'supertest';
 import app from '../../src/app';
-import { deviceType } from '../../src/config/device';
+import { deviceType, deviceVariant } from '../../src/config/device';
 import Device from '../../src/models/device.model';
 import SocketId from '../../src/models/socketId.model';
 import SubDevice from '../../src/models/subDevice.model';
@@ -29,6 +29,7 @@ describe('Device Routes', () => {
       newDevice = {
         name: faker.name.firstName(),
         type: faker.random.arrayElement(deviceType),
+        variant: faker.random.arrayElement(deviceVariant),
         deviceOwner: email,
       };
     });
@@ -62,6 +63,7 @@ describe('Device Routes', () => {
       expect(dbDevice).toMatchObject({
         name: newDevice.name,
         type: newDevice.type,
+        variant: newDevice.variant,
         deviceOwner: newDevice.deviceOwner,
         isDisabled: false,
         createdBy: admin.email,
@@ -75,6 +77,7 @@ describe('Device Routes', () => {
       const _device = {
         name: deviceOne.name,
         type: deviceOne.type,
+        variant: deviceOne.variant,
         deviceOwner: deviceOne.deviceOwner,
       };
       const spy = jest.spyOn(NotificationService, 'sendMessage');
@@ -199,6 +202,47 @@ describe('Device Routes', () => {
     it('should return 400 error if type is missing', async () => {
       await insertUsers([admin]);
       delete newDevice.type;
+
+      await request(app)
+        .post(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(newDevice)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should return 400 error if variant is invalid', async () => {
+      await insertUsers([admin]);
+      newDevice.variant = 'invalid';
+
+      await request(app)
+        .post(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(newDevice)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should return 400 error if variant is not a string', async () => {
+      await insertUsers([admin]);
+      newDevice.variant = 23123;
+
+      await request(app)
+        .post(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(newDevice)
+        .expect(httpStatus.BAD_REQUEST);
+
+      newDevice.variant = {};
+
+      await request(app)
+        .post(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(newDevice)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should return 400 error if variant is missing', async () => {
+      await insertUsers([admin]);
+      delete newDevice.variant;
 
       await request(app)
         .post(route)
@@ -338,6 +382,7 @@ describe('Device Routes', () => {
       expect(res.body[0]).toHaveProperty('deviceId');
       expect(res.body[0]).toHaveProperty('name');
       expect(res.body[0]).toHaveProperty('type');
+      expect(res.body[0]).toHaveProperty('variant');
       expect(res.body[0]).toHaveProperty('isDisabled');
       expect(res.body[0]).toHaveProperty('deviceOwner');
       expect(res.body[0]).toHaveProperty('registeredAt');
@@ -403,6 +448,21 @@ describe('Device Routes', () => {
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .query({ type: deviceOne.type })
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveLength(1);
+      expect(res.body[0]).toHaveProperty('id');
+    });
+
+    it('should correctly apply filter on variant field', async () => {
+      await insertUsers([admin]);
+      await insertDevices([deviceOne]);
+
+      const res = await request(app)
+        .get(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .query({ variant: deviceOne.variant })
         .send()
         .expect(httpStatus.OK);
 
@@ -519,6 +579,7 @@ describe('Device Routes', () => {
       expect(res.body[0]).toHaveProperty('deviceId');
       expect(res.body[0]).toHaveProperty('name');
       expect(res.body[0]).toHaveProperty('type');
+      expect(res.body[0]).toHaveProperty('variant');
       expect(res.body[0]).toHaveProperty('isDisabled');
       expect(res.body[0]).toHaveProperty('deviceOwner');
       expect(res.body[0]).toHaveProperty('registeredAt');
@@ -576,6 +637,7 @@ describe('Device Routes', () => {
         deviceId: deviceOne.deviceId,
         name: deviceOne.name,
         type: deviceOne.type,
+        variant: deviceOne.variant,
         isDisabled: false,
         deviceOwner: deviceOne.deviceOwner,
         registeredAt: deviceOne.registeredAt,
@@ -754,6 +816,7 @@ describe('Device Routes', () => {
       updateBody = {
         name: faker.name.firstName(),
         type: faker.random.arrayElement(deviceType),
+        variant: faker.random.arrayElement(deviceVariant),
         deviceOwner: email,
         isDisabled: true,
       };
@@ -774,6 +837,7 @@ describe('Device Routes', () => {
       expect(res.body).toMatchObject({
         name: updateBody.name,
         type: updateBody.type,
+        variant: updateBody.variant,
         isDisabled: true,
         deviceOwner: updateBody.deviceOwner,
       });
@@ -786,6 +850,7 @@ describe('Device Routes', () => {
       expect(dbDevice).toMatchObject({
         name: updateBody.name,
         type: updateBody.type,
+        variant: updateBody.variant,
         isDisabled: true,
         deviceOwner: updateBody.deviceOwner,
         updatedBy: admin.email,
@@ -1017,6 +1082,40 @@ describe('Device Routes', () => {
         .expect(httpStatus.BAD_REQUEST);
 
       updateBody = { type: {} };
+
+      await request(app)
+        .patch(`${route}/${deviceOne.deviceId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should return 400 error if variant is invalid', async () => {
+      await insertUsers([admin]);
+      await insertDevices([deviceOne]);
+
+      updateBody = { variant: 'invalid' };
+
+      await request(app)
+        .patch(`${route}/${deviceOne.deviceId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it('should return 400 error if variant is not a string', async () => {
+      await insertUsers([admin]);
+      await insertDevices([deviceOne]);
+
+      updateBody = { variant: 23123 };
+
+      await request(app)
+        .patch(`${route}/${deviceOne.deviceId}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.BAD_REQUEST);
+
+      updateBody = { variant: {} };
 
       await request(app)
         .patch(`${route}/${deviceOne.deviceId}`)

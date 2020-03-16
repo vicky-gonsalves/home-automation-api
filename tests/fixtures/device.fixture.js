@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { deviceType } from '../../src/config/device';
+import { deviceType, deviceVariant } from '../../src/config/device';
 import Device from '../../src/models/device.model';
 import { admin, userOne } from './user.fixture';
 import uniqid from 'uniqid';
@@ -12,6 +12,7 @@ const deviceOne = {
   deviceId: uniqid(),
   name: 'Motor',
   type: deviceType[0],
+  variant: deviceVariant[0],
   deviceOwner: email1,
   registeredAt: '2020-02-20T10:17:46.820Z',
   createdBy: email1,
@@ -23,6 +24,7 @@ const deviceTwo = {
   deviceId: uniqid(),
   name: 'Light',
   type: deviceType[1],
+  variant: deviceVariant[1],
   deviceOwner: email2,
   registeredAt: new Date().toISOString(),
   createdBy: email2,
@@ -34,6 +36,7 @@ const deviceThree = {
   deviceId: uniqid(),
   name: 'Light',
   type: deviceType[1],
+  variant: deviceVariant[1],
   deviceOwner: email2,
   registeredAt: new Date().toISOString(),
   createdBy: email2,
