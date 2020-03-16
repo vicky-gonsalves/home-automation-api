@@ -1,7 +1,7 @@
 import validator from 'validator';
 import mongoose from 'mongoose';
 import { omit, pick } from 'lodash';
-import { deviceType } from '../config/device';
+import { deviceType, deviceVariant } from '../config/device';
 
 const deviceSchema = mongoose.Schema(
   {
@@ -25,6 +25,12 @@ const deviceSchema = mongoose.Schema(
     type: {
       type: String,
       enum: deviceType,
+      required: true,
+      trim: true,
+    },
+    variant: {
+      type: String,
+      enum: deviceVariant,
       required: true,
       trim: true,
     },
@@ -86,6 +92,7 @@ deviceSchema.methods.transform = function() {
     'deviceId',
     'name',
     'type',
+    'variant',
     'registeredAt',
     'isDisabled',
     'deviceOwner',
