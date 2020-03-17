@@ -8,6 +8,8 @@ import { accessOne, accessThree, accessTwo, insertSharedDeviceAccess } from '../
 import { adminAccessToken, userOneAccessToken } from '../fixtures/token.fixture';
 import { admin, insertUsers, userOne, userTwo } from '../fixtures/user.fixture';
 import { setupTestDB } from '../utils/setupTestDB';
+import { insertSocketIds, socketIdFive, socketIdFour } from '../fixtures/socketId.fixture';
+import NotificationService from '../../src/services/notification.service';
 
 setupTestDB();
 
@@ -52,6 +54,17 @@ describe('Shared Device Access Routes', () => {
         sharedBy: email1,
         isDisabled: false,
       });
+    });
+
+    it('should return 201 and successfully create new shared-device-access if data is ok and send notification to users', async () => {
+      await insertSocketIds([socketIdFour, socketIdFive]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+      await request(app)
+        .post(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(newAccess)
+        .expect(httpStatus.CREATED);
+      expect(spy).toBeCalled();
     });
 
     it('should return 401 error if access token is missing', async () => {
@@ -417,6 +430,18 @@ describe('Shared Device Access Routes', () => {
 
       const dbAccess = await SharedDeviceAccess.findById(accessOne._id);
       expect(dbAccess).toBeNull();
+    });
+
+    it('should return 204 and successfully delete shared-device-access if data is ok and send notification to users', async () => {
+      await insertSocketIds([socketIdFour, socketIdFive]);
+      await insertSharedDeviceAccess([accessOne]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+      await request(app)
+        .delete(`${route}/${accessOne._id}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.NO_CONTENT);
+      expect(spy).toBeCalled();
     });
 
     it('should return 401 error if access token is missing', async () => {

@@ -9,13 +9,23 @@ import {
 import catchAsync from '../utils/catchAsync';
 import { checkIfEmailIsDeviceOwnerAndFail, getDeviceByDeviceIdService } from '../services/device.service';
 import { getUserByEmailService } from '../services/user.service';
+import { getSocketIdsByEmailsService } from '../services/socketId.service';
+import NotificationService from '../services/notification.service';
+
+const sendSharedDeviceSocketNotification = async (device, socketIds, event) => {
+  if (socketIds.length) {
+    NotificationService.sendMessage(socketIds, event, device);
+  }
+};
 
 const createSharedDeviceAccess = catchAsync(async (req, res) => {
   req.body.sharedBy = req.user.email;
-  await getDeviceByDeviceIdService(req.body.deviceId);
-  await getUserByEmailService(req.body.email);
+  const device = await getDeviceByDeviceIdService(req.body.deviceId);
+  const user = await getUserByEmailService(req.body.email);
+  const socketIds = await getSocketIdsByEmailsService(user.email);
   await checkIfEmailIsDeviceOwnerAndFail(req.body.deviceId, req.body.email);
   const sharedDeviceAccess = await createSharedDeviceAccessService(req.body);
+  await sendSharedDeviceSocketNotification(device, socketIds, 'SHARED_DEVICE_ACCESS_CREATED');
   res.status(httpStatus.CREATED).send(sharedDeviceAccess.transform());
 });
 
@@ -30,6 +40,7 @@ const getSharedDeviceAccess = catchAsync(async (req, res) => {
   res.send(sharedDeviceAccess.transform());
 });
 
+// Not going to use this api
 const updateSharedDeviceAccess = catchAsync(async (req, res) => {
   const sharedDeviceAccess = await getSharedDeviceAccessByIdService(req.params.id);
   const device = await getDeviceByDeviceIdService(sharedDeviceAccess.deviceId);
@@ -41,6 +52,10 @@ const updateSharedDeviceAccess = catchAsync(async (req, res) => {
 });
 
 const deleteSharedDeviceAccess = catchAsync(async (req, res) => {
+  const sharedDeviceAccess = await getSharedDeviceAccessByIdService(req.params.id);
+  const device = await getDeviceByDeviceIdService(sharedDeviceAccess.deviceId);
+  const socketIds = await getSocketIdsByEmailsService(sharedDeviceAccess.email);
+  await sendSharedDeviceSocketNotification(device, socketIds, 'SHARED_DEVICE_ACCESS_DELETED');
   await deleteSharedDeviceAccessService(req.params.id);
   res.status(httpStatus.NO_CONTENT).send();
 });
