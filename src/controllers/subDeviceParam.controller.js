@@ -110,7 +110,7 @@ const updateMultiSubDeviceParamValue = catchAsync(async (req, res) => {
       return updateMultiStatusService(req.params.deviceId, subDevice.subDeviceId, req.body.paramValue, req.user.email);
     })
   );
-  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_UPDATED', subDeviceParams);
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_MULTI_PARAM_UPDATED', subDeviceParams);
   res.status(httpStatus.OK).send();
 });
 
