@@ -60,7 +60,7 @@ const getActiveDeviceByDeviceIdForMultiStatusUpdateService = async deviceId => {
 };
 
 const getActiveDeviceByDeviceIdService = deviceId => {
-  return Device.findOne({ deviceId, isDisabled: false });
+  return Device.findOne({ deviceId, isDisabled: false, registeredAt: { $ne: null } });
 };
 
 const getDevicesByDeviceOwnerService = deviceOwner => {
@@ -68,12 +68,12 @@ const getDevicesByDeviceOwnerService = deviceOwner => {
 };
 
 const getActiveDevicesByDeviceIdService = async deviceIds => {
-  const devices = await Device.find({ deviceId: { $in: deviceIds }, isDisabled: false });
+  const devices = await Device.find({ deviceId: { $in: deviceIds }, isDisabled: false, registeredAt: { $ne: null } });
   return devices.map(device => device.transform());
 };
 
 const getActiveDevicesByDeviceOwnerService = async deviceOwner => {
-  const devices = await Device.find({ deviceOwner, isDisabled: false });
+  const devices = await Device.find({ deviceOwner, isDisabled: false, registeredAt: { $ne: null } });
   return devices.map(device => device.transform());
 };
 
