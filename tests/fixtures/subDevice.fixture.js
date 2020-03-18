@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { subDeviceType } from '../../src/config/device';
 import { admin, userOne } from './user.fixture';
-import { deviceOne, deviceTwo } from './device.fixture';
+import { deviceOne, deviceTwo, deviceFour } from './device.fixture';
 import SubDevice from '../../src/models/subDevice.model';
 import uniqid from 'uniqid';
 
@@ -50,6 +50,26 @@ const subDeviceFour = {
   updatedBy: email2,
 };
 
+const subDeviceFive = {
+  _id: mongoose.Types.ObjectId(),
+  deviceId: deviceFour.deviceId,
+  subDeviceId: uniqid(),
+  name: 'ESomeMore',
+  type: type2,
+  createdBy: email1,
+  updatedBy: email1,
+};
+
+const subDeviceSix = {
+  _id: mongoose.Types.ObjectId(),
+  deviceId: deviceFour.deviceId,
+  subDeviceId: uniqid(),
+  name: 'FSomeMore',
+  type: type2,
+  createdBy: email1,
+  updatedBy: email1,
+};
+
 const insertSubDevices = async subDevices => {
   await SubDevice.insertMany(subDevices.map(subDevice => ({ ...subDevice })));
 };
@@ -60,4 +80,6 @@ module.exports = {
   subDeviceTwo,
   subDeviceThree,
   subDeviceFour,
+  subDeviceFive,
+  subDeviceSix,
 };

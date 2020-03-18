@@ -65,6 +65,13 @@ const updateSubDeviceParamService = async (deviceId, subDeviceId, paramName, upd
   return subDeviceParam;
 };
 
+const updateMultiStatusService = async (deviceId, subDeviceId, status, updatedBy) => {
+  const subDeviceParam = await getActiveSubDeviceParamByParamNameService(deviceId, subDeviceId, 'status');
+  Object.assign(subDeviceParam, { paramValue: status, updatedBy });
+  await subDeviceParam.save();
+  return subDeviceParam.transform();
+};
+
 const updateSubDeviceParamCreatedByService = async (oldEmail, newEmail) => {
   const subDeviceParams = await SubDeviceParam.find({ createdBy: oldEmail });
   return Promise.all(
@@ -123,4 +130,5 @@ module.exports = {
   deleteSubDeviceParamByDeviceIdService,
   getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService,
   getActiveSubDeviceParamByParamNameService,
+  updateMultiStatusService,
 };

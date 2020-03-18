@@ -160,6 +160,19 @@ const validatePutSubDeviceParamsSocket = async (socket, data, listener) => {
   }
 };
 
+const updateMultiStatusValidation = {
+  params: Joi.object().keys({
+    deviceId: Joi.string()
+      .required()
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
+  }),
+  body: Joi.object().keys({
+    paramValue: Joi.string()
+      .valid('on', 'off')
+      .required(),
+  }),
+};
+
 module.exports = {
   createSubDeviceParamValidation,
   getSubDeviceParamsValidation,
@@ -169,4 +182,5 @@ module.exports = {
   updateSubDeviceParamValueValidation,
   validateGetSubDeviceParamsSocket,
   validatePutSubDeviceParamsSocket,
+  updateMultiStatusValidation,
 };

@@ -87,6 +87,14 @@ const getActiveSubDeviceByDeviceIdAndSubDeviceIdService = (deviceId, subDeviceId
   return SubDevice.findOne({ deviceId, subDeviceId, isDisabled: false });
 };
 
+const getActiveSubDeviceByDeviceIdAndSubDeviceIdForMultiStatusChangeService = async deviceId => {
+  const subDevices = await SubDevice.find({ deviceId, isDisabled: false });
+  if (!subDevices.length) {
+    throw new AppError(httpStatus.NOT_FOUND, 'No subDevice found');
+  }
+  return subDevices;
+};
+
 module.exports = {
   createSubDeviceService,
   getSubDevicesService,
@@ -98,4 +106,5 @@ module.exports = {
   deleteSubDevicesByDeviceIdService,
   getActiveSubDevicesByDeviceIdService,
   getActiveSubDeviceByDeviceIdAndSubDeviceIdService,
+  getActiveSubDeviceByDeviceIdAndSubDeviceIdForMultiStatusChangeService,
 };

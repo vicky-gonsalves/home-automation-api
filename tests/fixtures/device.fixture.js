@@ -43,6 +43,18 @@ const deviceThree = {
   updatedBy: email2,
 };
 
+const deviceFour = {
+  _id: mongoose.Types.ObjectId(),
+  deviceId: uniqid(),
+  name: 'Light',
+  type: deviceType[2],
+  variant: deviceVariant[1],
+  deviceOwner: email1,
+  registeredAt: new Date().toISOString(),
+  createdBy: email1,
+  updatedBy: email1,
+};
+
 const insertDevices = async devices => {
   await Device.insertMany(devices.map(device => ({ ...device })));
 };
@@ -52,4 +64,5 @@ module.exports = {
   deviceOne,
   deviceTwo,
   deviceThree,
+  deviceFour,
 };

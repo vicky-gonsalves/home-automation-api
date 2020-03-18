@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 import { admin, userOne } from './user.fixture';
-import { deviceOne, deviceTwo } from './device.fixture';
+import { deviceFour, deviceOne, deviceTwo } from './device.fixture';
 import SubDeviceParam from '../../src/models/subDeviceParam.model';
-import { subDeviceOne, subDeviceTwo, subDeviceThree, subDeviceFour } from './subDevice.fixture';
+import { subDeviceFive, subDeviceFour, subDeviceOne, subDeviceSix, subDeviceThree, subDeviceTwo } from './subDevice.fixture';
 
 const email1 = admin.email;
 const email2 = userOne.email;
@@ -57,6 +57,36 @@ const subDeviceParamFive = {
   updatedBy: email2,
 };
 
+const subDeviceParamSix = {
+  _id: mongoose.Types.ObjectId(),
+  deviceId: deviceFour.deviceId,
+  subDeviceId: subDeviceFive.subDeviceId,
+  paramName: 'status',
+  paramValue: 'off',
+  createdBy: email1,
+  updatedBy: email1,
+};
+
+const subDeviceParamSeven = {
+  _id: mongoose.Types.ObjectId(),
+  deviceId: deviceFour.deviceId,
+  subDeviceId: subDeviceFive.subDeviceId,
+  paramName: 'status',
+  paramValue: 'off',
+  createdBy: email1,
+  updatedBy: email1,
+};
+
+const subDeviceParamEight = {
+  _id: mongoose.Types.ObjectId(),
+  deviceId: deviceFour.deviceId,
+  subDeviceId: subDeviceSix.subDeviceId,
+  paramName: 'status',
+  paramValue: 'off',
+  createdBy: email1,
+  updatedBy: email1,
+};
+
 const insertSubDeviceParams = async subDeviceParams => {
   await SubDeviceParam.insertMany(subDeviceParams.map(subDeviceParam => ({ ...subDeviceParam })));
 };
@@ -68,4 +98,7 @@ module.exports = {
   subDeviceParamThree,
   subDeviceParamFour,
   subDeviceParamFive,
+  subDeviceParamSix,
+  subDeviceParamSeven,
+  subDeviceParamEight,
 };
