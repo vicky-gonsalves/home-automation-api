@@ -82,8 +82,8 @@ const updateSubDeviceParamValueValidation = {
       .required()
       .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
     paramName: Joi.string()
-      .valid('status', 'mode')
-      .required(),
+      .required()
+      .pattern(new RegExp('^[A-Za-z_\\d]{1,50}$')),
   }),
   body: Joi.object()
     .keys({
