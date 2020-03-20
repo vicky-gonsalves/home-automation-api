@@ -12,6 +12,8 @@ import { getSharedDeviceAccessByDeviceIdService } from '../services/sharedDevice
 import { getSocketIdsByDeviceIdService, getSocketIdsByEmailsService } from '../services/socketId.service';
 import NotificationService from '../services/notification.service';
 import uniqid from 'uniqid';
+import { createTankSettingService, createSmartSwitchSettingService } from '../services/setting.service';
+import { deviceVariant } from '../config/device';
 
 const sendSubDeviceSocketNotification = async (device, event, subDevice) => {
   const deviceAccees = await getSharedDeviceAccessByDeviceIdService(device.deviceId);
@@ -30,6 +32,11 @@ const createSubDevice = catchAsync(async (req, res) => {
   req.body.subDeviceId = uniqid();
   const device = await getDeviceByDeviceIdService(req.params.deviceId);
   const subDevice = await createSubDeviceService(req.params.deviceId, req.body);
+  if (device.variant === deviceVariant[0]) {
+    await createTankSettingService(subDevice);
+  } else {
+    await createSmartSwitchSettingService(subDevice);
+  }
   await sendSubDeviceSocketNotification(device, 'SUB_DEVICE_CREATED', subDevice);
   res.status(httpStatus.CREATED).send(subDevice.transform());
 });

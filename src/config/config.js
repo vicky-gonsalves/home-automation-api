@@ -43,6 +43,12 @@ const envVarsSchema = Joi.object()
     DEFAULT_ADMIN_ROLE: Joi.string()
       .required()
       .description('default role of admin'),
+    DEFAULT_SUB_DEVICE_AUTOSHUTDOWN_TIME: Joi.number()
+      .default(30) // mins
+      .description('days after which refresh tokens expire'),
+    DEFAULT_TANK_WATER_LEVEL_TO_START: Joi.number()
+      .default(70) // percent
+      .description('days after which refresh tokens expire'),
   })
   .unknown();
 
@@ -83,5 +89,9 @@ module.exports = {
     email: envVars.DEFAULT_ADMIN_EMAIL,
     password: envVars.DEFAULT_ADMIN_PASS,
     role: envVars.DEFAULT_ADMIN_ROLE,
+  },
+  defaultSettings: {
+    defaultSubDeviceAutoShutDownTime: envVars.DEFAULT_SUB_DEVICE_AUTOSHUTDOWN_TIME,
+    defaultTankWaterLevelToStart: envVars.DEFAULT_TANK_WATER_LEVEL_TO_START,
   },
 };
