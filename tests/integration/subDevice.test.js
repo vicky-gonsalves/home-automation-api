@@ -146,7 +146,7 @@ describe('Sub-Device Routes', () => {
         idType: 'subDeviceId',
         bindedTo: res.body.subDeviceId,
         paramName: 'autoShutDownTime',
-        paramValue: defaultSettings.defaultSubDeviceAutoShutDownTime,
+        paramValue: 0,
       });
       expect(dbSetting).toBeDefined();
       expect(dbSetting).toBeInstanceOf(Object);
@@ -154,7 +154,7 @@ describe('Sub-Device Routes', () => {
       expect(dbSetting.idType).toBe('subDeviceId');
       expect(dbSetting.bindedTo).toBe(res.body.subDeviceId);
       expect(dbSetting.paramName).toBe('autoShutDownTime');
-      expect(dbSetting.paramValue).toBe(defaultSettings.defaultSubDeviceAutoShutDownTime);
+      expect(dbSetting.paramValue).toBe(0);
       expect(dbSetting.isDisabled).toBe(false);
       expect(dbSetting.createdBy).toBe(res.body.createdBy);
     });

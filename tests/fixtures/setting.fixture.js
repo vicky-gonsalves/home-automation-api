@@ -2,7 +2,7 @@ import { admin } from './user.fixture';
 import mongoose from 'mongoose';
 import { idType, settingType } from '../../src/config/setting';
 import { deviceOne } from './device.fixture';
-import { subDeviceOne, subDeviceThree } from './subDevice.fixture';
+import { subDeviceOne, subDeviceThree, subDeviceFive } from './subDevice.fixture';
 import { defaultSettings } from '../../src/config/config';
 import Setting from '../../src/models/setting.model';
 
@@ -52,6 +52,17 @@ const settingFour = {
   updatedBy: email1,
 };
 
+const settingFive = {
+  _id: mongoose.Types.ObjectId(),
+  type: settingType[1],
+  idType: idType[1],
+  bindedTo: subDeviceFive.subDeviceId,
+  paramName: 'autoShutDownTime',
+  paramValue: 0,
+  createdBy: email1,
+  updatedBy: email1,
+};
+
 const insertSettings = async settings => {
   await Setting.insertMany(settings.map(setting => ({ ...setting })));
 };
@@ -62,4 +73,5 @@ module.exports = {
   settingTwo,
   settingThree,
   settingFour,
+  settingFive,
 };

@@ -36,6 +36,14 @@ const getSubDeviceBySubDeviceIdService = async (deviceId, subDeviceId) => {
   return subDevice;
 };
 
+const getSubDeviceByOnlySubDeviceIdService = async subDeviceId => {
+  const subDevice = await SubDevice.findOne({ subDeviceId });
+  if (!subDevice) {
+    throw new AppError(httpStatus.NOT_FOUND, 'No subDevice found');
+  }
+  return subDevice;
+};
+
 const updateSubDeviceService = async (deviceId, subDeviceId, updateBody) => {
   const subDevice = await getSubDeviceBySubDeviceIdService(deviceId, subDeviceId);
   await Object.assign(subDevice, updateBody);
@@ -98,6 +106,7 @@ const getActiveSubDeviceByDeviceIdAndSubDeviceIdForMultiStatusChangeService = as
 module.exports = {
   createSubDeviceService,
   getSubDevicesService,
+  getSubDeviceByOnlySubDeviceIdService,
   getSubDeviceBySubDeviceIdService,
   updateSubDeviceService,
   updateSubDeviceCreatedByService,
