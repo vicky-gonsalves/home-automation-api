@@ -1,6 +1,11 @@
 import httpStatus from 'http-status';
-import { getActiveDeviceByDeviceIdService, getDeviceByDeviceIdService } from '../services/device.service';
 import {
+  getActiveDeviceByDeviceIdForMultiStatusUpdateService,
+  getActiveDeviceByDeviceIdService,
+  getDeviceByDeviceIdService,
+} from '../services/device.service';
+import {
+  getActiveSubDeviceByDeviceIdAndSubDeviceIdForMultiStatusChangeService,
   getActiveSubDeviceByDeviceIdAndSubDeviceIdService,
   getActiveSubDevicesByDeviceIdService,
   getSubDeviceBySubDeviceIdService,
@@ -12,6 +17,7 @@ import {
   getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService,
   getSubDeviceParamByParamNameService,
   getSubDeviceParamsService,
+  updateMultiStatusService,
   updateSubDeviceParamService,
 } from '../services/subDeviceParam.service';
 import NotificationService from '../services/notification.service';
@@ -92,6 +98,22 @@ const updateSubDeviceParamValue = catchAsync(async (req, res) => {
   res.send(subDeviceParam.transform());
 });
 
+const updateMultiSubDeviceParamValue = catchAsync(async (req, res) => {
+  req.body._updatedBy = req.user.email;
+  const device = await getActiveDeviceByDeviceIdForMultiStatusUpdateService(req.params.deviceId);
+  if (req.user.role !== 'admin' && req.user.email !== device.deviceOwner) {
+    await checkAccessIfExists(device.deviceId, req.user.email);
+  }
+  const subDevices = await getActiveSubDeviceByDeviceIdAndSubDeviceIdForMultiStatusChangeService(req.params.deviceId);
+  const subDeviceParams = await Promise.all(
+    subDevices.map(async subDevice => {
+      return updateMultiStatusService(req.params.deviceId, subDevice.subDeviceId, req.body.paramValue, req.user.email);
+    })
+  );
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_MULTI_PARAM_UPDATED', subDeviceParams);
+  res.status(httpStatus.OK).send();
+});
+
 const deleteSubDeviceParam = catchAsync(async (req, res) => {
   const device = await getDeviceByDeviceIdService(req.params.deviceId);
   const subDeviceParam = await getSubDeviceParamByParamNameService(
@@ -157,4 +179,5 @@ module.exports = {
   getAllSubDeviceParamsOfDevice,
   updateSubDeviceParamsToSocketUsers,
   updateSubDeviceParamValue,
+  updateMultiSubDeviceParamValue,
 };

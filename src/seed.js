@@ -6,6 +6,7 @@ import SeedSubDeviceFn from './seed-scripts/subDevice.seed';
 import SeedSubDeviceParamFn from './seed-scripts/subDeviceParam.seed';
 import SeedSharedDeviceAccessFn from './seed-scripts/sharedDeviceAccess.seed';
 import SeedSocketIdFn from './seed-scripts/socketId.seed';
+import SeedSettingFn from './seed-scripts/setting.seed';
 
 const seedUser = true;
 const seedDevice = true;
@@ -13,6 +14,7 @@ const seedSubDevice = true;
 const seedSharedDevice = true;
 const seedSeedSocketId = true;
 const seedSubDeviceParam = true;
+const seedSetting = true;
 
 const Seed = async () => {
   if (seedUser) await SeedUserFn();
@@ -21,6 +23,7 @@ const Seed = async () => {
   if (seedSubDeviceParam) await SeedSubDeviceParamFn();
   if (seedSharedDevice) await SeedSharedDeviceAccessFn();
   if (seedSeedSocketId) await SeedSocketIdFn();
+  if (seedSetting) await SeedSettingFn();
 };
 
 module.exports = Seed;

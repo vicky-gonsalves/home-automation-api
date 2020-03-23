@@ -5,6 +5,7 @@ import app from '../../src/app';
 import { subDeviceType } from '../../src/config/device';
 import SubDevice from '../../src/models/subDevice.model';
 import SubDeviceParam from '../../src/models/subDeviceParam.model';
+import Setting from '../../src/models/setting.model';
 import { deviceOne, deviceTwo, insertDevices } from '../fixtures/device.fixture';
 import { insertSubDevices, subDeviceFour, subDeviceOne, subDeviceThree, subDeviceTwo } from '../fixtures/subDevice.fixture';
 import {
@@ -20,6 +21,7 @@ import { setupTestDB } from '../utils/setupTestDB';
 import { accessOne, insertSharedDeviceAccess } from '../fixtures/sharedDeviceAccess.fixture';
 import { insertSocketIds, socketIdFour, socketIdTwo } from '../fixtures/socketId.fixture';
 import NotificationService from '../../src/services/notification.service';
+import { defaultSettings } from '../../src/config/config';
 
 setupTestDB();
 
@@ -69,6 +71,92 @@ describe('Sub-Device Routes', () => {
         isDisabled: false,
         createdBy: admin.email,
       });
+    });
+
+    it('should return 201 and successfully create new default settings if device variant is tank', async () => {
+      const res = await request(app)
+        .post(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(subDevice)
+        .expect(httpStatus.CREATED);
+
+      const dbSetting = await Setting.findOne({
+        type: 'device',
+        idType: 'deviceId',
+        bindedTo: deviceOne.deviceId,
+        paramName: 'preferredSubDevice',
+        paramValue: res.body.subDeviceId,
+      });
+      expect(dbSetting).toBeDefined();
+      expect(dbSetting).toBeInstanceOf(Object);
+      expect(dbSetting.type).toBe('device');
+      expect(dbSetting.idType).toBe('deviceId');
+      expect(dbSetting.bindedTo).toBe(deviceOne.deviceId);
+      expect(dbSetting.paramName).toBe('preferredSubDevice');
+      expect(dbSetting.paramValue).toBe(res.body.subDeviceId);
+      expect(dbSetting.isDisabled).toBe(false);
+      expect(dbSetting.createdBy).toBe(res.body.createdBy);
+
+      const dbSettingTwo = await Setting.findOne({
+        type: 'subDevice',
+        idType: 'subDeviceId',
+        bindedTo: res.body.subDeviceId,
+        paramName: 'autoShutDownTime',
+        paramValue: defaultSettings.defaultSubDeviceAutoShutDownTime,
+      });
+      expect(dbSettingTwo).toBeDefined();
+      expect(dbSettingTwo).toBeInstanceOf(Object);
+      expect(dbSettingTwo.type).toBe('subDevice');
+      expect(dbSettingTwo.idType).toBe('subDeviceId');
+      expect(dbSettingTwo.bindedTo).toBe(res.body.subDeviceId);
+      expect(dbSettingTwo.paramName).toBe('autoShutDownTime');
+      expect(dbSettingTwo.paramValue).toBe(defaultSettings.defaultSubDeviceAutoShutDownTime);
+      expect(dbSettingTwo.isDisabled).toBe(false);
+      expect(dbSettingTwo.createdBy).toBe(res.body.createdBy);
+
+      const dbSettingThree = await Setting.findOne({
+        type: 'subDevice',
+        idType: 'subDeviceId',
+        bindedTo: res.body.subDeviceId,
+        paramName: 'waterLevelToStart',
+        paramValue: defaultSettings.defaultTankWaterLevelToStart,
+      });
+      expect(dbSettingThree).toBeDefined();
+      expect(dbSettingThree).toBeInstanceOf(Object);
+      expect(dbSettingTwo.type).toBe('subDevice');
+      expect(dbSettingTwo.idType).toBe('subDeviceId');
+      expect(dbSettingTwo.bindedTo).toBe(res.body.subDeviceId);
+      expect(dbSettingThree.paramName).toBe('waterLevelToStart');
+      expect(dbSettingThree.paramValue).toBe(defaultSettings.defaultTankWaterLevelToStart);
+      expect(dbSettingThree.isDisabled).toBe(false);
+      expect(dbSettingThree.createdBy).toBe(res.body.createdBy);
+    });
+
+    it('should return 201 and successfully create new default settings if device variant is smartSwitch', async () => {
+      route = `/v1/devices/${deviceTwo.deviceId}/sub-devices`;
+      await insertDevices([deviceTwo]);
+      const res = await request(app)
+        .post(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(subDevice)
+        .expect(httpStatus.CREATED);
+
+      const dbSetting = await Setting.findOne({
+        type: 'subDevice',
+        idType: 'subDeviceId',
+        bindedTo: res.body.subDeviceId,
+        paramName: 'autoShutDownTime',
+        paramValue: 0,
+      });
+      expect(dbSetting).toBeDefined();
+      expect(dbSetting).toBeInstanceOf(Object);
+      expect(dbSetting.type).toBe('subDevice');
+      expect(dbSetting.idType).toBe('subDeviceId');
+      expect(dbSetting.bindedTo).toBe(res.body.subDeviceId);
+      expect(dbSetting.paramName).toBe('autoShutDownTime');
+      expect(dbSetting.paramValue).toBe(0);
+      expect(dbSetting.isDisabled).toBe(false);
+      expect(dbSetting.createdBy).toBe(res.body.createdBy);
     });
 
     it('should return 201 and successfully create new sub-device if data is ok and send notification to users', async () => {

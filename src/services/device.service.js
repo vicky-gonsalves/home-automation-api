@@ -51,8 +51,16 @@ const getActiveDeviceByDeviceIdForRegistrationService = async deviceId => {
   return device;
 };
 
+const getActiveDeviceByDeviceIdForMultiStatusUpdateService = async deviceId => {
+  const device = await Device.findOne({ deviceId, variant: 'smartSwitch', isDisabled: false, registeredAt: { $ne: null } });
+  if (!device) {
+    throw new AppError(httpStatus.NOT_FOUND, 'No active registered device found with this deviceId');
+  }
+  return device;
+};
+
 const getActiveDeviceByDeviceIdService = deviceId => {
-  return Device.findOne({ deviceId, isDisabled: false });
+  return Device.findOne({ deviceId, isDisabled: false, registeredAt: { $ne: null } });
 };
 
 const getDevicesByDeviceOwnerService = deviceOwner => {
@@ -60,12 +68,12 @@ const getDevicesByDeviceOwnerService = deviceOwner => {
 };
 
 const getActiveDevicesByDeviceIdService = async deviceIds => {
-  const devices = await Device.find({ deviceId: { $in: deviceIds }, isDisabled: false });
+  const devices = await Device.find({ deviceId: { $in: deviceIds }, isDisabled: false, registeredAt: { $ne: null } });
   return devices.map(device => device.transform());
 };
 
 const getActiveDevicesByDeviceOwnerService = async deviceOwner => {
-  const devices = await Device.find({ deviceOwner, isDisabled: false });
+  const devices = await Device.find({ deviceOwner, isDisabled: false, registeredAt: { $ne: null } });
   return devices.map(device => device.transform());
 };
 
@@ -164,4 +172,5 @@ module.exports = {
   getActiveDevicesByDeviceIdService,
   getActiveDevicesByDeviceOwnerService,
   getActiveDeviceByDeviceIdService,
+  getActiveDeviceByDeviceIdForMultiStatusUpdateService,
 };

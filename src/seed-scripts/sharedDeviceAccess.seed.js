@@ -15,6 +15,11 @@ const sharedDeviceAccess = [
     email: 'johndoe2@email.com',
     sharedBy: config.defaultAdmin.email,
   },
+  {
+    deviceId: 'bedroom000000002',
+    email: config.defaultAdmin.email,
+    sharedBy: config.defaultAdmin.email,
+  },
 ];
 
 const SeedSharedDeviceAccessFn = async () => {

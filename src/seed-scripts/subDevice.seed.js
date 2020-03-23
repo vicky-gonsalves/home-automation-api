@@ -8,7 +8,15 @@ const subDevices = [
   {
     deviceId: 'tank000000000001',
     subDeviceId: 'sub_tank000000000001',
-    name: 'Motor',
+    name: 'Motor 1',
+    type: 'motorSwitch',
+    createdBy: config.defaultAdmin.email,
+    updatedBy: config.defaultAdmin.email,
+  },
+  {
+    deviceId: 'tank000000000001',
+    subDeviceId: 'sub_tank000000000002',
+    name: 'Motor 2',
     type: 'motorSwitch',
     createdBy: config.defaultAdmin.email,
     updatedBy: config.defaultAdmin.email,

@@ -21,6 +21,7 @@ import {
   deleteSubDeviceParam,
   getSubDeviceParam,
   getSubDeviceParams,
+  updateMultiSubDeviceParamValue,
   updateSubDeviceParam,
   updateSubDeviceParamValue,
 } from '../../controllers/subDeviceParam.controller';
@@ -46,6 +47,7 @@ import {
   deleteSubDeviceParamValidation,
   getSubDeviceParamsValidation,
   getSubDeviceParamValidation,
+  updateMultiStatusValidation,
   updateSubDeviceParamValidation,
   updateSubDeviceParamValueValidation,
 } from '../../validations/subDeviceParam.validation';
@@ -99,5 +101,9 @@ router
 router
   .route('/:deviceId/sub-devices/:subDeviceId/sub-device-param-value/:paramName')
   .patch(auth('updateSubDeviceParamsValue'), validate(updateSubDeviceParamValueValidation), updateSubDeviceParamValue);
+
+router
+  .route('/:deviceId/sub-device-param-value/status')
+  .patch(auth('updateSubDeviceParamsValue'), validate(updateMultiStatusValidation), updateMultiSubDeviceParamValue);
 
 module.exports = router;
