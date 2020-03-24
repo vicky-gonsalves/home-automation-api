@@ -23,14 +23,17 @@ const sendSettingNotification = async (device, event, setting) => {
 const updateSetting = catchAsync(async (req, res) => {
   let device;
   const { body } = req;
+  let eventType;
 
   if (body.idType === idType[0]) {
     // if deviceId
     device = await getDeviceByDeviceIdService(body.bindedTo);
+    eventType = 'DEVICE_SETTING_UPDATED';
   } else {
     // if subDeviceId
     const subDevice = await getSubDeviceByOnlySubDeviceIdService(body.bindedTo);
     device = await getDeviceByDeviceIdService(subDevice.deviceId);
+    eventType = 'SUB_DEVICE_SETTING_UPDATED';
   }
   if (req.user.role !== 'admin' && req.user.email !== device.deviceOwner) {
     await checkAccessIfExists(device.deviceId, req.user.email);
@@ -40,7 +43,7 @@ const updateSetting = catchAsync(async (req, res) => {
     paramValue: body.paramValue,
   };
   const setting = await updateSettingService(body, updateBody);
-  await sendSettingNotification(device, 'SETTING_UPDATED');
+  await sendSettingNotification(device, eventType, setting.transform());
   res.send(setting.transform());
 });
 

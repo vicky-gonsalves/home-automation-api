@@ -132,6 +132,38 @@ describe('Sub-Device Routes', () => {
       expect(dbSettingThree.createdBy).toBe(res.body.createdBy);
     });
 
+    it('should return 201 and successfully and create new default settings and skip preferredSubDevice setting if it exists if device variant is tank', async () => {
+      const snap = Setting.findOne;
+      const spy = jest.spyOn(Setting, 'create');
+      Setting.findOne = jest.fn().mockResolvedValueOnce({ exists: true });
+      const res = await request(app)
+        .post(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(subDevice)
+        .expect(httpStatus.CREATED);
+      Setting.findOne = snap;
+      const expectedObj = [
+        {
+          bindedTo: res.body.subDeviceId,
+          createdBy: res.body.createdBy,
+          idType: 'subDeviceId',
+          paramName: 'autoShutDownTime',
+          paramValue: 30,
+          type: 'subDevice',
+        },
+        {
+          bindedTo: res.body.subDeviceId,
+          createdBy: res.body.createdBy,
+          idType: 'subDeviceId',
+          paramName: 'waterLevelToStart',
+          paramValue: 70,
+          type: 'subDevice',
+        },
+      ];
+      expect(spy).toHaveBeenCalledWith(expectedObj);
+      spy.mockRestore();
+    });
+
     it('should return 201 and successfully create new default settings if device variant is smartSwitch', async () => {
       route = `/v1/devices/${deviceTwo.deviceId}/sub-devices`;
       await insertDevices([deviceTwo]);

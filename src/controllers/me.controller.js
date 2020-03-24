@@ -21,12 +21,15 @@ const getMyDeviceData = async (req, res) => {
   }
   if (deviceIds.length) {
     subDevices = await getActiveSubDevicesByDeviceIdService(deviceIds);
-    settings.deviceSettings = await getActiveSettingsByDeviceIdsService(deviceIds);
+    const deviceSettings = await getActiveSettingsByDeviceIdsService(deviceIds);
+    settings.deviceSettings = deviceSettings.map(deviceSetting => deviceSetting.transform());
   }
   if (subDevices.length) {
     paramIds = subDevices.map(subDevice => ({ deviceId: subDevice.deviceId, subDeviceId: subDevice.subDeviceId }));
-    subDeviceParams = await getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService(paramIds);
-    settings.subDeviceSettings = await getActiveSettingsBySubDeviceIdsService(subDevices);
+    const _subDeviceParams = await getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService(paramIds);
+    subDeviceParams = _subDeviceParams.map(subDeviceParam => subDeviceParam.transform());
+    const subDeviceSettings = await getActiveSettingsBySubDeviceIdsService(subDevices);
+    settings.subDeviceSettings = subDeviceSettings.map(subDeviceSetting => subDeviceSetting.transform());
   }
   res.send({ devices, subDevices, subDeviceParams, settings });
 };

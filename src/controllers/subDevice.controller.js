@@ -12,10 +12,11 @@ import { getSharedDeviceAccessByDeviceIdService } from '../services/sharedDevice
 import { getSocketIdsByDeviceIdService, getSocketIdsByEmailsService } from '../services/socketId.service';
 import NotificationService from '../services/notification.service';
 import uniqid from 'uniqid';
-import { createTankSettingService, createSmartSwitchSettingService } from '../services/setting.service';
+import { createSmartSwitchSettingService, createTankSettingService } from '../services/setting.service';
 import { deviceVariant } from '../config/device';
+import { settingType } from '../config/setting';
 
-const sendSubDeviceSocketNotification = async (device, event, subDevice) => {
+const sendSubDeviceSocketNotification = async (device, event, data) => {
   const deviceAccees = await getSharedDeviceAccessByDeviceIdService(device.deviceId);
   const emails = [device.deviceOwner, ...deviceAccees.map(access => access.email)];
   const socketIds = [
@@ -23,8 +24,22 @@ const sendSubDeviceSocketNotification = async (device, event, subDevice) => {
     ...(await getSocketIdsByEmailsService(emails)), // send to users
   ];
   if (socketIds.length) {
-    NotificationService.sendMessage(socketIds, event, subDevice);
+    NotificationService.sendMessage(socketIds, event, data);
   }
+};
+
+const notify = async (device, settings) => {
+  let event;
+  return Promise.all(
+    settings.map(async setting => {
+      if (setting.type === settingType[0]) {
+        event = 'DEVICE_SETTING_CREATED';
+      } else {
+        event = 'SUB_DEVICE_SETTING_CREATED';
+      }
+      return sendSubDeviceSocketNotification(device, event, setting.transform());
+    })
+  );
 };
 
 const createSubDevice = catchAsync(async (req, res) => {
@@ -32,12 +47,14 @@ const createSubDevice = catchAsync(async (req, res) => {
   req.body.subDeviceId = uniqid();
   const device = await getDeviceByDeviceIdService(req.params.deviceId);
   const subDevice = await createSubDeviceService(req.params.deviceId, req.body);
-  if (device.variant === deviceVariant[0]) {
-    await createTankSettingService(subDevice);
-  } else {
-    await createSmartSwitchSettingService(subDevice);
-  }
   await sendSubDeviceSocketNotification(device, 'SUB_DEVICE_CREATED', subDevice);
+  if (device.variant === deviceVariant[0]) {
+    const deviceSettings = await createTankSettingService(subDevice);
+    await notify(device, deviceSettings);
+  } else {
+    const subDeviceSettings = await createSmartSwitchSettingService(subDevice);
+    await notify(device, subDeviceSettings);
+  }
   res.status(httpStatus.CREATED).send(subDevice.transform());
 });
 

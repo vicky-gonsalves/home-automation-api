@@ -26,6 +26,9 @@ const createSettings = settings => Setting.create(settings);
 const getActiveSettingsByDeviceIdsService = deviceIds =>
   Setting.find({ type: 'device', idType: 'deviceId', bindedTo: { $in: deviceIds }, isDisabled: false });
 
+const checkIfPreferredSubDeviceExists = deviceId =>
+  Setting.findOne({ type: 'device', idType: 'deviceId', bindedTo: deviceId, paramName: 'preferredSubDevice' });
+
 const getActiveSettingsBySubDeviceIdsService = async subDevices => {
   const subDeviceIds = subDevices.map(subDevice => subDevice.subDeviceId);
   return Setting.find({ type: 'subDevice', idType: 'subDeviceId', bindedTo: { $in: subDeviceIds }, isDisabled: false });
@@ -42,9 +45,12 @@ const getSettingService = async setting => {
 const createTankSettingService = async subDevice => {
   const payload = [];
   // create preferredSubDevice setting
-  payload.push(
-    createDeviceSettingPayload(subDevice.deviceId, 'preferredSubDevice', subDevice.subDeviceId, subDevice.createdBy)
-  );
+  const exists = await checkIfPreferredSubDeviceExists(subDevice.deviceId);
+  if (!exists) {
+    payload.push(
+      createDeviceSettingPayload(subDevice.deviceId, 'preferredSubDevice', subDevice.subDeviceId, subDevice.createdBy)
+    );
+  }
 
   // create autoShutDownTime setting
   payload.push(
