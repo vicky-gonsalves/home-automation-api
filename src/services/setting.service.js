@@ -23,11 +23,13 @@ const createSubDeviceSettingPayload = (bindedTo, paramName, paramValue, createdB
 
 const createSettings = settings => Setting.create(settings);
 
-// const getDeviceSettingService = async (bindedTo, paramName) =>
-//   Setting.findOne({ type: 'device', idType: 'deviceId', bindedTo, paramName });
-//
-// const getSubDeviceSettingService = async (bindedTo, paramName) =>
-//   Setting.findOne({ type: 'subDevice', idType: 'subDeviceId', bindedTo, paramName });
+const getActiveSettingsByDeviceIdsService = deviceIds =>
+  Setting.find({ type: 'device', idType: 'deviceId', bindedTo: { $in: deviceIds }, isDisabled: false });
+
+const getActiveSettingsBySubDeviceIdsService = async subDevices => {
+  const subDeviceIds = subDevices.map(subDevice => subDevice.subDeviceId);
+  return Setting.find({ type: 'subDevice', idType: 'subDeviceId', bindedTo: { $in: subDeviceIds }, isDisabled: false });
+};
 
 const getSettingService = async setting => {
   const _setting = await Setting.findOne(setting);
@@ -91,4 +93,6 @@ module.exports = {
   createTankSettingService,
   createSmartSwitchSettingService,
   updateSettingService,
+  getActiveSettingsByDeviceIdsService,
+  getActiveSettingsBySubDeviceIdsService,
 };
