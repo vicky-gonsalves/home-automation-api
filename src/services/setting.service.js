@@ -12,9 +12,10 @@ const createDeviceSettingPayload = (bindedTo, paramName, paramValue, createdBy) 
   createdBy,
 });
 
-const createSubDeviceSettingPayload = (bindedTo, paramName, paramValue, createdBy) => ({
+const createSubDeviceSettingPayload = (bindedTo, paramName, paramValue, parent, createdBy) => ({
   type: 'subDevice',
   idType: 'subDeviceId',
+  parent,
   bindedTo,
   paramName,
   paramValue,
@@ -58,6 +59,7 @@ const createTankSettingService = async subDevice => {
       subDevice.subDeviceId,
       'autoShutDownTime',
       defaultSettings.defaultSubDeviceAutoShutDownTime,
+      subDevice.deviceId,
       subDevice.createdBy
     )
   );
@@ -68,6 +70,7 @@ const createTankSettingService = async subDevice => {
       subDevice.subDeviceId,
       'waterLevelToStart',
       defaultSettings.defaultTankWaterLevelToStart,
+      subDevice.deviceId,
       subDevice.createdBy
     )
   );
@@ -78,7 +81,9 @@ const createSmartSwitchSettingService = async subDevice => {
   const payload = [];
 
   // create autoShutDownTime setting
-  payload.push(createSubDeviceSettingPayload(subDevice.subDeviceId, 'autoShutDownTime', 0, subDevice.createdBy));
+  payload.push(
+    createSubDeviceSettingPayload(subDevice.subDeviceId, 'autoShutDownTime', 0, subDevice.deviceId, subDevice.createdBy)
+  );
   return createSettings(payload);
 };
 

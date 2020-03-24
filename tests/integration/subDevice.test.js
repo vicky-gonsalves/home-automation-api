@@ -149,6 +149,7 @@ describe('Sub-Device Routes', () => {
           idType: 'subDeviceId',
           paramName: 'autoShutDownTime',
           paramValue: 30,
+          parent: res.body.deviceId,
           type: 'subDevice',
         },
         {
@@ -157,6 +158,7 @@ describe('Sub-Device Routes', () => {
           idType: 'subDeviceId',
           paramName: 'waterLevelToStart',
           paramValue: 70,
+          parent: res.body.deviceId,
           type: 'subDevice',
         },
       ];

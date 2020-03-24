@@ -10,6 +10,7 @@ const updateSettingValidation = {
       idType: Joi.string()
         .valid(...idType)
         .required(),
+      parent: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
       bindedTo: Joi.alternatives(Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')), Joi.string().email()).required(),
       paramName: Joi.string()
         .required()

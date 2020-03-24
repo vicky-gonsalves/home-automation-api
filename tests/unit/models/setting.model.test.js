@@ -20,6 +20,7 @@ describe('Setting Model', () => {
       newSettingTwo = {
         type: settingType[1],
         idType: idType[1],
+        parent: faker.random.alphaNumeric(12),
         bindedTo: faker.random.uuid(),
         paramName: 'someParam',
         paramValue: 'someValue',
@@ -37,6 +38,11 @@ describe('Setting Model', () => {
       const setting = await new Setting(newSettingOne);
       setting._updatedBy = email;
       await expect(setting.save()).toBeDefined();
+    });
+
+    test('should throw a validation error if parent is invalid', async () => {
+      newSettingOne.parent = 'invalid';
+      await expect(new Setting(newSettingOne).validate()).rejects.toThrow();
     });
 
     test('should throw a validation error if type is invalid', async () => {
@@ -137,6 +143,7 @@ describe('Setting Model', () => {
 
   describe('Setting toJSON()', () => {
     let newSettingOne;
+    let newSettingTwo;
     const email = faker.internet.email();
     beforeEach(() => {
       newSettingOne = {
@@ -145,6 +152,16 @@ describe('Setting Model', () => {
         bindedTo: faker.random.uuid(),
         paramName: 'preferredMotor',
         paramValue: faker.random.uuid(),
+        createdBy: email,
+        updatedBy: email,
+      };
+      newSettingTwo = {
+        type: settingType[1],
+        idType: idType[1],
+        parent: faker.random.alphaNumeric(12),
+        bindedTo: faker.random.uuid(),
+        paramName: 'someParam',
+        paramValue: 'someValue',
         createdBy: email,
         updatedBy: email,
       };
@@ -168,6 +185,19 @@ describe('Setting Model', () => {
       expect(setting).toHaveProperty('id');
       expect(setting).toHaveProperty('idType');
       expect(setting).toHaveProperty('bindedTo');
+      expect(setting).toHaveProperty('paramName');
+      expect(setting).toHaveProperty('paramValue');
+      expect(setting).toHaveProperty('isDisabled');
+      expect(setting).toHaveProperty('createdBy');
+      expect(setting).toHaveProperty('updatedBy');
+    });
+
+    test('should return object with parent when transform is called', () => {
+      const setting = new Setting(newSettingTwo).transform();
+      expect(setting).toHaveProperty('id');
+      expect(setting).toHaveProperty('idType');
+      expect(setting).toHaveProperty('bindedTo');
+      expect(setting).toHaveProperty('parent');
       expect(setting).toHaveProperty('paramName');
       expect(setting).toHaveProperty('paramValue');
       expect(setting).toHaveProperty('isDisabled');

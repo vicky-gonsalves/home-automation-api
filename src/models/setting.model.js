@@ -17,6 +17,13 @@ const settingSchema = mongoose.Schema(
       trim: true,
       enum: idType,
     },
+    parent: {
+      type: String,
+      trim: true,
+      match: /^[A-Za-z_\d]+$/,
+      minlength: 10,
+      maxlength: 20,
+    },
     bindedTo: {
       type: String,
       required: true,
@@ -82,6 +89,7 @@ settingSchema.methods.transform = function() {
     'id',
     'type',
     'idType',
+    'parent',
     'bindedTo',
     'paramName',
     'paramValue',
