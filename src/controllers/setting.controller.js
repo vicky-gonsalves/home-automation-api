@@ -20,33 +20,45 @@ const sendSettingNotification = async (device, event, setting) => {
   }
 };
 
-const updateSetting = catchAsync(async (req, res) => {
+const updateSetting = async (_setting, user) => {
   let device;
-  const { body } = req;
   let eventType;
 
-  if (body.idType === idType[0]) {
+  if (_setting.idType === idType[0]) {
     // if deviceId
-    device = await getDeviceByDeviceIdService(body.bindedTo);
+    device = await getDeviceByDeviceIdService(_setting.bindedTo);
     eventType = 'DEVICE_SETTING_UPDATED';
   } else {
     // if subDeviceId
-    const subDevice = await getSubDeviceByOnlySubDeviceIdService(body.bindedTo);
+    const subDevice = await getSubDeviceByOnlySubDeviceIdService(_setting.bindedTo);
     device = await getDeviceByDeviceIdService(subDevice.deviceId);
     eventType = 'SUB_DEVICE_SETTING_UPDATED';
   }
-  if (req.user.role !== 'admin' && req.user.email !== device.deviceOwner) {
-    await checkAccessIfExists(device.deviceId, req.user.email);
+  if (user.role !== 'admin' && user.email !== device.deviceOwner) {
+    await checkAccessIfExists(device.deviceId, user.email);
   }
-  const updateBody = {
-    _updatedBy: req.user.email,
-    paramValue: body.paramValue,
+  const _updateSetting = {
+    _updatedBy: user.email,
+    paramValue: _setting.paramValue,
   };
-  const setting = await updateSettingService(body, updateBody);
+  const setting = await updateSettingService(_setting, _updateSetting);
   await sendSettingNotification(device, eventType, setting.transform());
+  return setting;
+};
+
+const updateSingleSetting = catchAsync(async (req, res) => {
+  const { body, user } = req;
+  const setting = await updateSetting(body, user);
   res.send(setting.transform());
 });
 
+const updateMultiSetting = catchAsync(async (req, res) => {
+  const { body, user } = req;
+  const settings = await Promise.all(body.map(_setting => updateSetting(_setting, user)));
+  res.send(settings);
+});
+
 module.exports = {
-  updateSetting,
+  updateSingleSetting,
+  updateMultiSetting,
 };

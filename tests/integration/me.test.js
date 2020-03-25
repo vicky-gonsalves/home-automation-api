@@ -60,8 +60,8 @@ describe('Me Routes', () => {
       expect(res.body.subDeviceParams).toHaveLength(5);
       expect(res.body.settings).toHaveProperty('deviceSettings');
       expect(res.body.settings).toHaveProperty('subDeviceSettings');
-      expect(res.body.settings.deviceSettings).toHaveLength(1);
-      expect(res.body.settings.subDeviceSettings).toHaveLength(3);
+      expect(res.body.settings.deviceSettings).toHaveLength(3);
+      expect(res.body.settings.subDeviceSettings).toHaveLength(1);
 
       expect(res.body.devices.myDevices[0]).toHaveProperty('deviceId');
       expect(res.body.devices.myDevices[0]).toHaveProperty('name');
@@ -134,26 +134,26 @@ describe('Me Routes', () => {
       expect(res.body.settings.deviceSettings[0]).toHaveProperty('paramName');
       expect(res.body.settings.deviceSettings[0]).toHaveProperty('paramValue');
 
+      expect(res.body.settings.deviceSettings[1]).toHaveProperty('isDisabled');
+      expect(res.body.settings.deviceSettings[1]).toHaveProperty('type');
+      expect(res.body.settings.deviceSettings[1]).toHaveProperty('idType');
+      expect(res.body.settings.deviceSettings[1]).toHaveProperty('bindedTo');
+      expect(res.body.settings.deviceSettings[1]).toHaveProperty('paramName');
+      expect(res.body.settings.deviceSettings[1]).toHaveProperty('paramValue');
+
+      expect(res.body.settings.deviceSettings[2]).toHaveProperty('isDisabled');
+      expect(res.body.settings.deviceSettings[2]).toHaveProperty('type');
+      expect(res.body.settings.deviceSettings[2]).toHaveProperty('idType');
+      expect(res.body.settings.deviceSettings[2]).toHaveProperty('bindedTo');
+      expect(res.body.settings.deviceSettings[2]).toHaveProperty('paramName');
+      expect(res.body.settings.deviceSettings[2]).toHaveProperty('paramValue');
+
       expect(res.body.settings.subDeviceSettings[0]).toHaveProperty('isDisabled');
       expect(res.body.settings.subDeviceSettings[0]).toHaveProperty('type');
       expect(res.body.settings.subDeviceSettings[0]).toHaveProperty('idType');
       expect(res.body.settings.subDeviceSettings[0]).toHaveProperty('bindedTo');
       expect(res.body.settings.subDeviceSettings[0]).toHaveProperty('paramName');
       expect(res.body.settings.subDeviceSettings[0]).toHaveProperty('paramValue');
-
-      expect(res.body.settings.subDeviceSettings[1]).toHaveProperty('isDisabled');
-      expect(res.body.settings.subDeviceSettings[1]).toHaveProperty('type');
-      expect(res.body.settings.subDeviceSettings[1]).toHaveProperty('idType');
-      expect(res.body.settings.subDeviceSettings[1]).toHaveProperty('bindedTo');
-      expect(res.body.settings.subDeviceSettings[1]).toHaveProperty('paramName');
-      expect(res.body.settings.subDeviceSettings[1]).toHaveProperty('paramValue');
-
-      expect(res.body.settings.subDeviceSettings[2]).toHaveProperty('isDisabled');
-      expect(res.body.settings.subDeviceSettings[2]).toHaveProperty('type');
-      expect(res.body.settings.subDeviceSettings[2]).toHaveProperty('idType');
-      expect(res.body.settings.subDeviceSettings[2]).toHaveProperty('bindedTo');
-      expect(res.body.settings.subDeviceSettings[2]).toHaveProperty('paramName');
-      expect(res.body.settings.subDeviceSettings[2]).toHaveProperty('paramValue');
     });
 
     it('should return 200 and no device if no device exists', async () => {

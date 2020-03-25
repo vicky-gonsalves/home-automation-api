@@ -21,9 +21,9 @@ const settingOne = {
 
 const settingTwo = {
   _id: mongoose.Types.ObjectId(),
-  type: settingType[1],
-  idType: idType[1],
-  bindedTo: subDeviceOne.subDeviceId,
+  type: settingType[0],
+  idType: idType[0],
+  bindedTo: deviceOne.deviceId,
   paramName: 'autoShutDownTime',
   paramValue: defaultSettings.defaultSubDeviceAutoShutDownTime,
   createdBy: email1,
@@ -32,9 +32,9 @@ const settingTwo = {
 
 const settingThree = {
   _id: mongoose.Types.ObjectId(),
-  type: settingType[1],
-  idType: idType[1],
-  bindedTo: subDeviceOne.subDeviceId,
+  type: settingType[0],
+  idType: idType[0],
+  bindedTo: deviceOne.deviceId,
   paramName: 'waterLevelToStart',
   paramValue: defaultSettings.defaultTankWaterLevelToStart,
   createdBy: email1,
