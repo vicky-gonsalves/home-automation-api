@@ -50,10 +50,14 @@ const createSubDevice = catchAsync(async (req, res) => {
   await sendSubDeviceSocketNotification(device, 'SUB_DEVICE_CREATED', subDevice);
   if (device.variant === deviceVariant[0]) {
     const deviceSettings = await createTankSettingService(subDevice);
-    await notify(device, deviceSettings);
+    if (deviceSettings && deviceSettings.length) {
+      await notify(device, deviceSettings);
+    }
   } else {
     const subDeviceSettings = await createSmartSwitchSettingService(subDevice);
-    await notify(device, subDeviceSettings);
+    if (subDeviceSettings && subDeviceSettings.length) {
+      await notify(device, subDeviceSettings);
+    }
   }
   res.status(httpStatus.CREATED).send(subDevice.transform());
 });
