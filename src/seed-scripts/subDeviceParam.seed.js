@@ -15,14 +15,6 @@ const subDeviceParams = [
   },
   {
     deviceId: 'tank000000000001',
-    subDeviceId: 'sub_tank000000000001',
-    paramName: 'waterLevel',
-    paramValue: 78,
-    createdBy: config.defaultAdmin.email,
-    updatedBy: config.defaultAdmin.email,
-  },
-  {
-    deviceId: 'tank000000000001',
     subDeviceId: 'sub_tank000000000002',
     paramName: 'status',
     paramValue: 'off',
