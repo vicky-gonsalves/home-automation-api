@@ -8,7 +8,6 @@ describe('DeviceParam Model', () => {
       const email = faker.internet.email();
       newDeviceParam = {
         deviceId: faker.random.alphaNumeric(10),
-        subDeviceId: faker.random.alphaNumeric(10),
         paramName: faker.name.firstName(),
         paramValue: faker.random.alphaNumeric(50),
         createdBy: email,
