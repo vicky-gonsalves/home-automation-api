@@ -342,6 +342,20 @@ describe('Sub-Device Params Routes', () => {
       expect(res.body[0].id).toBeDefined();
     });
 
+    it('should correctly apply filter on paramValue field is numeric', async () => {
+      await insertSubDeviceParams([subDeviceParamOne, subDeviceParamTwo, subDeviceParamThree, subDeviceParamFour]);
+
+      const res = await request(app)
+        .get(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .query({ paramValue: 50 })
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveLength(1);
+      expect(res.body[0].id).toBeDefined();
+    });
+
     it('should correctly apply filter on isDisabled field', async () => {
       await insertSubDeviceParams([subDeviceParamOne, subDeviceParamTwo, subDeviceParamThree, subDeviceParamFour]);
 
