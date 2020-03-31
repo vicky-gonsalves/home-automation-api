@@ -1,7 +1,13 @@
 const roles = ['user', 'admin'];
 
 const roleRights = new Map();
-roleRights.set(roles[0], ['getMe', 'getMyDevices', 'updateSubDeviceParamsValue', 'updateSetting']);
+roleRights.set(roles[0], [
+  'getMe',
+  'getMyDevices',
+  'updateDeviceParamsValue',
+  'updateSubDeviceParamsValue',
+  'updateSetting',
+]);
 
 roleRights.set(roles[1], [
   'getMe',
@@ -12,10 +18,13 @@ roleRights.set(roles[1], [
   'manageDevices',
   'getSubDevices',
   'manageSubDevices',
+  'manageDeviceParams',
+  'getDeviceParams',
   'getSubDeviceParams',
   'manageSubDeviceParams',
   'getSharedDeviceAccess',
   'manageSharedDeviceAccess',
+  'updateDeviceParamsValue',
   'updateSubDeviceParamsValue',
   'updateSetting',
 ]);

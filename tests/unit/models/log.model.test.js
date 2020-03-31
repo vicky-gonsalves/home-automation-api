@@ -16,7 +16,6 @@ describe('Log Model', () => {
       };
       newLogTwo = {
         deviceId: faker.random.alphaNumeric(12),
-        subDeviceId: faker.random.alphaNumeric(12),
         logName: 'MotorStopped',
         logDescription: 'Motor 1 stopped by Vicky',
         isDevLog: true,
@@ -72,26 +71,6 @@ describe('Log Model', () => {
 
     test('should throw a validation error if subDeviceId is invalid', async () => {
       newLogOne.subDeviceId = 'invalid';
-      await expect(new Log(newLogOne).validate()).rejects.toThrow();
-    });
-
-    test('should throw a validation error if subDeviceId is missing', async () => {
-      delete newLogOne.subDeviceId;
-      await expect(new Log(newLogOne).validate()).rejects.toThrow();
-    });
-
-    test('should throw a validation error if subDeviceId is null', async () => {
-      newLogOne.subDeviceId = null;
-      await expect(new Log(newLogOne).validate()).rejects.toThrow();
-    });
-
-    test('should throw a validation error if subDeviceId is blank', async () => {
-      newLogOne.subDeviceId = '';
-      await expect(new Log(newLogOne).validate()).rejects.toThrow();
-    });
-
-    test('should throw a validation error if subDeviceId is undefined', async () => {
-      newLogOne.subDeviceId = undefined;
       await expect(new Log(newLogOne).validate()).rejects.toThrow();
     });
 

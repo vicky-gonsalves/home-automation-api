@@ -14,7 +14,6 @@ const logSchema = mongoose.Schema(
     },
     subDeviceId: {
       type: String,
-      required: true,
       trim: true,
       match: /^[A-Za-z_\d]+$/,
       minlength: 10,
@@ -77,13 +76,6 @@ logSchema.methods.transform = function() {
     'triggeredByDevice',
   ]);
 };
-
-logSchema.pre('save', function(next) {
-  if (this.isModified('updatedAt') && this._updatedBy) {
-    this.updatedBy = this._updatedBy;
-  }
-  return next();
-});
 
 const Log = mongoose.model('Log', logSchema);
 

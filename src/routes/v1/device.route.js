@@ -51,6 +51,22 @@ import {
   updateSubDeviceParamValidation,
   updateSubDeviceParamValueValidation,
 } from '../../validations/subDeviceParam.validation';
+import {
+  createDeviceParamValidation,
+  deleteDeviceParamValidation,
+  getDeviceParamsValidation,
+  getDeviceParamValidation,
+  updateDeviceParamValidation,
+  updateDeviceParamValueValidation,
+} from '../../validations/deviceParam.validation';
+import {
+  createDeviceParam,
+  deleteDeviceParam,
+  getDeviceParam,
+  getDeviceParams,
+  updateDeviceParam,
+  updateDeviceParamValue,
+} from '../../controllers/deviceParam.controller';
 
 const router = express.Router();
 
@@ -71,6 +87,23 @@ router
   .get(auth('getDevices'), validate(getDeviceByDeviceOwnerValidation), getByDeviceOwner);
 
 router.route('/authorize-device/:deviceId').get(auth('manageDevices'), validate(authorizeDeviceValidation), authorizeDevice);
+
+// --------------------------------DeviceParams----------------------------------------------------------------------------------------------
+
+router
+  .route('/:deviceId/device-params/')
+  .post(auth('manageDeviceParams'), validate(createDeviceParamValidation), createDeviceParam)
+  .get(auth('getDeviceParams'), validate(getDeviceParamsValidation), getDeviceParams);
+
+router
+  .route('/:deviceId/device-params/:paramName')
+  .get(auth('getDeviceParams'), validate(getDeviceParamValidation), getDeviceParam)
+  .patch(auth('manageDeviceParams'), validate(updateDeviceParamValidation), updateDeviceParam)
+  .delete(auth('manageDeviceParams'), validate(deleteDeviceParamValidation), deleteDeviceParam);
+
+router
+  .route('/:deviceId/device-param-value/:paramName')
+  .patch(auth('updateDeviceParamsValue'), validate(updateDeviceParamValueValidation), updateDeviceParamValue);
 
 // --------------------------------SubDevices------------------------------------------------------------------------------------------------
 

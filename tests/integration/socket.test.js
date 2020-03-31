@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import {
   accessTokenExpires,
+  adminAccessToken,
   deviceAccessToken,
   deviceTwoAccessToken,
   userOneAccessToken,
@@ -26,6 +27,14 @@ import SocketServer from '../../src/socketServer';
 import NotificationService from '../../src/services/notification.service';
 import SocketId from '../../src/models/socketId.model';
 import Device from '../../src/models/device.model';
+import {
+  deviceParamOne,
+  deviceParamSix,
+  deviceParamThree,
+  deviceParamTwo,
+  insertDeviceParams,
+} from '../fixtures/deviceParam.fixture';
+import Log from '../../src/models/log.model';
 
 const port = 4000;
 setupTestDB();
@@ -270,6 +279,64 @@ describe('Socket Tests', () => {
       });
     });
 
+    describe('FROM DEVICE: deviceParam/getAll', () => {
+      beforeEach(async () => {
+        await insertDevices([deviceOne]);
+        await insertUsers([userOne]);
+      });
+
+      afterEach(() => {
+        if (deviceIOClient && deviceIOClient.connected) {
+          deviceIOClient.disconnect();
+          deviceIOClient.destroy();
+        }
+      });
+
+      it('should listen deviceParam/get event and emit device params to the device', async done => {
+        await insertDeviceParams([deviceParamOne, deviceParamTwo]);
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('deviceParam/getAll');
+        });
+
+        deviceIOClient.on('GET_ALL_DEVICE_PARAMS', data => {
+          expect(data).toHaveLength(2);
+          expect(data[0].deviceId).toBeDefined();
+          expect(data[1].deviceId).toBeDefined();
+          done();
+        });
+      });
+
+      it('should listen deviceParam/get event, and return error if emitted by user', async done => {
+        await insertDevices([deviceTwo]);
+        await insertDeviceParams([deviceParamThree]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${userOneAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('deviceParam/getAll');
+        });
+
+        deviceIOClient.on('ERROR_DEVICE_PARAM_GET', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('"deviceId" must be a string');
+          done();
+        });
+      });
+
+      it('should listen deviceParam/get event and return error if device has no device params', async done => {
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('deviceParam/getAll');
+        });
+
+        deviceIOClient.on('GET_ALL_DEVICE_PARAMS', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('no device params');
+          done();
+        });
+      });
+    });
+
     describe('FROM DEVICE: subDeviceParam/update', () => {
       afterEach(() => {
         if (deviceIOClient && deviceIOClient.connected) {
@@ -315,6 +382,71 @@ describe('Socket Tests', () => {
             paramValue: 'on',
             isDisabled: false,
           });
+          done();
+        });
+
+        deviceIOClient.on('GET_ALL_SUB_DEVICE_PARAMS', data => {
+          const subDeviceParam = data[0];
+          deviceIOClient.emit('subDeviceParam/update', {
+            deviceId: subDeviceParam.deviceId,
+            subDeviceId: subDeviceParam.subDeviceId,
+            paramName: subDeviceParam.paramName,
+            updatedBody: {
+              paramValue: 'on',
+            },
+          });
+        });
+      });
+
+      it('should listen subDeviceParam/update event, update it in database and emit sub device params to users and create log', async done => {
+        await insertUsers([admin]);
+        await insertDevices([deviceOne]);
+        await insertSubDevices([subDeviceOne]);
+        await insertSubDeviceParams([subDeviceParamThree]);
+        await insertDeviceParams([deviceParamSix]);
+
+        const userOptions = {
+          forceNew: true,
+          transportOptions: {
+            polling: {
+              extraHeaders: {
+                'x-auth-token': adminAccessToken,
+              },
+            },
+          },
+        };
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceAccessToken}`, deviceOptions);
+        userIOClient = io.connect(socketUrl, userOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('subDeviceParam/getAll');
+        });
+
+        userIOClient.on('SUB_DEVICE_PARAMS_UPDATED', async data => {
+          expect(data).toBeInstanceOf(Object);
+          expect(data).toBeDefined();
+          expect(data).toMatchObject({
+            deviceId: subDeviceParamThree.deviceId,
+            subDeviceId: subDeviceParamThree.subDeviceId,
+            paramName: subDeviceParamThree.paramName,
+            paramValue: 'on',
+            isDisabled: false,
+          });
+
+          const dbLog = await Log.findOne({
+            deviceId: subDeviceParamThree.deviceId,
+            subDeviceId: subDeviceParamThree.subDeviceId,
+            logName: `${subDeviceParamThree.paramName}_UPDATED`,
+          });
+          expect(dbLog).toBeDefined();
+          expect(dbLog).toMatchObject({
+            deviceId: subDeviceParamThree.deviceId,
+            subDeviceId: subDeviceParamThree.subDeviceId,
+            logName: `${subDeviceParamThree.paramName}_UPDATED`,
+            logDescription: `${subDeviceOne.name} turned on when water level was ${deviceParamSix.paramValue}%`,
+            createdBy: `device@${subDeviceParamThree.deviceId}.com`,
+          });
+
           done();
         });
 
@@ -627,6 +759,362 @@ describe('Socket Tests', () => {
             paramName: subDeviceParamFour.paramName,
             updatedBody: {
               paramValue: 'on',
+            },
+          });
+        });
+      });
+    });
+
+    describe('FROM DEVICE: deviceParam/update', () => {
+      afterEach(() => {
+        if (deviceIOClient && deviceIOClient.connected) {
+          deviceIOClient.disconnect();
+          deviceIOClient.destroy();
+        }
+        if (userIOClient && userIOClient.connected) {
+          userIOClient.disconnect();
+          userIOClient.destroy();
+        }
+      });
+
+      it('should listen deviceParam/update event, update it in database and emit device params to users', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+        await insertSubDevices([subDeviceThree]);
+        await insertDeviceParams([deviceParamThree]);
+
+        const userOptions = {
+          forceNew: true,
+          transportOptions: {
+            polling: {
+              extraHeaders: {
+                'x-auth-token': userOneAccessToken,
+              },
+            },
+          },
+        };
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceTwoAccessToken}`, deviceOptions);
+        userIOClient = io.connect(socketUrl, userOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('deviceParam/getAll');
+        });
+
+        userIOClient.on('DEVICE_PARAM_UPDATED', data => {
+          expect(data).toBeInstanceOf(Object);
+          expect(data).toBeDefined();
+          expect(data).toMatchObject({
+            deviceId: deviceParamThree.deviceId,
+            paramName: deviceParamThree.paramName,
+            paramValue: 70,
+            isDisabled: false,
+          });
+          done();
+        });
+
+        deviceIOClient.on('GET_ALL_DEVICE_PARAMS', data => {
+          const deviceParam = data[0];
+          deviceIOClient.emit('deviceParam/update', {
+            deviceId: deviceParam.deviceId,
+            paramName: deviceParam.paramName,
+            updatedBody: {
+              paramValue: 70,
+            },
+          });
+        });
+      });
+
+      it('should listen deviceParam/update event, update it in database and create log and emit device params to users', async done => {
+        await insertUsers([admin]);
+        await insertDevices([deviceOne]);
+        await insertSubDevices([subDeviceOne]);
+        await insertDeviceParams([deviceParamSix]);
+
+        const userOptions = {
+          forceNew: true,
+          transportOptions: {
+            polling: {
+              extraHeaders: {
+                'x-auth-token': adminAccessToken,
+              },
+            },
+          },
+        };
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceAccessToken}`, deviceOptions);
+        userIOClient = io.connect(socketUrl, userOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('deviceParam/getAll');
+        });
+
+        userIOClient.on('DEVICE_PARAM_UPDATED', async data => {
+          expect(data).toBeInstanceOf(Object);
+          expect(data).toBeDefined();
+          expect(data).toMatchObject({
+            deviceId: deviceParamSix.deviceId,
+            paramName: deviceParamSix.paramName,
+            paramValue: 'something',
+            isDisabled: false,
+          });
+
+          const dbLog = await Log.findOne({
+            deviceId: deviceParamOne.deviceId,
+            logName: `${deviceParamOne.paramName}_UPDATED`,
+          });
+          expect(dbLog).toBeDefined();
+          expect(dbLog).toMatchObject({
+            deviceId: deviceOne.deviceId,
+            logName: `${deviceParamOne.paramName}_UPDATED`,
+            logDescription: `${deviceOne.name} ${deviceParamOne.paramName} updated to something`,
+            createdBy: `device@${deviceOne.deviceId}.com`,
+            triggeredByDevice: true,
+          });
+
+          done();
+        });
+
+        deviceIOClient.on('GET_ALL_DEVICE_PARAMS', data => {
+          const deviceParam = data[0];
+          deviceIOClient.emit('deviceParam/update', {
+            deviceId: deviceParam.deviceId,
+            paramName: deviceParam.paramName,
+            updatedBody: {
+              paramValue: 'something',
+            },
+          });
+        });
+      });
+
+      it('should listen deviceParam/update event, and return error if emitted by user', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+        await insertSubDevices([subDeviceThree]);
+        await insertDeviceParams([deviceParamThree]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${userOneAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('deviceParam/update', {
+            paramName: deviceParamThree.paramName,
+            updatedBody: {
+              paramValue: 70,
+            },
+          });
+        });
+
+        deviceIOClient.on('ERROR_DEVICE_PARAM_UPDATE', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('"deviceId" must be a string');
+          done();
+        });
+      });
+
+      it('should listen deviceParam/update event, and return error if subDeviceId is invalid and emitted by device', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+        await insertSubDevices([subDeviceThree]);
+        await insertDeviceParams([deviceParamTwo]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceTwoAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('deviceParam/update', {
+            paramName: deviceParamTwo.paramName,
+            updatedBody: {
+              paramValue: 100,
+            },
+          });
+        });
+
+        deviceIOClient.on('ERROR_DEVICE_PARAM_UPDATE', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('no active device param');
+          done();
+        });
+      });
+
+      it('should listen deviceParam/update event, and return error if paramName is missing and emitted by device', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+        await insertSubDevices([subDeviceThree]);
+        await insertDeviceParams([deviceParamThree]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceTwoAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('deviceParam/update', {
+            updatedBody: {
+              paramValue: 'on',
+            },
+          });
+        });
+
+        deviceIOClient.on('ERROR_DEVICE_PARAM_UPDATE', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('"paramName" must be a string');
+          done();
+        });
+      });
+
+      it('should listen deviceParam/update event, and return error if paramValue is missing and emitted by device', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+        await insertSubDevices([subDeviceThree]);
+        await insertDeviceParams([deviceParamThree]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceTwoAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('deviceParam/update', {
+            paramName: deviceParamThree.paramName,
+            updatedBody: {},
+          });
+        });
+
+        deviceIOClient.on('ERROR_DEVICE_PARAM_UPDATE', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('"paramValue" must be one of [string, number, object, array]');
+          done();
+        });
+      });
+
+      it('should listen deviceParam/update event, update it in database and emit device params to shared users', async done => {
+        await insertUsers([admin, userOne]);
+        await insertDevices([deviceOne]);
+        await insertSubDevices([subDeviceOne]);
+        await insertDeviceParams([deviceParamOne]);
+        await insertSharedDeviceAccess([accessOne]);
+
+        const userOptions = {
+          forceNew: true,
+          transportOptions: {
+            polling: {
+              extraHeaders: {
+                'x-auth-token': userOneAccessToken,
+              },
+            },
+          },
+        };
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceAccessToken}`, deviceOptions);
+        userIOClient = io.connect(socketUrl, userOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('deviceParam/getAll');
+        });
+
+        userIOClient.on('DEVICE_PARAM_UPDATED', data => {
+          expect(data).toBeInstanceOf(Object);
+          expect(data).toBeDefined();
+          expect(data).toMatchObject({
+            deviceId: deviceParamOne.deviceId,
+            paramName: deviceParamOne.paramName,
+            paramValue: 80,
+            isDisabled: false,
+          });
+          done();
+        });
+
+        deviceIOClient.on('GET_ALL_DEVICE_PARAMS', data => {
+          const deviceParam = data[0];
+          deviceIOClient.emit('deviceParam/update', {
+            paramName: deviceParam.paramName,
+            updatedBody: {
+              paramValue: 80,
+            },
+          });
+        });
+      });
+
+      it('should listen deviceParam/update event, update it in database and should not emit device params anyone if there is no socket Id available', async done => {
+        await insertUsers([admin, userOne]);
+        await insertDevices([deviceOne]);
+        await insertSubDevices([subDeviceOne]);
+        await insertDeviceParams([deviceParamOne]);
+        await insertSharedDeviceAccess([accessOne]);
+
+        let spy;
+        const userOptions = {
+          forceNew: true,
+          transportOptions: {
+            polling: {
+              extraHeaders: {
+                'x-auth-token': userOneAccessToken,
+              },
+            },
+          },
+        };
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceAccessToken}`, deviceOptions);
+        userIOClient = io.connect(socketUrl, userOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('deviceParam/getAll');
+        });
+
+        deviceIOClient.on('GET_ALL_DEVICE_PARAMS', async data => {
+          spy = jest.spyOn(NotificationService, 'sendMessage');
+          const deviceParam = data[0];
+          await SocketId.deleteMany();
+          deviceIOClient.emit('deviceParam/update', {
+            paramName: deviceParam.paramName,
+            updatedBody: {
+              paramValue: 'on',
+            },
+          });
+        });
+
+        setTimeout(() => {
+          expect(spy).not.toBeCalled();
+          done();
+        }, 100);
+      });
+
+      it('should listen deviceParam/update event, and receive error if there is no active device', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceTwoAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('deviceParam/getAll');
+        });
+
+        deviceIOClient.on('ERROR_DEVICE_PARAM_UPDATE', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('no active device');
+          done();
+        });
+
+        deviceIOClient.on('GET_ALL_DEVICE_PARAMS', async () => {
+          const dbDevice = await Device.findById(deviceTwo._id);
+          Object.assign(dbDevice, { isDisabled: true });
+          await dbDevice.save();
+          deviceIOClient.emit('deviceParam/update', {
+            paramName: deviceParamThree.paramName,
+            updatedBody: {
+              paramValue: 100,
+            },
+          });
+        });
+      });
+
+      it('should listen deviceParam/update event, and receive error if there is no active device param', async done => {
+        await insertUsers([userOne]);
+        await insertDevices([deviceTwo]);
+
+        deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceTwoAccessToken}`, deviceOptions);
+        deviceIOClient.on('CONNECTED', () => {
+          deviceIOClient.emit('deviceParam/getAll');
+        });
+
+        deviceIOClient.on('ERROR_DEVICE_PARAM_UPDATE', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('no active device param');
+          done();
+        });
+
+        deviceIOClient.on('GET_ALL_DEVICE_PARAMS', data => {
+          expect(data).toHaveProperty('error');
+          expect(data.error).toBe('no device params');
+
+          deviceIOClient.emit('deviceParam/update', {
+            paramName: deviceParamOne.paramName,
+            updatedBody: {
+              paramValue: 80,
             },
           });
         });

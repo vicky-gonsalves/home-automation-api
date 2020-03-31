@@ -3,10 +3,12 @@ import { getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService } from '../serv
 import { getMyDevicesService } from '../services/me.service';
 import { getActiveSettingsByDeviceIdsService, getActiveSettingsBySubDeviceIdsService } from '../services/setting.service';
 import { getOnlineDevicesService } from '../services/socketId.service';
+import { getActiveDeviceParamsByDeviceIdsService } from '../services/deviceParam.service';
 
 const getMyDeviceData = async (req, res) => {
   let deviceIds = [];
   let subDevices = [];
+  let deviceParams = [];
   let subDeviceParams = [];
   let onlineDevices = [];
   const settings = {
@@ -23,6 +25,7 @@ const getMyDeviceData = async (req, res) => {
     deviceIds = [...deviceIds, ...devices.sharedDevices.map(device => device.deviceId)];
   }
   if (deviceIds.length) {
+    deviceParams = await getActiveDeviceParamsByDeviceIdsService(deviceIds);
     subDevices = await getActiveSubDevicesByDeviceIdService(deviceIds);
     const deviceSettings = await getActiveSettingsByDeviceIdsService(deviceIds);
     settings.deviceSettings = deviceSettings.map(deviceSetting => deviceSetting.transform());
@@ -34,7 +37,7 @@ const getMyDeviceData = async (req, res) => {
     const subDeviceSettings = await getActiveSettingsBySubDeviceIdsService(subDevices);
     settings.subDeviceSettings = subDeviceSettings.map(subDeviceSetting => subDeviceSetting.transform());
   }
-  res.send({ devices, subDevices, subDeviceParams, settings, onlineDevices });
+  res.send({ devices, subDevices, deviceParams, subDeviceParams, settings, onlineDevices });
 };
 
 module.exports = {

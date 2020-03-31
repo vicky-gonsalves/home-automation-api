@@ -6,6 +6,7 @@ import { getQueryOptions } from '../utils/service.util';
 import { checkAndDeleteAccessIfExists, deleteSharedDeviceAccessByDeviceIdService } from './sharedDeviceAccess.service';
 import { deleteSocketIdByDeviceIdService } from './socketId.service';
 import { deleteSubDevicesByDeviceIdService } from './subDevice.service';
+import { deleteDeviceParamByDeviceIdService } from './deviceParam.service';
 
 const checkIfEmailIsDeviceOwnerAndFail = async (deviceId, deviceOwner) => {
   const device = await Device.findOne({ deviceId, deviceOwner });
@@ -52,7 +53,12 @@ const getActiveDeviceByDeviceIdForRegistrationService = async deviceId => {
 };
 
 const getActiveDeviceByDeviceIdForMultiStatusUpdateService = async deviceId => {
-  const device = await Device.findOne({ deviceId, variant: 'smartSwitch', isDisabled: false, registeredAt: { $ne: null } });
+  const device = await Device.findOne({
+    deviceId,
+    variant: 'smartSwitch',
+    isDisabled: false,
+    registeredAt: { $ne: null },
+  });
   if (!device) {
     throw new AppError(httpStatus.NOT_FOUND, 'No active registered device found with this deviceId');
   }
@@ -128,6 +134,7 @@ const updateDeviceUpdatedByService = async (oldEmail, newEmail) => {
 
 const deleteDeviceService = async id => {
   const device = await getDeviceByDeviceIdService(id);
+  await deleteDeviceParamByDeviceIdService(device.deviceId);
   await deleteSubDevicesByDeviceIdService(device.deviceId);
   await deleteSocketIdByDeviceIdService(device.deviceId);
   await deleteSharedDeviceAccessByDeviceIdService(device.deviceId);

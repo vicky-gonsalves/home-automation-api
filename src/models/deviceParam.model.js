@@ -88,7 +88,7 @@ deviceParamsSchema.pre('save', function(next) {
   return next();
 });
 
-deviceParamsSchema.index({ deviceId: 1, subDeviceId: 1, paramName: 1 }, { unique: true });
+deviceParamsSchema.index({ deviceId: 1, paramName: 1 }, { unique: true });
 
 const DeviceParam = mongoose.model('DeviceParam', deviceParamsSchema);
 

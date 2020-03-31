@@ -3,6 +3,7 @@ import httpStatus from 'http-status';
 import request from 'supertest';
 import app from '../../src/app';
 import Device from '../../src/models/device.model';
+import DeviceParam from '../../src/models/deviceParam.model';
 import SocketId from '../../src/models/socketId.model';
 import SubDevice from '../../src/models/subDevice.model';
 import SubDeviceParam from '../../src/models/subDeviceParam.model';
@@ -31,6 +32,7 @@ import { admin, insertUsers, userOne, userTwo } from '../fixtures/user.fixture';
 import { setupTestDB } from '../utils/setupTestDB';
 import { accessFour, accessOne, accessTwo, insertSharedDeviceAccess } from '../fixtures/sharedDeviceAccess.fixture';
 import SharedDeviceAccess from '../../src/models/sharedDeviceAccess.model';
+import { deviceParamFive, deviceParamFour, insertDeviceParams } from '../fixtures/deviceParam.fixture';
 
 setupTestDB();
 
@@ -383,9 +385,10 @@ describe('User routes', () => {
       expect(dbUser).toBeNull();
     });
 
-    it('should return 204 and delete user, all devices, all sub-devices, all sub-device-params, all shared device access and all socket ids of admin', async () => {
+    it('should return 204 and delete user, all devices, all deviceParams, all sub-devices, all sub-device-params, all shared device access and all socket ids of admin', async () => {
       await insertUsers([admin]);
       await insertDevices([deviceOne, deviceThree]);
+      await insertDeviceParams([deviceParamFive]);
       await insertSubDevices([subDeviceOne, subDeviceTwo, subDeviceThree, subDeviceFour]);
       await insertSubDeviceParams([
         subDeviceParamOne,
@@ -409,6 +412,8 @@ describe('User routes', () => {
       expect(dbDeviceOne).toBeNull();
       const dbDeviceTwo = await Device.findById(deviceThree._id);
       expect(dbDeviceTwo).toBeDefined();
+      const dbDeviceParam = await DeviceParam.findById(deviceParamFive._id);
+      expect(dbDeviceParam).toBeNull();
       const dbSubDeviceOne = await SubDevice.findById(subDeviceOne._id);
       expect(dbSubDeviceOne).toBeNull();
       const dbSubDeviceTwo = await SubDevice.findById(subDeviceTwo._id);
@@ -440,6 +445,7 @@ describe('User routes', () => {
     it('should return 204 and delete user, all devices, all sub-devices, all sub-device-params, all shared device access and all socket ids of user', async () => {
       await insertUsers([admin, userOne]);
       await insertDevices([deviceOne, deviceTwo, deviceThree]);
+      await insertDeviceParams([deviceParamFour]);
       await insertSubDevices([subDeviceOne, subDeviceTwo, subDeviceThree, subDeviceFour]);
       await insertSubDeviceParams([
         subDeviceParamOne,
@@ -464,6 +470,8 @@ describe('User routes', () => {
       const dbDeviceTwo = await Device.findById(deviceThree._id);
       expect(dbDeviceTwo).toBeNull();
       const dbSubDeviceOne = await SubDevice.findById(subDeviceThree._id);
+      const dbDeviceParam = await DeviceParam.findById(deviceParamFour._id);
+      expect(dbDeviceParam).toBeNull();
       expect(dbSubDeviceOne).toBeNull();
       const dbSubDeviceTwo = await SubDevice.findById(subDeviceFour._id);
       expect(dbSubDeviceTwo).toBeNull();
@@ -518,9 +526,10 @@ describe('User routes', () => {
         .expect(httpStatus.NO_CONTENT);
     });
 
-    it('should return 204 admin is trying to delete another user and delete user, all devices, all sub-devices, all sub-device-params and all socket ids of user', async () => {
+    it('should return 204 admin is trying to delete another user and delete user, all devices, all deviceParams, all sub-devices, all sub-device-params and all socket ids of user', async () => {
       await insertUsers([userOne, admin]);
       await insertDevices([deviceTwo, deviceThree]);
+      await insertDeviceParams([deviceParamFour]);
       await insertSubDevices([subDeviceThree, subDeviceFour]);
       await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
       await insertSocketIds([socketIdOne, socketIdFour, socketIdFive, socketIdSix]);
@@ -540,6 +549,8 @@ describe('User routes', () => {
       expect(dbDeviceTwo).toBeNull();
       const dbSubDeviceOne = await SubDevice.findById(subDeviceThree._id);
       expect(dbSubDeviceOne).toBeNull();
+      const dbDeviceParam = await DeviceParam.findById(deviceParamFour._id);
+      expect(dbDeviceParam).toBeNull();
       const dbSubDeviceTwo = await SubDevice.findById(subDeviceFour._id);
       expect(dbSubDeviceTwo).toBeNull();
       const dbSubDeviceParamOne = await SubDeviceParam.findById(subDeviceParamFour._id);
@@ -608,7 +619,7 @@ describe('User routes', () => {
       expect(dbUser).toMatchObject({ name: updateBody.name, email: updateBody.email, role: 'user' });
     });
 
-    it('should return 200 and successfully update user, all devices, all sub-devices, all sub-device-params and all socketIds of user', async () => {
+    it('should return 200 and successfully update user, all devices, all deviceParams, all sub-devices, all sub-device-params and all socketIds  of user', async () => {
       const updateBody = {
         name: faker.name.findName(),
         email: faker.internet.email().toLowerCase(),
@@ -617,6 +628,7 @@ describe('User routes', () => {
 
       await insertUsers([userOne]);
       await insertDevices([deviceTwo, deviceThree]);
+      await insertDeviceParams([deviceParamFour]);
       await insertSubDevices([subDeviceThree, subDeviceFour]);
       await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
       await insertSocketIds([socketIdOne, socketIdFour, socketIdFive, socketIdSix]);
@@ -644,6 +656,11 @@ describe('User routes', () => {
       expect(dbDeviceTwo.createdBy).toBe(updateBody.email);
       expect(dbDeviceTwo.updatedBy).toBe(updateBody.email);
       expect(dbDeviceTwo.deviceOwner).toBe(updateBody.email);
+
+      const dbDeviceParam = await DeviceParam.findById(deviceParamFour._id);
+      expect(dbDeviceParam).toBeDefined();
+      expect(dbDeviceParam.createdBy).toBe(updateBody.email);
+      expect(dbDeviceParam.updatedBy).toBe(updateBody.email);
 
       const dbSubDeviceOne = await SubDevice.findById(subDeviceThree._id);
       expect(dbSubDeviceOne).toBeDefined();
@@ -710,7 +727,7 @@ describe('User routes', () => {
         .expect(httpStatus.OK);
     });
 
-    it('should return 200 and successfully update user, all devices, all sub-devices, all sub-device-params and all socketIds of user if admin is updating another user', async () => {
+    it('should return 200 and successfully update user, all devices, all deviceParams, all sub-devices, all sub-device-params and all socketIds of user if admin is updating another user', async () => {
       const updateBody = {
         name: faker.name.findName(),
         email: faker.internet.email().toLowerCase(),
@@ -719,6 +736,7 @@ describe('User routes', () => {
 
       await insertUsers([userOne, admin]);
       await insertDevices([deviceTwo, deviceThree]);
+      await insertDeviceParams([deviceParamFour]);
       await insertSubDevices([subDeviceThree, subDeviceFour]);
       await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
       await insertSocketIds([socketIdOne, socketIdFour, socketIdFive, socketIdSix]);
@@ -745,6 +763,11 @@ describe('User routes', () => {
       expect(dbDeviceTwo.createdBy).toBe(updateBody.email);
       expect(dbDeviceTwo.updatedBy).toBe(updateBody.email);
       expect(dbDeviceTwo.deviceOwner).toBe(updateBody.email);
+
+      const dbDeviceParam = await DeviceParam.findById(deviceParamFour._id);
+      expect(dbDeviceParam).toBeDefined();
+      expect(dbDeviceParam.createdBy).toBe(updateBody.email);
+      expect(dbDeviceParam.updatedBy).toBe(updateBody.email);
 
       const dbSubDeviceOne = await SubDevice.findById(subDeviceThree._id);
       expect(dbSubDeviceOne).toBeDefined();
