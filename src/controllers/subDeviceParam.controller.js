@@ -24,6 +24,9 @@ import NotificationService from '../services/notification.service';
 import catchAsync from '../utils/catchAsync';
 import { checkAccessIfExists, getSharedDeviceAccessByDeviceIdService } from '../services/sharedDeviceAccess.service';
 import { getSocketIdsByDeviceIdService, getSocketIdsByEmailsService } from '../services/socketId.service';
+import { createLogService } from '../services/log.service';
+import { deviceVariant } from '../config/device';
+import { getDeviceParamByParamNameService } from '../services/deviceParam.service';
 
 const sendSubDeviceParamSocketNotification = async (device, event, subDeviceParam, sendOnlyToDevice = false) => {
   let socketIds = [];
@@ -41,6 +44,20 @@ const sendSubDeviceParamSocketNotification = async (device, event, subDevicePara
   if (socketIds.length) {
     NotificationService.sendMessage(socketIds, event, subDeviceParam);
   }
+};
+
+const generateSubDeviceLog = async (device, subDevice, params, body) => {
+  let log = `${subDevice.name}`;
+  if (params.paramName === 'status') {
+    log = `${log} turned ${body.paramValue}`;
+    if (device.variant === deviceVariant[0]) {
+      const waterLevel = await getDeviceParamByParamNameService(device.deviceId, 'waterLevel');
+      log = `${log} when water level was ${waterLevel.paramValue}%`;
+    }
+  } else {
+    log = `${log} ${params.paramName} updated to ${body.paramValue}`;
+  }
+  return log;
 };
 
 const createSubDeviceParam = catchAsync(async (req, res) => {
@@ -84,7 +101,7 @@ const updateSubDeviceParam = catchAsync(async (req, res) => {
 const updateSubDeviceParamValue = catchAsync(async (req, res) => {
   req.body._updatedBy = req.user.email;
   const device = await getDeviceByDeviceIdService(req.params.deviceId);
-  await getSubDeviceBySubDeviceIdService(req.params.deviceId, req.params.subDeviceId);
+  const subDevice = await getSubDeviceBySubDeviceIdService(req.params.deviceId, req.params.subDeviceId);
   if (req.user.role !== 'admin' && req.user.email !== device.deviceOwner) {
     await checkAccessIfExists(device.deviceId, req.user.email);
   }
@@ -95,6 +112,15 @@ const updateSubDeviceParamValue = catchAsync(async (req, res) => {
     req.body
   );
   await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_UPDATED', subDeviceParam);
+  await createLogService(
+    req.params.deviceId,
+    req.params.subDeviceId,
+    `${req.params.paramName}_UPDATED`,
+    await generateSubDeviceLog(device, subDevice, req.params, req.body),
+    false,
+    false,
+    req.user.email
+  );
   res.send(subDeviceParam.transform());
 });
 
@@ -143,8 +169,10 @@ const getAllSubDeviceParamsOfDevice = async (socketId, device) => {
   NotificationService.sendMessage([{ socketId }], 'GET_ALL_SUB_DEVICE_PARAMS', data);
 };
 
-const updateSubDeviceParamsToSocketUsers = async (socketDevice, _updateData) => {
+const updateSubDeviceParamsToSocketUsers = async (socketDevice, __updateData) => {
   const errorEvent = 'ERROR_SUB_DEVICE_PARAM_UPDATE';
+  const _updateData = __updateData;
+  _updateData.updatedBody.updatedBy = `device@${socketDevice.deviceId}.com`;
   const device = await getActiveDeviceByDeviceIdService(socketDevice.deviceId);
   if (!device) {
     return sendSubDeviceParamSocketNotification(socketDevice, errorEvent, { error: 'no active device' }, true);
@@ -166,6 +194,15 @@ const updateSubDeviceParamsToSocketUsers = async (socketDevice, _updateData) => 
     subDevice.subDeviceId,
     _updateData.paramName,
     _updateData.updatedBody
+  );
+  await createLogService(
+    socketDevice.deviceId,
+    subDevice.subDeviceId,
+    `${_updateData.paramName}_UPDATED`,
+    await generateSubDeviceLog(device, subDevice, { paramName: _updateData.paramName }, _updateData.updatedBody),
+    false,
+    false,
+    _updateData.updatedBody.updatedBy
   );
   await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAMS_UPDATED', updatedSubDeviceParam);
 };

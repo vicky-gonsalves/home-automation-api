@@ -9,25 +9,26 @@ const settings = [
     idType: 'deviceId',
     bindedTo: 'tank000000000001',
     paramName: 'preferredSubDevice',
-    paramValue: 'sub_tank000000000001',
+    paramValue: 'sub_tank000000000002',
   },
   {
-    type: 'subDevice',
-    idType: 'subDeviceId',
-    bindedTo: 'sub_tank000000000001',
+    type: 'device',
+    idType: 'deviceId',
+    bindedTo: 'tank000000000001',
     paramName: 'autoShutDownTime',
     paramValue: 30,
   },
   {
-    type: 'subDevice',
-    idType: 'subDeviceId',
-    bindedTo: 'sub_tank000000000001',
+    type: 'device',
+    idType: 'deviceId',
+    bindedTo: 'tank000000000001',
     paramName: 'waterLevelToStart',
     paramValue: 70,
   },
   {
     type: 'subDevice',
     idType: 'subDeviceId',
+    parent: 'bedroom000000001',
     bindedTo: 'sub_bedroom000000001',
     paramName: 'autoShutDownTime',
     paramValue: 0,
@@ -35,6 +36,7 @@ const settings = [
   {
     type: 'subDevice',
     idType: 'subDeviceId',
+    parent: 'bedroom000000001',
     bindedTo: 'sub_bedroom000000002',
     paramName: 'autoShutDownTime',
     paramValue: 0,
@@ -42,6 +44,7 @@ const settings = [
   {
     type: 'subDevice',
     idType: 'subDeviceId',
+    parent: 'outdoor000000001',
     bindedTo: 'sub_outdoor000000001',
     paramName: 'autoShutDownTime',
     paramValue: 0,
@@ -49,6 +52,7 @@ const settings = [
   {
     type: 'subDevice',
     idType: 'subDeviceId',
+    parent: 'outdoor000000001',
     bindedTo: 'sub_outdoor000000002',
     paramName: 'autoShutDownTime',
     paramValue: 0,
@@ -56,6 +60,7 @@ const settings = [
   {
     type: 'subDevice',
     idType: 'subDeviceId',
+    parent: 'outdoor000000001',
     bindedTo: 'sub_outdoor000000003',
     paramName: 'autoShutDownTime',
     paramValue: 0,
@@ -63,6 +68,7 @@ const settings = [
   {
     type: 'subDevice',
     idType: 'subDeviceId',
+    parent: 'outdoor000000001',
     bindedTo: 'sub_outdoor000000004',
     paramName: 'autoShutDownTime',
     paramValue: 0,
@@ -70,6 +76,7 @@ const settings = [
   {
     type: 'subDevice',
     idType: 'subDeviceId',
+    parent: 'bedroom000000002',
     bindedTo: 'sub_bedroom200000001',
     paramName: 'autoShutDownTime',
     paramValue: 0,

@@ -12,9 +12,10 @@ const createDeviceSettingPayload = (bindedTo, paramName, paramValue, createdBy) 
   createdBy,
 });
 
-const createSubDeviceSettingPayload = (bindedTo, paramName, paramValue, createdBy) => ({
+const createSubDeviceSettingPayload = (bindedTo, paramName, paramValue, parent, createdBy) => ({
   type: 'subDevice',
   idType: 'subDeviceId',
+  parent,
   bindedTo,
   paramName,
   paramValue,
@@ -23,11 +24,19 @@ const createSubDeviceSettingPayload = (bindedTo, paramName, paramValue, createdB
 
 const createSettings = settings => Setting.create(settings);
 
-// const getDeviceSettingService = async (bindedTo, paramName) =>
-//   Setting.findOne({ type: 'device', idType: 'deviceId', bindedTo, paramName });
-//
-// const getSubDeviceSettingService = async (bindedTo, paramName) =>
-//   Setting.findOne({ type: 'subDevice', idType: 'subDeviceId', bindedTo, paramName });
+const getActiveSettingsByDeviceIdsService = deviceIds =>
+  Setting.find({ type: 'device', idType: 'deviceId', bindedTo: { $in: deviceIds }, isDisabled: false });
+
+const checkIfSettingExists = (deviceId, paramName) =>
+  Setting.findOne({ type: 'device', idType: 'deviceId', bindedTo: deviceId, paramName });
+
+const checkIfSubDeviceSettingExists = (subDeviceId, paramName, parent) =>
+  Setting.findOne({ type: 'subDevice', idType: 'subDeviceId', bindedTo: subDeviceId, paramName, parent });
+
+const getActiveSettingsBySubDeviceIdsService = async subDevices => {
+  const subDeviceIds = subDevices.map(subDevice => subDevice.subDeviceId);
+  return Setting.find({ type: 'subDevice', idType: 'subDeviceId', bindedTo: { $in: subDeviceIds }, isDisabled: false });
+};
 
 const getSettingService = async setting => {
   const _setting = await Setting.findOne(setting);
@@ -40,38 +49,62 @@ const getSettingService = async setting => {
 const createTankSettingService = async subDevice => {
   const payload = [];
   // create preferredSubDevice setting
-  payload.push(
-    createDeviceSettingPayload(subDevice.deviceId, 'preferredSubDevice', subDevice.subDeviceId, subDevice.createdBy)
-  );
+  const preferredSubDeviceExists = await checkIfSettingExists(subDevice.deviceId, 'preferredSubDevice');
+  if (!preferredSubDeviceExists) {
+    payload.push(
+      createDeviceSettingPayload(subDevice.deviceId, 'preferredSubDevice', subDevice.subDeviceId, subDevice.createdBy)
+    );
+  }
 
   // create autoShutDownTime setting
-  payload.push(
-    createSubDeviceSettingPayload(
-      subDevice.subDeviceId,
-      'autoShutDownTime',
-      defaultSettings.defaultSubDeviceAutoShutDownTime,
-      subDevice.createdBy
-    )
-  );
+  const autoShutDownTimeExists = await checkIfSettingExists(subDevice.deviceId, 'autoShutDownTime');
+  if (!autoShutDownTimeExists) {
+    payload.push(
+      createDeviceSettingPayload(
+        subDevice.deviceId,
+        'autoShutDownTime',
+        defaultSettings.defaultSubDeviceAutoShutDownTime,
+        subDevice.createdBy
+      )
+    );
+  }
 
   // create waterLevelToStart setting
-  payload.push(
-    createSubDeviceSettingPayload(
-      subDevice.subDeviceId,
-      'waterLevelToStart',
-      defaultSettings.defaultTankWaterLevelToStart,
-      subDevice.createdBy
-    )
-  );
-  return createSettings(payload);
+  const waterLevelToStartExists = await checkIfSettingExists(subDevice.deviceId, 'waterLevelToStart');
+  if (!waterLevelToStartExists) {
+    payload.push(
+      createDeviceSettingPayload(
+        subDevice.deviceId,
+        'waterLevelToStart',
+        defaultSettings.defaultTankWaterLevelToStart,
+        subDevice.createdBy
+      )
+    );
+  }
+  if (payload && payload.length) {
+    return createSettings(payload);
+  }
+  return null;
 };
 
 const createSmartSwitchSettingService = async subDevice => {
   const payload = [];
 
   // create autoShutDownTime setting
-  payload.push(createSubDeviceSettingPayload(subDevice.subDeviceId, 'autoShutDownTime', 0, subDevice.createdBy));
-  return createSettings(payload);
+  const autoShutDownTimeExists = await checkIfSubDeviceSettingExists(
+    subDevice.subDeviceId,
+    'autoShutDownTime',
+    subDevice.deviceId
+  );
+  if (!autoShutDownTimeExists) {
+    payload.push(
+      createSubDeviceSettingPayload(subDevice.subDeviceId, 'autoShutDownTime', 0, subDevice.deviceId, subDevice.createdBy)
+    );
+  }
+  if (payload && payload.length) {
+    return createSettings(payload);
+  }
+  return null;
 };
 
 const updateSettingService = async (setting, updatedSetting) => {
@@ -91,4 +124,6 @@ module.exports = {
   createTankSettingService,
   createSmartSwitchSettingService,
   updateSettingService,
+  getActiveSettingsByDeviceIdsService,
+  getActiveSettingsBySubDeviceIdsService,
 };

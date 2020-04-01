@@ -38,6 +38,14 @@ const getSocketIdsByDeviceIdService = deviceId => {
   return SocketId.find({ type: 'device', idType: 'deviceId', bindedTo: deviceId }).select('socketId');
 };
 
+const getOnlineDevicesService = deviceIds => {
+  return SocketId.find({ type: 'device', idType: 'deviceId', bindedTo: { $in: deviceIds } }).select('bindedTo');
+};
+
+const getOnlineDeviceBySocketIdService = socketId => {
+  return SocketId.findOne({ type: 'device', idType: 'deviceId', socketId }).select('bindedTo');
+};
+
 module.exports = {
   updateSocketEmailService,
   deleteSocketIdByDeviceIdService,
@@ -46,4 +54,6 @@ module.exports = {
   deleteSocketIdBySocketIdService,
   getSocketIdsByEmailsService,
   getSocketIdsByDeviceIdService,
+  getOnlineDevicesService,
+  getOnlineDeviceBySocketIdService,
 };

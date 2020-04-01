@@ -1,33 +1,16 @@
+import validator from 'validator';
 import mongoose from 'mongoose';
 import { omit, pick } from 'lodash';
-import { idType, settingType } from '../config/setting';
-import validator from 'validator';
 
-const settingSchema = mongoose.Schema(
+const deviceParamsSchema = mongoose.Schema(
   {
-    type: {
+    deviceId: {
       type: String,
       required: true,
-      trim: true,
-      enum: settingType,
-    },
-    idType: {
-      type: String,
-      required: true,
-      trim: true,
-      enum: idType,
-    },
-    parent: {
-      type: String,
       trim: true,
       match: /^[A-Za-z_\d]+$/,
       minlength: 10,
       maxlength: 20,
-    },
-    bindedTo: {
-      type: String,
-      required: true,
-      trim: true,
     },
     paramName: {
       type: String,
@@ -78,36 +61,35 @@ const settingSchema = mongoose.Schema(
   }
 );
 
-settingSchema.methods.toJSON = function() {
-  const setting = this;
-  return omit(setting.toObject(), []);
+deviceParamsSchema.methods.toJSON = function() {
+  const deviceParam = this;
+  return omit(deviceParam.toObject(), []);
 };
 
-settingSchema.methods.transform = function() {
-  const setting = this;
-  return pick(setting.toJSON(), [
+deviceParamsSchema.methods.transform = function() {
+  const deviceParam = this;
+  return pick(deviceParam.toJSON(), [
     'id',
-    'type',
-    'idType',
-    'parent',
-    'bindedTo',
+    'deviceId',
     'paramName',
     'paramValue',
     'isDisabled',
     'createdBy',
     'updatedBy',
+    'createdAt',
+    'updatedAt',
   ]);
 };
 
-settingSchema.pre('save', function(next) {
+deviceParamsSchema.pre('save', function(next) {
   if (this.isModified('updatedAt') && this._updatedBy) {
     this.updatedBy = this._updatedBy;
   }
   return next();
 });
 
-settingSchema.index({ type: 1, idType: 1, bindedTo: 1, paramName: 1 }, { unique: true });
+deviceParamsSchema.index({ deviceId: 1, paramName: 1 }, { unique: true });
 
-const Setting = mongoose.model('Setting', settingSchema);
+const DeviceParam = mongoose.model('DeviceParam', deviceParamsSchema);
 
-export default Setting;
+export default DeviceParam;

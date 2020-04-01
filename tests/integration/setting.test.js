@@ -1,7 +1,7 @@
 import { admin, insertUsers, userOne } from '../fixtures/user.fixture';
 import { deviceFour, deviceOne, deviceTwo, insertDevices } from '../fixtures/device.fixture';
 import { insertSubDevices, subDeviceFive, subDeviceOne, subDeviceThree } from '../fixtures/subDevice.fixture';
-import { insertSettings, settingFive, settingFour, settingOne } from '../fixtures/setting.fixture';
+import { insertSettings, settingFive, settingFour, settingOne, settingTwo, settingThree } from '../fixtures/setting.fixture';
 import request from 'supertest';
 import app from '../../src/app';
 import { adminAccessToken, userOneAccessToken } from '../fixtures/token.fixture';
@@ -20,8 +20,8 @@ describe('Settings Route', () => {
   let updateBodyTwo;
   let updateBodyThree;
   describe('PATCH /v1/settings', () => {
-    route = '/v1/settings';
     beforeEach(() => {
+      route = '/v1/settings';
       updateBodyOne = {
         type: 'device',
         idType: 'deviceId',
@@ -560,6 +560,123 @@ describe('Settings Route', () => {
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updateBodyOne)
         .expect(httpStatus.BAD_REQUEST);
+    });
+  });
+
+  describe('PATCH /v1/settings/multi', () => {
+    beforeEach(() => {
+      route = '/v1/settings/multi';
+      updateBodyOne = {
+        type: 'device',
+        idType: 'deviceId',
+        bindedTo: settingOne.bindedTo,
+        paramName: 'preferredSubDevice',
+        paramValue: 'sub_tank000000000001',
+      };
+      updateBodyTwo = {
+        type: 'device',
+        idType: 'deviceId',
+        bindedTo: settingTwo.bindedTo,
+        paramName: 'autoShutDownTime',
+        paramValue: 30,
+      };
+      updateBodyThree = {
+        type: 'device',
+        idType: 'deviceId',
+        bindedTo: settingThree.bindedTo,
+        paramName: 'waterLevelToStart',
+        paramValue: 70,
+      };
+    });
+
+    it('should return 200 and successfully update multi setting of device if data is ok and user role is admin', async () => {
+      await insertUsers([admin]);
+      await insertDevices([deviceOne]);
+      await insertSubDevices([subDeviceOne]);
+      await insertSettings([settingOne, settingTwo, settingThree]);
+
+      const res = await request(app)
+        .patch(`${route}`)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send([updateBodyOne, updateBodyTwo, updateBodyThree])
+        .expect(httpStatus.OK);
+
+      expect(res.body).toBeInstanceOf(Array);
+      expect(res.body.length).toBe(3);
+      expect(res.body[0]).toHaveProperty('isDisabled');
+      expect(res.body[0]).toHaveProperty('type');
+      expect(res.body[0]).toHaveProperty('idType');
+      expect(res.body[0]).toHaveProperty('bindedTo');
+      expect(res.body[0]).toHaveProperty('paramName');
+      expect(res.body[0]).toHaveProperty('paramValue');
+
+      expect(res.body[1]).toHaveProperty('isDisabled');
+      expect(res.body[1]).toHaveProperty('type');
+      expect(res.body[1]).toHaveProperty('idType');
+      expect(res.body[1]).toHaveProperty('bindedTo');
+      expect(res.body[1]).toHaveProperty('paramName');
+      expect(res.body[1]).toHaveProperty('paramValue');
+
+      expect(res.body[2]).toHaveProperty('isDisabled');
+      expect(res.body[2]).toHaveProperty('type');
+      expect(res.body[2]).toHaveProperty('idType');
+      expect(res.body[2]).toHaveProperty('bindedTo');
+      expect(res.body[2]).toHaveProperty('paramName');
+      expect(res.body[2]).toHaveProperty('paramValue');
+
+      const dbSetting = await Setting.findOne({
+        type: 'device',
+        idType: 'deviceId',
+        bindedTo: settingOne.bindedTo,
+        paramName: 'preferredSubDevice',
+      });
+      expect(dbSetting).toBeDefined();
+      expect(dbSetting.type).toBeDefined();
+      expect(dbSetting.idType).toBeDefined();
+      expect(dbSetting.bindedTo).toBeDefined();
+      expect(dbSetting.paramName).toBeDefined();
+      expect(dbSetting.paramValue).toBeDefined();
+      expect(dbSetting).toMatchObject({
+        ...updateBodyOne,
+        isDisabled: false,
+        updatedBy: admin.email,
+      });
+
+      const dbSettingTwo = await Setting.findOne({
+        type: 'device',
+        idType: 'deviceId',
+        bindedTo: settingTwo.bindedTo,
+        paramName: 'autoShutDownTime',
+      });
+      expect(dbSettingTwo).toBeDefined();
+      expect(dbSettingTwo.type).toBeDefined();
+      expect(dbSettingTwo.idType).toBeDefined();
+      expect(dbSettingTwo.bindedTo).toBeDefined();
+      expect(dbSettingTwo.paramName).toBeDefined();
+      expect(dbSettingTwo.paramValue).toBeDefined();
+      expect(dbSettingTwo).toMatchObject({
+        ...updateBodyTwo,
+        isDisabled: false,
+        updatedBy: admin.email,
+      });
+
+      const dbSettingThree = await Setting.findOne({
+        type: 'device',
+        idType: 'deviceId',
+        bindedTo: settingThree.bindedTo,
+        paramName: 'waterLevelToStart',
+      });
+      expect(dbSettingThree).toBeDefined();
+      expect(dbSettingThree.type).toBeDefined();
+      expect(dbSettingThree.idType).toBeDefined();
+      expect(dbSettingThree.bindedTo).toBeDefined();
+      expect(dbSettingThree.paramName).toBeDefined();
+      expect(dbSettingThree.paramValue).toBeDefined();
+      expect(dbSettingThree).toMatchObject({
+        ...updateBodyThree,
+        isDisabled: false,
+        updatedBy: admin.email,
+      });
     });
   });
 });

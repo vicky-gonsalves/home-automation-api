@@ -98,38 +98,68 @@ describe('Sub-Device Routes', () => {
       expect(dbSetting.createdBy).toBe(res.body.createdBy);
 
       const dbSettingTwo = await Setting.findOne({
-        type: 'subDevice',
-        idType: 'subDeviceId',
-        bindedTo: res.body.subDeviceId,
+        type: 'device',
+        idType: 'deviceId',
+        bindedTo: res.body.deviceId,
         paramName: 'autoShutDownTime',
         paramValue: defaultSettings.defaultSubDeviceAutoShutDownTime,
       });
       expect(dbSettingTwo).toBeDefined();
       expect(dbSettingTwo).toBeInstanceOf(Object);
-      expect(dbSettingTwo.type).toBe('subDevice');
-      expect(dbSettingTwo.idType).toBe('subDeviceId');
-      expect(dbSettingTwo.bindedTo).toBe(res.body.subDeviceId);
+      expect(dbSettingTwo.type).toBe('device');
+      expect(dbSettingTwo.idType).toBe('deviceId');
+      expect(dbSettingTwo.bindedTo).toBe(res.body.deviceId);
       expect(dbSettingTwo.paramName).toBe('autoShutDownTime');
       expect(dbSettingTwo.paramValue).toBe(defaultSettings.defaultSubDeviceAutoShutDownTime);
       expect(dbSettingTwo.isDisabled).toBe(false);
       expect(dbSettingTwo.createdBy).toBe(res.body.createdBy);
 
       const dbSettingThree = await Setting.findOne({
-        type: 'subDevice',
-        idType: 'subDeviceId',
-        bindedTo: res.body.subDeviceId,
+        type: 'device',
+        idType: 'deviceId',
+        bindedTo: res.body.deviceId,
         paramName: 'waterLevelToStart',
         paramValue: defaultSettings.defaultTankWaterLevelToStart,
       });
       expect(dbSettingThree).toBeDefined();
       expect(dbSettingThree).toBeInstanceOf(Object);
-      expect(dbSettingTwo.type).toBe('subDevice');
-      expect(dbSettingTwo.idType).toBe('subDeviceId');
-      expect(dbSettingTwo.bindedTo).toBe(res.body.subDeviceId);
+      expect(dbSettingTwo.type).toBe('device');
+      expect(dbSettingTwo.idType).toBe('deviceId');
+      expect(dbSettingTwo.bindedTo).toBe(res.body.deviceId);
       expect(dbSettingThree.paramName).toBe('waterLevelToStart');
       expect(dbSettingThree.paramValue).toBe(defaultSettings.defaultTankWaterLevelToStart);
       expect(dbSettingThree.isDisabled).toBe(false);
       expect(dbSettingThree.createdBy).toBe(res.body.createdBy);
+    });
+
+    it('should return 201 and successfully and create new default settings and skip preferredSubDevice setting if it exists if device variant is tank', async () => {
+      const snap = Setting.findOne;
+      const spy = jest.spyOn(Setting, 'create');
+      Setting.findOne = jest.fn().mockResolvedValue({ exists: true });
+      await request(app)
+        .post(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(subDevice)
+        .expect(httpStatus.CREATED);
+      Setting.findOne = snap;
+      expect(spy).not.toHaveBeenCalled();
+      spy.mockRestore();
+    });
+
+    it('should return 201 and successfully and create new default settings and skip autoShutDownTime setting if it exists if device variant is smartSwitch', async () => {
+      route = `/v1/devices/${deviceTwo.deviceId}/sub-devices`;
+      await insertDevices([deviceTwo]);
+      const snap = Setting.findOne;
+      const spy = jest.spyOn(Setting, 'create');
+      Setting.findOne = jest.fn().mockResolvedValue({ exists: true });
+      await request(app)
+        .post(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(subDevice)
+        .expect(httpStatus.CREATED);
+      Setting.findOne = snap;
+      expect(spy).not.toHaveBeenCalled();
+      spy.mockRestore();
     });
 
     it('should return 201 and successfully create new default settings if device variant is smartSwitch', async () => {

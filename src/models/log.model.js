@@ -1,6 +1,6 @@
-import validator from 'validator';
 import mongoose from 'mongoose';
 import { omit, pick } from 'lodash';
+import validator from 'validator';
 
 const logSchema = mongoose.Schema(
   {
@@ -14,7 +14,6 @@ const logSchema = mongoose.Schema(
     },
     subDeviceId: {
       type: String,
-      required: true,
       trim: true,
       match: /^[A-Za-z_\d]+$/,
       minlength: 10,
@@ -26,12 +25,16 @@ const logSchema = mongoose.Schema(
       trim: true,
       match: /^[A-Za-z_\d]+$/,
       minlength: 1,
-      maxlength: 50,
+      maxlength: 20,
     },
     logDescription: {
       type: String,
       required: true,
       trim: true,
+    },
+    isDevLog: {
+      type: Boolean,
+      default: false,
     },
     createdBy: {
       type: String,
@@ -43,15 +46,9 @@ const logSchema = mongoose.Schema(
         }
       },
     },
-    updatedBy: {
-      type: String,
-      trim: true,
-      lowercase: true,
-      validate(value) {
-        if (!validator.isEmail(value)) {
-          throw new Error('Invalid email');
-        }
-      },
+    triggeredByDevice: {
+      type: Boolean,
+      default: false,
     },
   },
   {
@@ -68,15 +65,17 @@ logSchema.methods.toJSON = function() {
 
 logSchema.methods.transform = function() {
   const log = this;
-  return pick(log.toJSON(), ['id', 'deviceId', 'subDeviceId', 'logName', 'logDescription', 'createdBy', 'updatedBy']);
+  return pick(log.toJSON(), [
+    'id',
+    'deviceId',
+    'subDeviceId',
+    'logName',
+    'logDescription',
+    'isDevLog',
+    'createdBy',
+    'triggeredByDevice',
+  ]);
 };
-
-logSchema.pre('save', function(next) {
-  if (this.isModified('updatedAt') && this._updatedBy) {
-    this.updatedBy = this._updatedBy;
-  }
-  return next();
-});
 
 const Log = mongoose.model('Log', logSchema);
 

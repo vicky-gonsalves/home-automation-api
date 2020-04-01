@@ -15,6 +15,7 @@ import {
 import { accessOne, insertSharedDeviceAccess } from '../fixtures/sharedDeviceAccess.fixture';
 import app from '../../src/app';
 import { adminAccessToken, userOneAccessToken, userTwoAccessToken } from '../fixtures/token.fixture';
+import { insertSettings, settingFive, settingFour, settingOne, settingThree, settingTwo } from '../fixtures/setting.fixture';
 
 setupTestDB();
 
@@ -36,6 +37,7 @@ describe('Me Routes', () => {
         subDeviceParamFour,
         subDeviceParamFive,
       ]);
+      await insertSettings([settingOne, settingTwo, settingThree, settingFour, settingFive]);
       await insertSharedDeviceAccess([accessOne]);
       const res = await request(app)
         .get(route)
@@ -56,6 +58,10 @@ describe('Me Routes', () => {
       expect(res.body.devices.sharedDevices).toHaveLength(1);
       expect(res.body.subDevices).toHaveLength(4);
       expect(res.body.subDeviceParams).toHaveLength(5);
+      expect(res.body.settings).toHaveProperty('deviceSettings');
+      expect(res.body.settings).toHaveProperty('subDeviceSettings');
+      expect(res.body.settings.deviceSettings).toHaveLength(3);
+      expect(res.body.settings.subDeviceSettings).toHaveLength(1);
 
       expect(res.body.devices.myDevices[0]).toHaveProperty('deviceId');
       expect(res.body.devices.myDevices[0]).toHaveProperty('name');
@@ -120,6 +126,34 @@ describe('Me Routes', () => {
       expect(res.body.subDeviceParams[4]).toHaveProperty('subDeviceId');
       expect(res.body.subDeviceParams[4]).toHaveProperty('paramName');
       expect(res.body.subDeviceParams[4]).toHaveProperty('paramValue');
+
+      expect(res.body.settings.deviceSettings[0]).toHaveProperty('isDisabled');
+      expect(res.body.settings.deviceSettings[0]).toHaveProperty('type');
+      expect(res.body.settings.deviceSettings[0]).toHaveProperty('idType');
+      expect(res.body.settings.deviceSettings[0]).toHaveProperty('bindedTo');
+      expect(res.body.settings.deviceSettings[0]).toHaveProperty('paramName');
+      expect(res.body.settings.deviceSettings[0]).toHaveProperty('paramValue');
+
+      expect(res.body.settings.deviceSettings[1]).toHaveProperty('isDisabled');
+      expect(res.body.settings.deviceSettings[1]).toHaveProperty('type');
+      expect(res.body.settings.deviceSettings[1]).toHaveProperty('idType');
+      expect(res.body.settings.deviceSettings[1]).toHaveProperty('bindedTo');
+      expect(res.body.settings.deviceSettings[1]).toHaveProperty('paramName');
+      expect(res.body.settings.deviceSettings[1]).toHaveProperty('paramValue');
+
+      expect(res.body.settings.deviceSettings[2]).toHaveProperty('isDisabled');
+      expect(res.body.settings.deviceSettings[2]).toHaveProperty('type');
+      expect(res.body.settings.deviceSettings[2]).toHaveProperty('idType');
+      expect(res.body.settings.deviceSettings[2]).toHaveProperty('bindedTo');
+      expect(res.body.settings.deviceSettings[2]).toHaveProperty('paramName');
+      expect(res.body.settings.deviceSettings[2]).toHaveProperty('paramValue');
+
+      expect(res.body.settings.subDeviceSettings[0]).toHaveProperty('isDisabled');
+      expect(res.body.settings.subDeviceSettings[0]).toHaveProperty('type');
+      expect(res.body.settings.subDeviceSettings[0]).toHaveProperty('idType');
+      expect(res.body.settings.subDeviceSettings[0]).toHaveProperty('bindedTo');
+      expect(res.body.settings.subDeviceSettings[0]).toHaveProperty('paramName');
+      expect(res.body.settings.subDeviceSettings[0]).toHaveProperty('paramValue');
     });
 
     it('should return 200 and no device if no device exists', async () => {

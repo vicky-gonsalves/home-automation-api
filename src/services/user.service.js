@@ -16,6 +16,7 @@ import {
   deleteSharedDeviceAccessByUserEmailService,
   updateSharedDeviceAccessEmailService,
 } from './sharedDeviceAccess.service';
+import { updateDeviceParamCreatedByService, updateDeviceParamUpdatedByService } from './deviceParam.service';
 
 const checkDuplicateEmailService = async (email, excludeUserId) => {
   const user = await User.findOne({ email, _id: { $ne: excludeUserId } });
@@ -63,6 +64,8 @@ const updateUserService = async (userId, updateBody) => {
     await updateDeviceOwnerService(oldEmail, updateBody.email);
     await updateDeviceCreatedByService(oldEmail, updateBody.email);
     await updateDeviceUpdatedByService(oldEmail, updateBody.email);
+    await updateDeviceParamCreatedByService(oldEmail, updateBody.email);
+    await updateDeviceParamUpdatedByService(oldEmail, updateBody.email);
     await updateSubDeviceCreatedByService(oldEmail, updateBody.email);
     await updateSubDeviceUpdatedByService(oldEmail, updateBody.email);
     await updateSubDeviceParamCreatedByService(oldEmail, updateBody.email);

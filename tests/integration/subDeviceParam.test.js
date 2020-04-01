@@ -27,6 +27,7 @@ import {
   subDeviceParamTwo,
 } from '../fixtures/subDeviceParam.fixture';
 import SubDeviceParam from '../../src/models/subDeviceParam.model';
+import Log from '../../src/models/log.model';
 import { accessFive, accessOne, insertSharedDeviceAccess } from '../fixtures/sharedDeviceAccess.fixture';
 import {
   insertSocketIds,
@@ -38,6 +39,7 @@ import {
   socketIdTwo,
 } from '../fixtures/socketId.fixture';
 import NotificationService from '../../src/services/notification.service';
+import { deviceParamSix, insertDeviceParams } from '../fixtures/deviceParam.fixture';
 
 setupTestDB();
 
@@ -333,6 +335,20 @@ describe('Sub-Device Params Routes', () => {
         .get(route)
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .query({ paramValue: 'off' })
+        .send()
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveLength(1);
+      expect(res.body[0].id).toBeDefined();
+    });
+
+    it('should correctly apply filter on paramValue field is numeric', async () => {
+      await insertSubDeviceParams([subDeviceParamOne, subDeviceParamTwo, subDeviceParamThree, subDeviceParamFour]);
+
+      const res = await request(app)
+        .get(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .query({ paramValue: 50 })
         .send()
         .expect(httpStatus.OK);
 
@@ -794,6 +810,58 @@ describe('Sub-Device Params Routes', () => {
         paramValue: updateBody.paramValue,
         isDisabled: false,
         updatedBy: admin.email,
+      });
+    });
+
+    it('should return 200 and successfully update sub-device param value if data is ok and if user is admin and save log', async () => {
+      await insertDeviceParams([deviceParamSix]);
+      await insertSubDeviceParams([subDeviceParamThree]);
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-param-value/${subDeviceParamThree.paramName}`;
+      updateBody = {
+        paramValue: 'on',
+      };
+      const res = await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveProperty('isDisabled');
+      expect(res.body).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        paramName: subDeviceParamThree.paramName,
+        paramValue: updateBody.paramValue,
+        isDisabled: false,
+      });
+
+      const dbSubDeviceParam = await SubDeviceParam.findOne({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        paramName: subDeviceParamThree.paramName,
+      });
+      expect(dbSubDeviceParam).toBeDefined();
+      expect(dbSubDeviceParam).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        paramName: subDeviceParamThree.paramName,
+        paramValue: updateBody.paramValue,
+        isDisabled: false,
+        updatedBy: admin.email,
+      });
+
+      const dbLog = await Log.findOne({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        logName: `${subDeviceParamThree.paramName}_UPDATED`,
+      });
+      expect(dbLog).toBeDefined();
+      expect(dbLog).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        logName: `${subDeviceParamThree.paramName}_UPDATED`,
+        logDescription: `${subDeviceOne.name} turned on when water level was ${deviceParamSix.paramValue}%`,
+        createdBy: admin.email,
       });
     });
 

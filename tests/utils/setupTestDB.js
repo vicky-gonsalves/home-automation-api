@@ -28,6 +28,10 @@ const setupTestDB = () => {
     await mongoose.connection.dropDatabase();
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   afterAll(async done => {
     await mongoose.connection.dropDatabase();
     mongoose.connection.close();

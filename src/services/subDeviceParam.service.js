@@ -40,6 +40,10 @@ const getSubDeviceParamsService = async (deviceId, subDeviceId, query) => {
   filter.deviceId = deviceId;
   filter.subDeviceId = subDeviceId;
   const options = getQueryOptions(query);
+  // eslint-disable-next-line no-restricted-globals
+  if (!isNaN(filter.paramValue)) {
+    filter.paramValue = parseFloat(filter.paramValue);
+  }
   return SubDeviceParam.find(filter, null, options);
 };
 
