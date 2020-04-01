@@ -209,7 +209,7 @@ const updateSubDeviceParamsToSocketUsers = async (socketDevice, __updateData) =>
     subDevice.subDeviceId,
     `${_updateData.paramName}_UPDATED`,
     await generateSubDeviceLog(device, subDevice, { paramName: _updateData.paramName }, _updateData.updatedBody),
-    false,
+    true,
     false,
     _updateData.updatedBody.updatedBy
   );
