@@ -1097,7 +1097,7 @@ describe('Sub-Device Params Routes', () => {
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updateBody)
         .expect(httpStatus.OK);
-      expect(spy).toBeCalled();
+      expect(spy).toBeCalledTimes(2);
     });
 
     it('should return 200 and successfully update status if data is ok and if user is having role user and access to the device', async () => {

@@ -137,6 +137,15 @@ const updateMultiSubDeviceParamValue = catchAsync(async (req, res) => {
     })
   );
   await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_MULTI_PARAM_UPDATED', subDeviceParams);
+  await createLogService(
+    device,
+    null,
+    `${req.params.paramName}_UPDATED`,
+    await generateSubDeviceLog(device, { name: 'All devices' }, { paramName: 'status' }, req.body),
+    false,
+    false,
+    req.user.email
+  );
   res.status(httpStatus.OK).send();
 });
 
