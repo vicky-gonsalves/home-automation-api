@@ -941,7 +941,7 @@ describe('Sub-Device Params Routes', () => {
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updateBody)
         .expect(httpStatus.OK);
-      expect(spy).toBeCalled();
+      expect(spy).toBeCalledTimes(2);
     });
 
     it('should return 403 if user is having role user and no access to the device', async () => {

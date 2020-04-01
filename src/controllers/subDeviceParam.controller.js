@@ -113,7 +113,7 @@ const updateSubDeviceParamValue = catchAsync(async (req, res) => {
   );
   await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_UPDATED', subDeviceParam);
   await createLogService(
-    req.params.deviceId,
+    device,
     req.params.subDeviceId,
     `${req.params.paramName}_UPDATED`,
     await generateSubDeviceLog(device, subDevice, req.params, req.body),
@@ -196,7 +196,7 @@ const updateSubDeviceParamsToSocketUsers = async (socketDevice, __updateData) =>
     _updateData.updatedBody
   );
   await createLogService(
-    socketDevice.deviceId,
+    device,
     subDevice.subDeviceId,
     `${_updateData.paramName}_UPDATED`,
     await generateSubDeviceLog(device, subDevice, { paramName: _updateData.paramName }, _updateData.updatedBody),

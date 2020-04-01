@@ -81,7 +81,7 @@ const updateDeviceParamValue = catchAsync(async (req, res) => {
   const deviceParam = await updateDeviceParamService(req.params.deviceId, req.params.paramName, req.body);
   await sendDeviceParamSocketNotification(device, 'DEVICE_PARAM_UPDATED', deviceParam);
   await createLogService(
-    req.params.deviceId,
+    device,
     null,
     `${req.params.paramName}_UPDATED`,
     await generateDeviceLog(device, req.params, req.body),
@@ -122,7 +122,7 @@ const updateDeviceParamsToSocketUsers = async (socketDevice, __updateData) => {
     _updateData.updatedBody
   );
   await createLogService(
-    socketDevice.deviceId,
+    device,
     null,
     `${_updateData.paramName}_UPDATED`,
     await generateDeviceLog(device, { paramName: _updateData.paramName }, _updateData.updatedBody),
