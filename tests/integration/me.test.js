@@ -93,7 +93,7 @@ describe('Me Routes', () => {
       expect(res.body.settings).toHaveProperty('subDeviceSettings');
       expect(res.body.settings.deviceSettings).toHaveLength(3);
       expect(res.body.settings.subDeviceSettings).toHaveLength(1);
-      expect(res.body.logs).toHaveLength(5);
+      expect(res.body.logs).toHaveLength(4);
       expect(res.body.onlineDevices).toHaveLength(1);
 
       expect(res.body.devices.myDevices[0]).toHaveProperty('deviceId');
@@ -253,15 +253,6 @@ describe('Me Routes', () => {
       expect(res.body.logs[3]).toHaveProperty('createdBy');
       expect(res.body.logs[3]).toHaveProperty('triggeredByDevice');
       expect(res.body.logs[3]).toHaveProperty('createdAt');
-
-      expect(res.body.logs[4]).toHaveProperty('deviceId');
-      expect(res.body.logs[4]).toHaveProperty('subDeviceId');
-      expect(res.body.logs[4]).toHaveProperty('logName');
-      expect(res.body.logs[4]).toHaveProperty('logDescription');
-      expect(res.body.logs[4]).toHaveProperty('isDevLog');
-      expect(res.body.logs[4]).toHaveProperty('createdBy');
-      expect(res.body.logs[4]).toHaveProperty('triggeredByDevice');
-      expect(res.body.logs[4]).toHaveProperty('createdAt');
 
       expect(res.body.onlineDevices[0]).toHaveProperty('bindedTo');
       expect(res.body.onlineDevices[0]).toHaveProperty('id');

@@ -52,6 +52,8 @@ const getUserByEmailService = async email => {
   return user;
 };
 
+const getUserByEmailForLogService = async email => User.findOne({ email });
+
 const updateUserService = async (userId, updateBody) => {
   const user = await getUserByIdService(userId);
   const oldEmail = user.email;
@@ -92,4 +94,5 @@ module.exports = {
   getUserByEmailService,
   updateUserService,
   deleteUserService,
+  getUserByEmailForLogService,
 };
