@@ -700,14 +700,14 @@ describe('Socket Tests', () => {
 
         deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceAccessToken}`, deviceOptions);
         userIOClient = io.connect(socketUrl, userOptions);
-        deviceIOClient.on('CONNECTED', () => {
+        deviceIOClient.on('CONNECTED', async () => {
+          await SocketId.deleteMany();
           deviceIOClient.emit('subDeviceParam/getAll');
         });
 
-        deviceIOClient.on('GET_ALL_SUB_DEVICE_PARAMS', async data => {
+        deviceIOClient.on('GET_ALL_SUB_DEVICE_PARAMS', data => {
           spy = jest.spyOn(NotificationService, 'sendMessage');
           const subDeviceParam = data[0];
-          await SocketId.deleteMany();
           deviceIOClient.emit('subDeviceParam/update', {
             deviceId: subDeviceParam.deviceId,
             subDeviceId: subDeviceParam.subDeviceId,
