@@ -8,6 +8,7 @@ import {
 } from '../services/socketId.service';
 import { getSharedDeviceAccessByDeviceIdService } from '../services/sharedDeviceAccess.service';
 import NotificationService from '../services/notification.service';
+import { updateStatusToOff } from './subDeviceParam.controller';
 
 const sendOnlineDeviceNotification = async (device, event, onlineDevice) => {
   const deviceAccees = await getSharedDeviceAccessByDeviceIdService(device.deviceId);
@@ -38,6 +39,7 @@ const handleDisconnection = async socketId => {
   if (onlineDevice) {
     const device = await getActiveDeviceByDeviceIdService(onlineDevice.bindedTo);
     await sendOnlineDeviceNotification(device, 'SOCKET_ID_DELETED', onlineDevice);
+    await updateStatusToOff(device);
   }
   return deleteSocketIdBySocketIdService(socketId);
 };

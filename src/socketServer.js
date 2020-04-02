@@ -3,6 +3,7 @@ import reRouteMessages from './routes/socketRoutes';
 import { handleDisconnection } from './controllers/socketId.controller';
 import socketAuth from './middlewares/socketAuth';
 import NotificationService from './services/notification.service';
+import { updateUpdatedAt } from './controllers/subDeviceParam.controller';
 
 class SocketServer {
   constructor(_httpServer) {
@@ -41,13 +42,16 @@ class SocketServer {
     NotificationService.serviceMessage.subscribe(execCommand);
 
     // eslint-disable-next-line no-unused-vars
-    const handleSocketConnection = (socket, next) => {
+    const handleSocketConnection = async (socket, next) => {
       if (socket.user) {
         NotificationService.sendMessage([{ socketId: socket.id }], 'CONNECTED', socket.user.transform());
       } else {
         NotificationService.sendMessage([{ socketId: socket.id }], 'CONNECTED', socket.device.transform());
       }
       reRouteMessages(socket);
+      if (socket.device) {
+        await updateUpdatedAt(socket.device);
+      }
       socket.on('disconnect', () => handleDisconnection(socket.id));
     };
 

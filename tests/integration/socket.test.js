@@ -108,6 +108,54 @@ describe('Socket Tests', () => {
       });
     });
 
+    it('should connect to server if valid device token and send notification to users', done => {
+      deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceAccessToken}`, deviceOptions);
+      deviceIOClient.once('CONNECTED', () => {
+        const spy = jest.spyOn(NotificationService, 'sendMessage');
+        setTimeout(() => {
+          expect(spy).toBeCalledWith(expect.anything(), 'SUB_DEVICE_MULTI_PARAM_UPDATED', []);
+          done();
+        }, 100);
+      });
+    });
+
+    it('should send notification to users if device is disconnected', async done => {
+      await insertSharedDeviceAccess([accessOne]);
+      await insertSubDevices([subDeviceOne]);
+      await insertSubDeviceParams([subDeviceParamThree]);
+      const userOptions = {
+        forceNew: true,
+        transportOptions: {
+          polling: {
+            extraHeaders: {
+              'x-auth-token': userOneAccessToken,
+            },
+          },
+        },
+      };
+
+      deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceAccessToken}`, deviceOptions);
+      deviceIOClient.on('connect', async () => {
+        userIOClient = io.connect(socketUrl, userOptions);
+
+        userIOClient.once('CONNECTED', async () => {
+          deviceIOClient.disconnect();
+        });
+
+        userIOClient.on('SUB_DEVICE_MULTI_PARAM_UPDATED', data => {
+          expect(data).toBeInstanceOf(Array);
+          expect(data.length).toBe(1);
+          expect(data[0].isDisabled).toBeDefined();
+          expect(data[0].deviceId).toBeDefined();
+          expect(data[0].subDeviceId).toBeDefined();
+          expect(data[0].paramName).toBeDefined();
+          expect(data[0].paramValue).toBeDefined();
+          expect(data[0].paramValue).toBe('off');
+          done();
+        });
+      });
+    });
+
     it('should connect to server if valid user token', done => {
       const userOptions = {
         forceNew: true,
@@ -1042,14 +1090,14 @@ describe('Socket Tests', () => {
 
         deviceIOClient = io.connect(`${socketUrl}?auth_token=${deviceAccessToken}`, deviceOptions);
         userIOClient = io.connect(socketUrl, userOptions);
-        deviceIOClient.on('CONNECTED', () => {
+        deviceIOClient.on('CONNECTED', async () => {
+          await SocketId.deleteMany();
           deviceIOClient.emit('deviceParam/getAll');
         });
 
         deviceIOClient.on('GET_ALL_DEVICE_PARAMS', async data => {
           spy = jest.spyOn(NotificationService, 'sendMessage');
           const deviceParam = data[0];
-          await SocketId.deleteMany();
           deviceIOClient.emit('deviceParam/update', {
             paramName: deviceParam.paramName,
             updatedBody: {

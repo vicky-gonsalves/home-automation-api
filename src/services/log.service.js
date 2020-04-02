@@ -50,7 +50,7 @@ const getLogsByDeviceIdService = async deviceIds => {
             as: 'user',
           },
         },
-        { $unwind: '$user' },
+        { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
         { $sort: { createdAt: -1 } },
         { $limit: 5 },
         {
