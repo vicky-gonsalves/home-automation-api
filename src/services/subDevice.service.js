@@ -1,6 +1,6 @@
 import httpStatus from 'http-status';
 import { pick } from 'lodash';
-import { deleteSubDeviceParamByDeviceIdService } from './subDeviceParam.service';
+import { deleteSubDeviceParamByDeviceIdService, deleteSubDeviceParamBySubDeviceIdService } from './subDeviceParam.service';
 import AppError from '../utils/AppError';
 import SubDevice from '../models/subDevice.model';
 import { getQueryOptions } from '../utils/service.util';
@@ -74,7 +74,7 @@ const updateSubDeviceUpdatedByService = async (oldEmail, newEmail) => {
 };
 
 const deleteSubDeviceService = async (deviceId, subDeviceId) => {
-  await deleteSubDeviceParamByDeviceIdService(deviceId);
+  await deleteSubDeviceParamBySubDeviceIdService(deviceId, subDeviceId);
   const subDevice = await getSubDeviceBySubDeviceIdService(deviceId, subDeviceId);
   await subDevice.remove();
   return subDevice;
@@ -88,6 +88,11 @@ const deleteSubDevicesByDeviceIdService = async deviceId => {
 
 const getActiveSubDevicesByDeviceIdService = async deviceIds => {
   const subDevices = await SubDevice.find({ deviceId: { $in: deviceIds }, isDisabled: false });
+  return subDevices.map(subDevice => subDevice.transform());
+};
+
+const getActiveSubDevicesByDeviceIdAndSortService = async deviceId => {
+  const subDevices = await SubDevice.find({ deviceId, isDisabled: false }).sort({ createdAt: 1, name: 1 });
   return subDevices.map(subDevice => subDevice.transform());
 };
 
@@ -116,4 +121,5 @@ module.exports = {
   getActiveSubDevicesByDeviceIdService,
   getActiveSubDeviceByDeviceIdAndSubDeviceIdService,
   getActiveSubDeviceByDeviceIdAndSubDeviceIdForMultiStatusChangeService,
+  getActiveSubDevicesByDeviceIdAndSortService,
 };

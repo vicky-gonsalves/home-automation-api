@@ -2,7 +2,7 @@ import { admin } from './user.fixture';
 import mongoose from 'mongoose';
 import { idType, settingType } from '../../src/config/setting';
 import { deviceOne } from './device.fixture';
-import { subDeviceOne, subDeviceThree, subDeviceFive } from './subDevice.fixture';
+import { subDeviceOne, subDeviceThree, subDeviceFour, subDeviceFive } from './subDevice.fixture';
 import { defaultSettings } from '../../src/config/config';
 import Setting from '../../src/models/setting.model';
 
@@ -46,6 +46,7 @@ const settingFour = {
   type: settingType[1],
   idType: idType[1],
   bindedTo: subDeviceThree.subDeviceId,
+  parent: subDeviceThree.deviceId,
   paramName: 'autoShutDownTime',
   paramValue: defaultSettings.defaultSubDeviceAutoShutDownTime,
   createdBy: email1,
@@ -57,6 +58,19 @@ const settingFive = {
   type: settingType[1],
   idType: idType[1],
   bindedTo: subDeviceFive.subDeviceId,
+  parent: subDeviceFive.deviceId,
+  paramName: 'autoShutDownTime',
+  paramValue: 0,
+  createdBy: email1,
+  updatedBy: email1,
+};
+
+const settingSix = {
+  _id: mongoose.Types.ObjectId(),
+  type: settingType[1],
+  idType: idType[1],
+  bindedTo: subDeviceFour.subDeviceId,
+  parent: subDeviceFour.deviceId,
   paramName: 'autoShutDownTime',
   paramValue: 0,
   createdBy: email1,
@@ -74,4 +88,5 @@ module.exports = {
   settingThree,
   settingFour,
   settingFive,
+  settingSix,
 };

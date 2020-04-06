@@ -38,6 +38,15 @@ const getActiveSettingsBySubDeviceIdsService = async subDevices => {
   return Setting.find({ type: 'subDevice', idType: 'subDeviceId', bindedTo: { $in: subDeviceIds }, isDisabled: false });
 };
 
+const getPreferredSubDeviceService = (deviceId, subDeviceId) =>
+  Setting.findOne({
+    type: 'device',
+    idType: 'deviceId',
+    bindedTo: deviceId,
+    paramName: 'preferredSubDevice',
+    paramValue: subDeviceId,
+  });
+
 const getSettingService = async setting => {
   const _setting = await Setting.findOne(setting);
   if (!_setting) {
@@ -120,10 +129,90 @@ const updateSettingService = async (setting, updatedSetting) => {
   return _setting;
 };
 
+const updateSubDeviceSettingService = async (parent, subDeviceId, isDisabled, updatedBy) => {
+  const settings = await Setting.find({
+    type: 'subDevice',
+    idType: 'subDeviceId',
+    parent,
+    bindedTo: subDeviceId,
+  });
+  return Promise.all(
+    settings.map(async _setting => {
+      await Object.assign(_setting, { isDisabled, updatedBy });
+      await _setting.save();
+      return _setting;
+    })
+  );
+};
+
+const deleteDeviceSettingService = async deviceId => {
+  const settings = await Setting.find({
+    type: 'device',
+    idType: 'deviceId',
+    bindedTo: deviceId,
+  });
+  return Promise.all(settings.map(_setting => _setting.remove()));
+};
+
+const toggleDeviceSettingService = async (setting, isDisabled, updatedBy) => {
+  const _setting = await getSettingService({
+    type: setting.type,
+    idType: setting.idType,
+    bindedTo: setting.bindedTo,
+    paramName: setting.paramName,
+  });
+  await Object.assign(_setting, { isDisabled, updatedBy });
+  await _setting.save();
+  return _setting;
+};
+
+const deleteNonPreferredSubDeviceSettingService = async deviceId => {
+  const settings = await Setting.find({
+    type: 'device',
+    idType: 'deviceId',
+    bindedTo: deviceId,
+    paramName: { $ne: 'preferredSubDevice' },
+  });
+  return Promise.all(settings.map(_setting => _setting.remove()));
+};
+
+const updateNonPreferredSubDeviceSettingService = async (deviceId, subDeviceId, isDisabled, updatedBy) => {
+  const settings = await Setting.find({
+    type: 'device',
+    idType: 'deviceId',
+    bindedTo: deviceId,
+    paramName: { $ne: 'preferredSubDevice' },
+  });
+  return Promise.all(
+    settings.map(async _setting => {
+      await Object.assign(_setting, { isDisabled, updatedBy });
+      await _setting.save();
+      return _setting;
+    })
+  );
+};
+
+const deleteSubDeviceSettingService = async (parent, subDeviceId) => {
+  const settings = await Setting.find({
+    type: 'subDevice',
+    idType: 'subDeviceId',
+    parent,
+    bindedTo: subDeviceId,
+  });
+  return Promise.all(settings.map(_setting => _setting.remove()));
+};
+
 module.exports = {
   createTankSettingService,
   createSmartSwitchSettingService,
   updateSettingService,
   getActiveSettingsByDeviceIdsService,
   getActiveSettingsBySubDeviceIdsService,
+  getPreferredSubDeviceService,
+  deleteDeviceSettingService,
+  toggleDeviceSettingService,
+  deleteNonPreferredSubDeviceSettingService,
+  deleteSubDeviceSettingService,
+  updateNonPreferredSubDeviceSettingService,
+  updateSubDeviceSettingService,
 };

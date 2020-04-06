@@ -109,6 +109,11 @@ const deleteSubDeviceParamByDeviceIdService = async deviceId => {
   await Promise.all(subDeviceParams.map(subDeviceParam => subDeviceParam.remove()));
 };
 
+const deleteSubDeviceParamBySubDeviceIdService = async (deviceId, subDeviceId) => {
+  const subDeviceParams = await SubDeviceParam.find({ deviceId, subDeviceId });
+  await Promise.all(subDeviceParams.map(subDeviceParam => subDeviceParam.remove()));
+};
+
 const getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService = async subDevices => {
   let subDeviceParams = [];
   subDeviceParams = await Promise.all(
@@ -159,4 +164,5 @@ module.exports = {
   updateMultiStatusService,
   updateUpdatedAtAndNotifyService,
   updateStatusToOffAndNotifyService,
+  deleteSubDeviceParamBySubDeviceIdService,
 };
