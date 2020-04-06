@@ -10,7 +10,7 @@ describe('SubDevice Model', () => {
       newSubDevice = {
         deviceId: faker.random.alphaNumeric(10),
         subDeviceId: faker.random.alphaNumeric(10),
-        name: faker.name.firstName(),
+        name: 'somename',
         type: faker.random.arrayElement(subDeviceType),
         createdBy: email,
         updatedBy: email,
@@ -94,7 +94,7 @@ describe('SubDevice Model', () => {
       newSubDevice = {
         deviceId: faker.random.alphaNumeric(10),
         subDeviceId: faker.random.alphaNumeric(10),
-        name: faker.name.firstName(),
+        name: 'somename',
         type: faker.random.arrayElement(subDeviceType),
         createdBy: email,
         updatedBy: email,
