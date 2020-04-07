@@ -96,6 +96,8 @@ settingSchema.methods.transform = function() {
     'isDisabled',
     'createdBy',
     'updatedBy',
+    'createdAt',
+    'updatedAt',
   ]);
 };
 

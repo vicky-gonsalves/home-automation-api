@@ -57,15 +57,13 @@ const generateSubDeviceLog = async (device, subDevice, params, body) => {
       const waterLevel = await getDeviceParamByParamNameService(device.deviceId, 'waterLevel');
       if (socketIds.length) {
         log = `${log} when water level was ${waterLevel.paramValue}%`;
-      } else {
-        log = `${log} when device was offline`;
       }
     }
   } else {
     log = `${log} ${params.paramName} updated to ${body.paramValue}`;
-    if (!socketIds.length) {
-      log += ` when device was offline`;
-    }
+  }
+  if (!socketIds.length) {
+    log = `${log} when device was offline`;
   }
   return log;
 };
