@@ -813,7 +813,60 @@ describe('Sub-Device Params Routes', () => {
       });
     });
 
-    it('should return 200 and successfully update sub-device param value if data is ok and if user is admin and save log', async () => {
+    it('should return 200 and successfully update sub-device param value if data is ok and if user is admin and save log when device is online', async () => {
+      await insertDeviceParams([deviceParamSix]);
+      await insertSubDeviceParams([subDeviceParamThree]);
+      await insertSocketIds([socketIdOne]);
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-param-value/${subDeviceParamThree.paramName}`;
+      updateBody = {
+        paramValue: 'on',
+      };
+      const res = await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      expect(res.body).toHaveProperty('isDisabled');
+      expect(res.body).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        paramName: subDeviceParamThree.paramName,
+        paramValue: updateBody.paramValue,
+        isDisabled: false,
+      });
+
+      const dbSubDeviceParam = await SubDeviceParam.findOne({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        paramName: subDeviceParamThree.paramName,
+      });
+      expect(dbSubDeviceParam).toBeDefined();
+      expect(dbSubDeviceParam).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        paramName: subDeviceParamThree.paramName,
+        paramValue: updateBody.paramValue,
+        isDisabled: false,
+        updatedBy: admin.email,
+      });
+
+      const dbLog = await Log.findOne({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        logName: `${subDeviceParamThree.paramName}_UPDATED`,
+      });
+      expect(dbLog).toBeDefined();
+      expect(dbLog).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        logName: `${subDeviceParamThree.paramName}_UPDATED`,
+        logDescription: `${subDeviceOne.name} turned on when water level was ${deviceParamSix.paramValue}%`,
+        createdBy: admin.email,
+      });
+    });
+
+    it('should return 200 and successfully update sub-device param value if data is ok and if user is admin and save log when device is offline', async () => {
       await insertDeviceParams([deviceParamSix]);
       await insertSubDeviceParams([subDeviceParamThree]);
       route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}/sub-device-param-value/${subDeviceParamThree.paramName}`;
@@ -860,7 +913,7 @@ describe('Sub-Device Params Routes', () => {
         deviceId: deviceOne.deviceId,
         subDeviceId: subDeviceOne.subDeviceId,
         logName: `${subDeviceParamThree.paramName}_UPDATED`,
-        logDescription: `${subDeviceOne.name} turned on when water level was ${deviceParamSix.paramValue}%`,
+        logDescription: `${subDeviceOne.name} turned on when device was offline`,
         createdBy: admin.email,
       });
     });
@@ -941,7 +994,7 @@ describe('Sub-Device Params Routes', () => {
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updateBody)
         .expect(httpStatus.OK);
-      expect(spy).toBeCalled();
+      expect(spy).toBeCalledTimes(2);
     });
 
     it('should return 403 if user is having role user and no access to the device', async () => {
@@ -1097,7 +1150,7 @@ describe('Sub-Device Params Routes', () => {
         .set('Authorization', `Bearer ${adminAccessToken}`)
         .send(updateBody)
         .expect(httpStatus.OK);
-      expect(spy).toBeCalled();
+      expect(spy).toBeCalledTimes(2);
     });
 
     it('should return 200 and successfully update status if data is ok and if user is having role user and access to the device', async () => {

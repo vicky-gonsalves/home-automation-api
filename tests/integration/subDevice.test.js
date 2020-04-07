@@ -14,14 +14,17 @@ import {
   subDeviceParamFour,
   subDeviceParamOne,
   subDeviceParamThree,
+  subDeviceParamTwo,
 } from '../fixtures/subDeviceParam.fixture';
 import { adminAccessToken, userOneAccessToken } from '../fixtures/token.fixture';
 import { admin, insertUsers, userOne } from '../fixtures/user.fixture';
 import { setupTestDB } from '../utils/setupTestDB';
 import { accessOne, insertSharedDeviceAccess } from '../fixtures/sharedDeviceAccess.fixture';
-import { insertSocketIds, socketIdFour, socketIdTwo } from '../fixtures/socketId.fixture';
+import { insertSocketIds, socketIdFour, socketIdSix, socketIdTwo } from '../fixtures/socketId.fixture';
 import NotificationService from '../../src/services/notification.service';
 import { defaultSettings } from '../../src/config/config';
+import { insertSettings, settingFour, settingOne, settingThree, settingTwo } from '../fixtures/setting.fixture';
+import { idType, settingType } from '../../src/config/setting';
 
 setupTestDB();
 
@@ -651,7 +654,7 @@ describe('Sub-Device Routes', () => {
       expect(spy).toBeCalled();
     });
 
-    it('should return 204 and delete sub-device and all sub-device-params of a device', async () => {
+    it('should return 204 and delete sub-device and all sub-device-params of a sub device', async () => {
       await insertDevices([deviceTwo]);
       await insertSubDevices([subDeviceThree]);
       await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
@@ -666,7 +669,383 @@ describe('Sub-Device Routes', () => {
       const dbSubDeviceParamOne = await SubDeviceParam.findById(subDeviceParamFour._id);
       expect(dbSubDeviceParamOne).toBeNull();
       const dbSubDeviceParamTwo = await SubDeviceParam.findById(subDeviceParamFive._id);
-      expect(dbSubDeviceParamTwo).toBeNull();
+      expect(dbSubDeviceParamTwo).toBeDefined();
+    });
+
+    it('should delete sub device and if in settings, preferred Device is that sub device, then it should change the preferred device to remaining sub device and send notification', async () => {
+      await insertSubDevices([subDeviceTwo]);
+      await insertSubDeviceParams([subDeviceParamOne, subDeviceParamTwo, subDeviceParamThree]);
+      await insertSettings([settingOne, settingTwo, settingThree]);
+      await insertSharedDeviceAccess([accessOne]);
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}`;
+      await request(app)
+        .delete(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.NO_CONTENT);
+
+      const dbSetting = await Setting.findOne({
+        type: settingType[0],
+        idType: idType[0],
+        bindedTo: deviceOne.deviceId,
+        paramName: 'preferredSubDevice',
+        isDisabled: false,
+      });
+      expect(dbSetting).toBeDefined();
+      expect(dbSetting).toBeInstanceOf(Object);
+      expect(dbSetting.isDisabled).toBe(false);
+      expect(dbSetting.type).toBe(settingType[0]);
+      expect(dbSetting.idType).toBe(idType[0]);
+      expect(dbSetting.bindedTo).toBe(deviceOne.deviceId);
+      expect(dbSetting.paramName).toBe('preferredSubDevice');
+      expect(dbSetting.paramValue).toBe(subDeviceTwo.subDeviceId);
+
+      // Notifications
+      expect(spy).toHaveBeenCalledTimes(3);
+
+      // First Notification
+      expect(spy.mock.calls[0][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][0].length).toBe(2);
+      expect(spy.mock.calls[0][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[0][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[0][1]).toBe('DEVICE_SETTING_UPDATED');
+      expect(spy.mock.calls[0][2]).toMatchObject({
+        type: settingType[0],
+        idType: idType[0],
+        bindedTo: deviceOne.deviceId,
+        paramName: 'preferredSubDevice',
+        isDisabled: false,
+        updatedBy: admin.email,
+      });
+
+      // second Notification
+      expect(spy.mock.calls[1][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[1][0].length).toBe(2);
+      expect(spy.mock.calls[1][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[1][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[1][1]).toBe('DEVICE_MULTI_SETTING_DELETED');
+      expect(spy.mock.calls[1][2]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[1][2].length).toBe(2);
+      expect(spy.mock.calls[1][2][0]).toMatchObject({
+        type: settingTwo.type,
+        idType: settingTwo.idType,
+        paramName: settingTwo.paramName,
+        paramValue: settingTwo.paramValue,
+      });
+      expect(spy.mock.calls[1][2][1]).toMatchObject({
+        type: settingThree.type,
+        idType: settingThree.idType,
+        paramName: settingThree.paramName,
+        paramValue: settingThree.paramValue,
+      });
+
+      // Third Notification
+      expect(spy.mock.calls[2][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[2][0].length).toBe(2);
+      expect(spy.mock.calls[2][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[2][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[2][1]).toBe('SUB_DEVICE_DELETED');
+      expect(spy.mock.calls[2][2]).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        name: subDeviceOne.name,
+        type: subDeviceOne.type,
+      });
+    });
+
+    it('should delete sub device and other settings if preferred sub device setting does not exists and then send notification', async () => {
+      await insertSubDevices([subDeviceTwo]);
+      await insertSubDeviceParams([subDeviceParamOne, subDeviceParamTwo, subDeviceParamThree]);
+      await insertSettings([settingTwo, settingThree]);
+      await insertSharedDeviceAccess([accessOne]);
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}`;
+      await request(app)
+        .delete(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.NO_CONTENT);
+
+      const dbSettings = await Setting.find({
+        type: settingType[0],
+        idType: idType[0],
+        bindedTo: deviceOne.deviceId,
+      });
+      expect(dbSettings).toBeDefined();
+      expect(dbSettings).toBeInstanceOf(Array);
+      expect(dbSettings.length).toBe(0);
+
+      // Notifications
+      expect(spy).toHaveBeenCalledTimes(2);
+
+      // First Notification
+      expect(spy.mock.calls[0][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][0].length).toBe(2);
+      expect(spy.mock.calls[0][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[0][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[0][1]).toBe('DEVICE_MULTI_SETTING_DELETED');
+      expect(spy.mock.calls[0][2]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][2].length).toBe(2);
+      expect(spy.mock.calls[0][2][0]).toMatchObject({
+        type: settingTwo.type,
+        idType: settingTwo.idType,
+        paramName: settingTwo.paramName,
+        paramValue: settingTwo.paramValue,
+      });
+      expect(spy.mock.calls[0][2][1]).toMatchObject({
+        type: settingThree.type,
+        idType: settingThree.idType,
+        paramName: settingThree.paramName,
+        paramValue: settingThree.paramValue,
+      });
+
+      // Third Notification
+      expect(spy.mock.calls[1][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[1][0].length).toBe(2);
+      expect(spy.mock.calls[1][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[1][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[1][1]).toBe('SUB_DEVICE_DELETED');
+      expect(spy.mock.calls[1][2]).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        name: subDeviceOne.name,
+        type: subDeviceOne.type,
+      });
+    });
+
+    it('should delete sub device and should not delete other settings if they dont exists and finally send notification', async () => {
+      await insertSubDevices([subDeviceTwo]);
+      await insertSubDeviceParams([subDeviceParamOne, subDeviceParamTwo, subDeviceParamThree]);
+      await insertSettings([settingOne]);
+      await insertSharedDeviceAccess([accessOne]);
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}`;
+      await request(app)
+        .delete(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.NO_CONTENT);
+
+      const dbSetting = await Setting.findOne({
+        type: settingType[0],
+        idType: idType[0],
+        bindedTo: deviceOne.deviceId,
+        paramName: 'preferredSubDevice',
+        isDisabled: false,
+      });
+      expect(dbSetting).toBeDefined();
+      expect(dbSetting).toBeInstanceOf(Object);
+      expect(dbSetting.isDisabled).toBe(false);
+      expect(dbSetting.type).toBe(settingType[0]);
+      expect(dbSetting.idType).toBe(idType[0]);
+      expect(dbSetting.bindedTo).toBe(deviceOne.deviceId);
+      expect(dbSetting.paramName).toBe('preferredSubDevice');
+      expect(dbSetting.paramValue).toBe(subDeviceTwo.subDeviceId);
+
+      // Notifications
+      expect(spy).toHaveBeenCalledTimes(2);
+
+      // First Notification
+      expect(spy.mock.calls[0][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][0].length).toBe(2);
+      expect(spy.mock.calls[0][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[0][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[0][1]).toBe('DEVICE_SETTING_UPDATED');
+      expect(spy.mock.calls[0][2]).toMatchObject({
+        type: settingType[0],
+        idType: idType[0],
+        bindedTo: deviceOne.deviceId,
+        paramName: 'preferredSubDevice',
+        isDisabled: false,
+        updatedBy: admin.email,
+      });
+
+      // second Notification
+      expect(spy.mock.calls[1][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[1][0].length).toBe(2);
+      expect(spy.mock.calls[1][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[1][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[1][1]).toBe('SUB_DEVICE_DELETED');
+      expect(spy.mock.calls[1][2]).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        name: subDeviceOne.name,
+        type: subDeviceOne.type,
+      });
+    });
+
+    it('should delete sub device and all non preferred sub device settings sub device and send notification if device has only one sub device', async () => {
+      await insertSubDeviceParams([subDeviceParamOne, subDeviceParamThree]);
+      await insertSettings([settingOne, settingTwo, settingThree]);
+      await insertSharedDeviceAccess([accessOne]);
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+
+      route = `/v1/devices/${deviceOne.deviceId}/sub-devices/${subDeviceOne.subDeviceId}`;
+      await request(app)
+        .delete(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.NO_CONTENT);
+
+      const dbSettings = await Setting.find({
+        type: settingType[0],
+        idType: idType[0],
+        bindedTo: deviceOne.deviceId,
+      });
+      expect(dbSettings).toBeDefined();
+      expect(dbSettings).toBeInstanceOf(Array);
+      expect(dbSettings.length).toBe(0);
+
+      // Notifications
+      expect(spy).toHaveBeenCalledTimes(2);
+
+      // // First Notification
+      expect(spy.mock.calls[0][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][0].length).toBe(2);
+      expect(spy.mock.calls[0][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[0][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[0][1]).toBe('DEVICE_MULTI_SETTING_DELETED');
+      expect(spy.mock.calls[0][2]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][2].length).toBe(3);
+      expect(spy.mock.calls[0][2][0]).toMatchObject({
+        type: settingOne.type,
+        idType: settingOne.idType,
+        bindedTo: settingOne.bindedTo,
+        paramName: settingOne.paramName,
+        paramValue: settingOne.paramValue,
+      });
+
+      expect(spy.mock.calls[0][2][1]).toMatchObject({
+        type: settingTwo.type,
+        idType: settingTwo.idType,
+        bindedTo: settingTwo.bindedTo,
+        paramName: settingTwo.paramName,
+        paramValue: settingTwo.paramValue,
+      });
+
+      expect(spy.mock.calls[0][2][2]).toMatchObject({
+        type: settingThree.type,
+        idType: settingThree.idType,
+        bindedTo: settingThree.bindedTo,
+        paramName: settingThree.paramName,
+        paramValue: settingThree.paramValue,
+      });
+
+      // second Notification
+      expect(spy.mock.calls[1][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[1][0].length).toBe(2);
+      expect(spy.mock.calls[1][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[1][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[1][1]).toBe('SUB_DEVICE_DELETED');
+      expect(spy.mock.calls[1][2]).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        name: subDeviceOne.name,
+        type: subDeviceOne.type,
+      });
+    });
+
+    it('should just delete sub device and send notification if device is smartSwitch and has no settings', async () => {
+      await insertDevices([deviceTwo]);
+      await insertSubDevices([subDeviceThree, subDeviceFour]);
+      await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
+      await insertSocketIds([socketIdTwo, socketIdFour, socketIdSix]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+
+      route = `/v1/devices/${deviceTwo.deviceId}/sub-devices/${subDeviceThree.subDeviceId}`;
+      await request(app)
+        .delete(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.NO_CONTENT);
+
+      const dbSetting = await Setting.find({
+        type: settingType[1],
+        idType: idType[1],
+        bindedTo: subDeviceThree.subDeviceId,
+      });
+      expect(dbSetting).toBeInstanceOf(Array);
+      expect(dbSetting.length).toBe(0);
+
+      // Notifications
+      expect(spy).toHaveBeenCalledTimes(1);
+
+      // First Notification
+      expect(spy.mock.calls[0][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][0].length).toBe(2);
+      expect(spy.mock.calls[0][0][0].socketId).toBe(socketIdSix.socketId);
+      expect(spy.mock.calls[0][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[0][1]).toBe('SUB_DEVICE_DELETED');
+      expect(spy.mock.calls[0][2]).toMatchObject({
+        deviceId: deviceTwo.deviceId,
+        subDeviceId: subDeviceThree.subDeviceId,
+        type: subDeviceThree.type,
+        name: subDeviceThree.name,
+      });
+    });
+
+    it('should delete sub device and its settings and send notification if device is smartSwitch', async () => {
+      await insertDevices([deviceTwo]);
+      await insertSubDevices([subDeviceThree]);
+      await insertSettings([settingFour]);
+      await insertSubDeviceParams([subDeviceParamFour]);
+      await insertSocketIds([socketIdTwo, socketIdFour, socketIdSix]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+
+      route = `/v1/devices/${deviceTwo.deviceId}/sub-devices/${subDeviceThree.subDeviceId}`;
+      await request(app)
+        .delete(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send()
+        .expect(httpStatus.NO_CONTENT);
+
+      const dbSetting = await Setting.find({
+        type: settingType[1],
+        idType: idType[1],
+        bindedTo: subDeviceThree.subDeviceId,
+      });
+      expect(dbSetting).toBeInstanceOf(Array);
+      expect(dbSetting.length).toBe(0);
+
+      // Notifications
+      expect(spy).toHaveBeenCalledTimes(2);
+
+      // First Notification
+      expect(spy.mock.calls[0][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][0].length).toBe(2);
+      expect(spy.mock.calls[0][0][0].socketId).toBe(socketIdSix.socketId);
+      expect(spy.mock.calls[0][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[0][1]).toBe('SUB_DEVICE_MULTI_SETTING_DELETED');
+      expect(spy.mock.calls[0][2]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][2].length).toBe(1);
+      expect(spy.mock.calls[0][2][0]).toMatchObject({
+        type: settingFour.type,
+        idType: settingFour.idType,
+        bindedTo: subDeviceThree.subDeviceId,
+        paramName: settingFour.paramName,
+        parent: deviceTwo.deviceId,
+      });
+
+      // second Notification
+      expect(spy.mock.calls[1][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[1][0].length).toBe(2);
+      expect(spy.mock.calls[1][0][0].socketId).toBe(socketIdSix.socketId);
+      expect(spy.mock.calls[1][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[1][1]).toBe('SUB_DEVICE_DELETED');
+      expect(spy.mock.calls[1][2]).toMatchObject({
+        deviceId: subDeviceThree.deviceId,
+        subDeviceId: subDeviceThree.subDeviceId,
+        name: subDeviceThree.name,
+        type: subDeviceThree.type,
+      });
     });
 
     it('should return 401 error if access token is missing', async () => {
@@ -783,6 +1162,442 @@ describe('Sub-Device Routes', () => {
       const dbSubDeviceParamThree = await SubDeviceParam.findById(subDeviceParamThree._id);
       expect(dbSubDeviceParamThree).toBeDefined();
       expect(dbSubDeviceParamThree.subDeviceId).toBe(subDeviceParamThree.subDeviceId);
+    });
+
+    it('should update sub device and if in settings, preferred Device is that sub device, then it should change the preferred device to remaining sub device if sub device is disabled and send notification', async () => {
+      await insertSubDevices([subDeviceTwo]);
+      await insertSubDeviceParams([subDeviceParamOne, subDeviceParamThree]);
+      await insertSettings([settingOne, settingTwo, settingThree]);
+      await insertSharedDeviceAccess([accessOne]);
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+
+      updateBody.isDisabled = true;
+      await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      const dbSetting = await Setting.findOne({
+        type: settingType[0],
+        idType: idType[0],
+        bindedTo: deviceOne.deviceId,
+        paramName: 'preferredSubDevice',
+        isDisabled: false,
+      });
+      expect(dbSetting).toBeDefined();
+      expect(dbSetting).toBeInstanceOf(Object);
+      expect(dbSetting.isDisabled).toBe(false);
+      expect(dbSetting.type).toBe(settingType[0]);
+      expect(dbSetting.idType).toBe(idType[0]);
+      expect(dbSetting.bindedTo).toBe(deviceOne.deviceId);
+      expect(dbSetting.paramName).toBe('preferredSubDevice');
+      expect(dbSetting.paramValue).toBe(subDeviceTwo.subDeviceId);
+
+      // Notifications
+      expect(spy).toHaveBeenCalledTimes(3);
+
+      // First Notification
+      expect(spy.mock.calls[0][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][0].length).toBe(2);
+      expect(spy.mock.calls[0][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[0][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[0][1]).toBe('DEVICE_SETTING_UPDATED');
+      expect(spy.mock.calls[0][2]).toMatchObject({
+        type: settingType[0],
+        idType: idType[0],
+        bindedTo: deviceOne.deviceId,
+        paramName: 'preferredSubDevice',
+        isDisabled: false,
+        updatedBy: admin.email,
+      });
+
+      // second Notification
+      expect(spy.mock.calls[1][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[1][0].length).toBe(2);
+      expect(spy.mock.calls[1][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[1][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[1][1]).toBe('DEVICE_MULTI_SETTING_UPDATED');
+      expect(spy.mock.calls[1][2]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[1][2].length).toBe(2);
+      expect(spy.mock.calls[1][2][0]).toMatchObject({
+        type: settingTwo.type,
+        idType: settingTwo.idType,
+        paramName: settingTwo.paramName,
+        paramValue: settingTwo.paramValue,
+        isDisabled: true,
+      });
+      expect(spy.mock.calls[1][2][1]).toMatchObject({
+        type: settingThree.type,
+        idType: settingThree.idType,
+        paramName: settingThree.paramName,
+        paramValue: settingThree.paramValue,
+        isDisabled: true,
+      });
+
+      // Third Notification
+      expect(spy.mock.calls[2][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[2][0].length).toBe(2);
+      expect(spy.mock.calls[2][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[2][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[2][1]).toBe('SUB_DEVICE_UPDATED');
+      expect(spy.mock.calls[2][2]).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        name: updateBody.name,
+        type: updateBody.type,
+        isDisabled: true,
+      });
+    });
+
+    it('should update sub device and if in settings, preferred Device is that sub device, then it should change the preferred device to remaining sub device if sub device is disabled is false and send notification', async () => {
+      await insertSubDevices([subDeviceTwo]);
+      await insertSubDeviceParams([subDeviceParamOne, subDeviceParamThree]);
+      await insertSettings([settingOne, settingTwo, settingThree]);
+      await insertSharedDeviceAccess([accessOne]);
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+
+      updateBody.isDisabled = false;
+      await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      const dbSetting = await Setting.findOne({
+        type: settingType[0],
+        idType: idType[0],
+        bindedTo: deviceOne.deviceId,
+        paramName: 'preferredSubDevice',
+        isDisabled: false,
+      });
+      expect(dbSetting).toBeDefined();
+      expect(dbSetting).toBeInstanceOf(Object);
+      expect(dbSetting.isDisabled).toBe(false);
+      expect(dbSetting.type).toBe(settingType[0]);
+      expect(dbSetting.idType).toBe(idType[0]);
+      expect(dbSetting.bindedTo).toBe(deviceOne.deviceId);
+      expect(dbSetting.paramName).toBe('preferredSubDevice');
+      expect(dbSetting.paramValue).toBe(subDeviceOne.subDeviceId);
+
+      // Notifications
+      expect(spy).toHaveBeenCalledTimes(2);
+
+      // First Notification
+      expect(spy.mock.calls[0][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][0].length).toBe(2);
+      expect(spy.mock.calls[0][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[0][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[0][1]).toBe('DEVICE_MULTI_SETTING_UPDATED');
+      expect(spy.mock.calls[0][2]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][2].length).toBe(2);
+      expect(spy.mock.calls[0][2][0]).toMatchObject({
+        type: settingTwo.type,
+        idType: settingTwo.idType,
+        paramName: settingTwo.paramName,
+        paramValue: settingTwo.paramValue,
+        isDisabled: false,
+      });
+      expect(spy.mock.calls[0][2][1]).toMatchObject({
+        type: settingThree.type,
+        idType: settingThree.idType,
+        paramName: settingThree.paramName,
+        paramValue: settingThree.paramValue,
+        isDisabled: false,
+      });
+
+      // Third Notification
+      expect(spy.mock.calls[1][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[1][0].length).toBe(2);
+      expect(spy.mock.calls[1][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[1][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[1][1]).toBe('SUB_DEVICE_UPDATED');
+      expect(spy.mock.calls[1][2]).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        name: updateBody.name,
+        type: updateBody.type,
+        isDisabled: false,
+      });
+    });
+
+    it('should update sub device and other settings if preferred sub device setting does not exists and then send notification if sub device is disabled', async () => {
+      await insertSubDevices([subDeviceTwo]);
+      await insertSubDeviceParams([subDeviceParamOne, subDeviceParamThree]);
+      await insertSettings([settingTwo, settingThree]);
+      await insertSharedDeviceAccess([accessOne]);
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+
+      updateBody.isDisabled = true;
+      await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      // Notifications
+      expect(spy).toHaveBeenCalledTimes(2);
+
+      // First Notification
+      expect(spy.mock.calls[0][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][0].length).toBe(2);
+      expect(spy.mock.calls[0][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[0][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[0][1]).toBe('DEVICE_MULTI_SETTING_UPDATED');
+      expect(spy.mock.calls[0][2]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][2].length).toBe(2);
+      expect(spy.mock.calls[0][2][0]).toMatchObject({
+        type: settingTwo.type,
+        idType: settingTwo.idType,
+        paramName: settingTwo.paramName,
+        paramValue: settingTwo.paramValue,
+        isDisabled: true,
+      });
+      expect(spy.mock.calls[0][2][1]).toMatchObject({
+        type: settingThree.type,
+        idType: settingThree.idType,
+        paramName: settingThree.paramName,
+        paramValue: settingThree.paramValue,
+        isDisabled: true,
+      });
+
+      // Second Notification
+      expect(spy.mock.calls[1][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[1][0].length).toBe(2);
+      expect(spy.mock.calls[1][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[1][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[1][1]).toBe('SUB_DEVICE_UPDATED');
+      expect(spy.mock.calls[1][2]).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        name: updateBody.name,
+        type: updateBody.type,
+        isDisabled: true,
+      });
+    });
+
+    it('should update sub device and should not update other settings if they dont exists and finally send notification if sub device is disabled', async () => {
+      await insertSubDevices([subDeviceTwo]);
+      await insertSubDeviceParams([subDeviceParamOne, subDeviceParamThree]);
+      await insertSettings([settingOne]);
+      await insertSharedDeviceAccess([accessOne]);
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+
+      updateBody.isDisabled = true;
+      await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      // Notifications
+      expect(spy).toHaveBeenCalledTimes(2);
+
+      // First Notification
+      expect(spy.mock.calls[0][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][0].length).toBe(2);
+      expect(spy.mock.calls[0][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[0][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[0][1]).toBe('DEVICE_SETTING_UPDATED');
+      expect(spy.mock.calls[0][2]).toMatchObject({
+        type: settingType[0],
+        idType: idType[0],
+        bindedTo: deviceOne.deviceId,
+        paramName: 'preferredSubDevice',
+        isDisabled: false,
+        updatedBy: admin.email,
+      });
+
+      // Second Notification
+      expect(spy.mock.calls[1][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[1][0].length).toBe(2);
+      expect(spy.mock.calls[1][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[1][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[1][1]).toBe('SUB_DEVICE_UPDATED');
+      expect(spy.mock.calls[1][2]).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        name: updateBody.name,
+        type: updateBody.type,
+        isDisabled: true,
+      });
+    });
+
+    it('should update sub device and all non preferred sub device settings and send notification if device has only one sub device if sub device is disabled', async () => {
+      await insertSubDeviceParams([subDeviceParamOne, subDeviceParamThree]);
+      await insertSettings([settingOne, settingTwo, settingThree]);
+      await insertSharedDeviceAccess([accessOne]);
+      await insertSocketIds([socketIdTwo, socketIdFour]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+
+      updateBody.isDisabled = true;
+      await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      // Notifications
+      expect(spy).toHaveBeenCalledTimes(3);
+
+      // First Notification
+      expect(spy.mock.calls[0][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][0].length).toBe(2);
+      expect(spy.mock.calls[0][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[0][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[0][1]).toBe('DEVICE_SETTING_UPDATED');
+      expect(spy.mock.calls[0][2]).toMatchObject({
+        type: settingType[0],
+        idType: idType[0],
+        bindedTo: deviceOne.deviceId,
+        paramName: 'preferredSubDevice',
+        isDisabled: false,
+        updatedBy: admin.email,
+      });
+
+      // Second Notification
+      expect(spy.mock.calls[1][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[1][0].length).toBe(2);
+      expect(spy.mock.calls[1][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[1][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[1][1]).toBe('DEVICE_MULTI_SETTING_UPDATED');
+      expect(spy.mock.calls[1][2]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[1][2].length).toBe(2);
+      expect(spy.mock.calls[1][2][0]).toMatchObject({
+        type: settingTwo.type,
+        idType: settingTwo.idType,
+        paramName: settingTwo.paramName,
+        paramValue: settingTwo.paramValue,
+        isDisabled: true,
+      });
+      expect(spy.mock.calls[1][2][1]).toMatchObject({
+        type: settingThree.type,
+        idType: settingThree.idType,
+        paramName: settingThree.paramName,
+        paramValue: settingThree.paramValue,
+        isDisabled: true,
+      });
+
+      // Third Notification
+      expect(spy.mock.calls[2][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[2][0].length).toBe(2);
+      expect(spy.mock.calls[2][0][0].socketId).toBe(socketIdTwo.socketId);
+      expect(spy.mock.calls[2][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[2][1]).toBe('SUB_DEVICE_UPDATED');
+      expect(spy.mock.calls[2][2]).toMatchObject({
+        deviceId: deviceOne.deviceId,
+        subDeviceId: subDeviceOne.subDeviceId,
+        name: updateBody.name,
+        type: updateBody.type,
+        isDisabled: true,
+      });
+    });
+
+    it('should just update sub device and send notification if device is smartSwitch and has no settings if sub device is disabled', async () => {
+      await insertDevices([deviceTwo]);
+      await insertSubDevices([subDeviceThree, subDeviceFour]);
+      await insertSubDeviceParams([subDeviceParamFour, subDeviceParamFive]);
+      await insertSocketIds([socketIdTwo, socketIdFour, socketIdSix]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+      route = `/v1/devices/${deviceTwo.deviceId}/sub-devices/${subDeviceThree.subDeviceId}`;
+
+      updateBody.isDisabled = true;
+      await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      const dbSetting = await Setting.find({
+        type: settingType[1],
+        idType: idType[1],
+        bindedTo: subDeviceThree.subDeviceId,
+      });
+      expect(dbSetting).toBeInstanceOf(Array);
+      expect(dbSetting.length).toBe(0);
+
+      // Notifications
+      expect(spy).toHaveBeenCalledTimes(1);
+
+      // First Notification
+      expect(spy.mock.calls[0][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][0].length).toBe(2);
+      expect(spy.mock.calls[0][0][0].socketId).toBe(socketIdSix.socketId);
+      expect(spy.mock.calls[0][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[0][1]).toBe('SUB_DEVICE_UPDATED');
+      expect(spy.mock.calls[0][2]).toMatchObject({
+        deviceId: deviceTwo.deviceId,
+        subDeviceId: subDeviceThree.subDeviceId,
+        type: subDeviceThree.type,
+        name: updateBody.name,
+        isDisabled: true,
+      });
+    });
+
+    it('should update sub device and its settings and send notification if device is smartSwitch if sub device is disabled', async () => {
+      await insertDevices([deviceTwo]);
+      await insertSubDevices([subDeviceThree]);
+      await insertSettings([settingFour]);
+      await insertSubDeviceParams([subDeviceParamFour]);
+      await insertSocketIds([socketIdTwo, socketIdFour, socketIdSix]);
+      const spy = jest.spyOn(NotificationService, 'sendMessage');
+
+      route = `/v1/devices/${deviceTwo.deviceId}/sub-devices/${subDeviceThree.subDeviceId}`;
+
+      updateBody.isDisabled = true;
+
+      await request(app)
+        .patch(route)
+        .set('Authorization', `Bearer ${adminAccessToken}`)
+        .send(updateBody)
+        .expect(httpStatus.OK);
+
+      const dbSetting = await Setting.find({
+        type: settingType[1],
+        idType: idType[1],
+        bindedTo: subDeviceThree.subDeviceId,
+      });
+      expect(dbSetting).toBeInstanceOf(Array);
+      expect(dbSetting.length).toBe(1);
+      expect(dbSetting[0].isDisabled).toBe(true);
+
+      // Notifications
+      expect(spy).toHaveBeenCalledTimes(2);
+
+      // First Notification
+      expect(spy.mock.calls[0][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][0].length).toBe(2);
+      expect(spy.mock.calls[0][0][0].socketId).toBe(socketIdSix.socketId);
+      expect(spy.mock.calls[0][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[0][1]).toBe('SUB_DEVICE_MULTI_SETTING_UPDATED');
+      expect(spy.mock.calls[0][2]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[0][2].length).toBe(1);
+      expect(spy.mock.calls[0][2][0]).toMatchObject({
+        type: settingFour.type,
+        idType: settingFour.idType,
+        bindedTo: subDeviceThree.subDeviceId,
+        paramName: settingFour.paramName,
+        parent: deviceTwo.deviceId,
+        isDisabled: true,
+      });
+
+      // second Notification
+      expect(spy.mock.calls[1][0]).toBeInstanceOf(Array);
+      expect(spy.mock.calls[1][0].length).toBe(2);
+      expect(spy.mock.calls[1][0][0].socketId).toBe(socketIdSix.socketId);
+      expect(spy.mock.calls[1][0][1].socketId).toBe(socketIdFour.socketId);
+      expect(spy.mock.calls[1][1]).toBe('SUB_DEVICE_UPDATED');
+      expect(spy.mock.calls[1][2]).toMatchObject({
+        deviceId: subDeviceThree.deviceId,
+        subDeviceId: subDeviceThree.subDeviceId,
+        name: updateBody.name,
+        type: subDeviceThree.type,
+        isDisabled: true,
+      });
     });
 
     it('should return 401 error if access token is missing', async () => {

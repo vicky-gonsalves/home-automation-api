@@ -18,7 +18,9 @@ import {
   getSubDeviceParamByParamNameService,
   getSubDeviceParamsService,
   updateMultiStatusService,
+  updateStatusToOffAndNotifyService,
   updateSubDeviceParamService,
+  updateUpdatedAtAndNotifyService,
 } from '../services/subDeviceParam.service';
 import NotificationService from '../services/notification.service';
 import catchAsync from '../utils/catchAsync';
@@ -48,14 +50,22 @@ const sendSubDeviceParamSocketNotification = async (device, event, subDevicePara
 
 const generateSubDeviceLog = async (device, subDevice, params, body) => {
   let log = `${subDevice.name}`;
+  const socketIds = await getSocketIdsByDeviceIdService(device.deviceId);
   if (params.paramName === 'status') {
     log = `${log} turned ${body.paramValue}`;
     if (device.variant === deviceVariant[0]) {
       const waterLevel = await getDeviceParamByParamNameService(device.deviceId, 'waterLevel');
-      log = `${log} when water level was ${waterLevel.paramValue}%`;
+      if (socketIds.length) {
+        log = `${log} when water level was ${waterLevel.paramValue}%`;
+      } else {
+        log = `${log} when device was offline`;
+      }
     }
   } else {
     log = `${log} ${params.paramName} updated to ${body.paramValue}`;
+    if (!socketIds.length) {
+      log += ` when device was offline`;
+    }
   }
   return log;
 };
@@ -113,7 +123,7 @@ const updateSubDeviceParamValue = catchAsync(async (req, res) => {
   );
   await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_UPDATED', subDeviceParam);
   await createLogService(
-    req.params.deviceId,
+    device,
     req.params.subDeviceId,
     `${req.params.paramName}_UPDATED`,
     await generateSubDeviceLog(device, subDevice, req.params, req.body),
@@ -137,6 +147,15 @@ const updateMultiSubDeviceParamValue = catchAsync(async (req, res) => {
     })
   );
   await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_MULTI_PARAM_UPDATED', subDeviceParams);
+  await createLogService(
+    device,
+    null,
+    `${req.params.paramName}_UPDATED`,
+    await generateSubDeviceLog(device, { name: 'All devices' }, { paramName: 'status' }, req.body),
+    false,
+    false,
+    req.user.email
+  );
   res.status(httpStatus.OK).send();
 });
 
@@ -196,15 +215,35 @@ const updateSubDeviceParamsToSocketUsers = async (socketDevice, __updateData) =>
     _updateData.updatedBody
   );
   await createLogService(
-    socketDevice.deviceId,
+    device,
     subDevice.subDeviceId,
     `${_updateData.paramName}_UPDATED`,
     await generateSubDeviceLog(device, subDevice, { paramName: _updateData.paramName }, _updateData.updatedBody),
-    false,
+    true,
     false,
     _updateData.updatedBody.updatedBy
   );
   await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAMS_UPDATED', updatedSubDeviceParam);
+};
+
+const updateUpdatedAt = async device => {
+  const updatedParams = await updateUpdatedAtAndNotifyService(device.deviceId);
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_MULTI_PARAM_UPDATED', updatedParams);
+  await createLogService(device, null, `DEVICE_ONLINE`, `Device back online`, true, false, `device@${device.deviceId}.com`);
+};
+
+const updateStatusToOff = async device => {
+  const updatedParams = await updateStatusToOffAndNotifyService(device.deviceId);
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_MULTI_PARAM_UPDATED', updatedParams);
+  await createLogService(
+    device,
+    null,
+    `DEVICE_OFFLINE`,
+    `Device went offline`,
+    true,
+    false,
+    `device@${device.deviceId}.com`
+  );
 };
 
 module.exports = {
@@ -217,4 +256,6 @@ module.exports = {
   updateSubDeviceParamsToSocketUsers,
   updateSubDeviceParamValue,
   updateMultiSubDeviceParamValue,
+  updateUpdatedAt,
+  updateStatusToOff,
 };

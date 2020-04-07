@@ -74,6 +74,7 @@ logSchema.methods.transform = function() {
     'isDevLog',
     'createdBy',
     'triggeredByDevice',
+    'createdAt',
   ]);
 };
 

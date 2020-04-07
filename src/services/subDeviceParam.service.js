@@ -109,6 +109,11 @@ const deleteSubDeviceParamByDeviceIdService = async deviceId => {
   await Promise.all(subDeviceParams.map(subDeviceParam => subDeviceParam.remove()));
 };
 
+const deleteSubDeviceParamBySubDeviceIdService = async (deviceId, subDeviceId) => {
+  const subDeviceParams = await SubDeviceParam.find({ deviceId, subDeviceId });
+  await Promise.all(subDeviceParams.map(subDeviceParam => subDeviceParam.remove()));
+};
+
 const getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService = async subDevices => {
   let subDeviceParams = [];
   subDeviceParams = await Promise.all(
@@ -123,6 +128,28 @@ const getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService = async subDevices
   return flatten(subDeviceParams);
 };
 
+const updateUpdatedAtAndNotifyService = async deviceId => {
+  const subDeviceParams = await SubDeviceParam.find({ deviceId, isDisabled: false, paramName: 'status' });
+  return Promise.all(
+    subDeviceParams.map(async subDeviceParam => {
+      Object.assign(subDeviceParam, { _updatedBy: `device@${deviceId}.com`, updatedAt: new Date() });
+      await subDeviceParam.save();
+      return subDeviceParam;
+    })
+  );
+};
+
+const updateStatusToOffAndNotifyService = async deviceId => {
+  const subDeviceParams = await SubDeviceParam.find({ deviceId, isDisabled: false, paramName: 'status' });
+  return Promise.all(
+    subDeviceParams.map(async subDeviceParam => {
+      Object.assign(subDeviceParam, { _updatedBy: `device@${deviceId}.com`, paramValue: 'off' });
+      await subDeviceParam.save();
+      return subDeviceParam;
+    })
+  );
+};
+
 module.exports = {
   createSubDeviceParamService,
   getSubDeviceParamsService,
@@ -135,4 +162,7 @@ module.exports = {
   getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService,
   getActiveSubDeviceParamByParamNameService,
   updateMultiStatusService,
+  updateUpdatedAtAndNotifyService,
+  updateStatusToOffAndNotifyService,
+  deleteSubDeviceParamBySubDeviceIdService,
 };
