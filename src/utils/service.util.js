@@ -1,3 +1,5 @@
+import { pick } from 'lodash';
+
 const getQueryOptions = query => {
   const page = query.page * 1 || 1;
   const limit = query.limit * 1 || 100;
@@ -12,6 +14,21 @@ const getQueryOptions = query => {
   return { limit, skip, sort };
 };
 
+const filterKeys = (query, pickKeys) => {
+  const filteredObj = pick(query, pickKeys);
+  const allKeys = Object.keys(filteredObj);
+  const regexedFilter = {};
+  allKeys.forEach(key => {
+    if (key === 'isDisabled') {
+      regexedFilter[key] = filteredObj[key];
+    } else {
+      regexedFilter[key] = new RegExp(filteredObj[key], 'i');
+    }
+  });
+  return regexedFilter;
+};
+
 module.exports = {
   getQueryOptions,
+  filterKeys,
 };

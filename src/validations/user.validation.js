@@ -9,6 +9,7 @@ const createUserValidation = {
     password: Joi.string()
       .required()
       .custom(passwordValidation),
+    isDisabled: Joi.boolean(),
     name: Joi.string().required(),
     role: Joi.string()
       .required()
@@ -19,6 +20,10 @@ const createUserValidation = {
 const getUsersValidation = {
   query: Joi.object().keys({
     name: Joi.string(),
+    email: Joi.string(),
+    isDisabled: Joi.boolean(),
+    createdBy: Joi.string(),
+    updatedBy: Joi.string(),
     role: Joi.string(),
     sortBy: Joi.string(),
     limit: Joi.number().integer(),
@@ -41,6 +46,7 @@ const updateUserValidation = {
       email: Joi.string().email(),
       password: Joi.string().custom(passwordValidation),
       name: Joi.string(),
+      isDisabled: Joi.boolean(),
     })
     .min(1),
 };

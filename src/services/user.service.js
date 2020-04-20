@@ -1,8 +1,7 @@
 import httpStatus from 'http-status';
-import { pick } from 'lodash';
 import User from '../models/user.model';
 import AppError from '../utils/AppError';
-import { getQueryOptions } from '../utils/service.util';
+import { filterKeys, getQueryOptions } from '../utils/service.util';
 import {
   deleteDevicesByDeviceOwnerService,
   updateDeviceCreatedByService,
@@ -18,6 +17,10 @@ import {
 } from './sharedDeviceAccess.service';
 import { updateDeviceParamCreatedByService, updateDeviceParamUpdatedByService } from './deviceParam.service';
 
+const pickKeys = ['name', 'email', 'role', 'isDisabled', 'createdAt', 'updatedAt'];
+
+const getUsersCountService = query => User.countDocuments(filterKeys(query, pickKeys));
+
 const checkDuplicateEmailService = async (email, excludeUserId) => {
   const user = await User.findOne({ email, _id: { $ne: excludeUserId } });
   if (user) {
@@ -31,7 +34,7 @@ const createUserService = async userBody => {
 };
 
 const getUsersService = async query => {
-  const filter = pick(query, ['name', 'role']);
+  const filter = filterKeys(query, pickKeys);
   const options = getQueryOptions(query);
   return User.find(filter, null, options);
 };
@@ -88,6 +91,7 @@ const deleteUserService = async userId => {
 };
 
 module.exports = {
+  getUsersCountService,
   createUserService,
   getUsersService,
   getUserByIdService,

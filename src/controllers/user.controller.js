@@ -2,6 +2,7 @@ import {
   createUserService,
   deleteUserService,
   getUserByIdService,
+  getUsersCountService,
   getUsersService,
   updateUserService,
 } from '../services/user.service';
@@ -15,9 +16,10 @@ const createUser = catchAsync(async (req, res) => {
 });
 
 const getUsers = catchAsync(async (req, res) => {
-  const users = await getUsersService(req.query);
-  const response = users.map(user => user.transform());
-  res.send(response);
+  const _users = await getUsersService(req.query);
+  const count = await getUsersCountService(req.query);
+  const users = _users.map(user => user.transform(true));
+  res.send({ users, count });
 });
 
 const getUser = catchAsync(async (req, res) => {

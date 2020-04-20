@@ -39,6 +39,30 @@ const userSchema = mongoose.Schema(
       enum: roles,
       default: 'user',
     },
+    isDisabled: {
+      type: Boolean,
+      default: false,
+    },
+    createdBy: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      validate(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error('Invalid email');
+        }
+      },
+    },
+    updatedBy: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      validate(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error('Invalid email');
+        }
+      },
+    },
   },
   {
     timestamps: true,
@@ -52,9 +76,11 @@ userSchema.methods.toJSON = function() {
   return omit(user.toObject(), ['password']);
 };
 
-userSchema.methods.transform = function() {
+userSchema.methods.transform = function(full = false) {
   const user = this;
-  return pick(user.toJSON(), ['id', 'email', 'name', 'role']);
+  const basic = ['id', 'email', 'name', 'role'];
+  const all = [...basic, 'isDisabled', 'createdBy', 'updatedBy', 'createdAt', 'updatedAt'];
+  return pick(user.toJSON(), full ? all : basic);
 };
 
 userSchema.pre('save', async function(next) {
