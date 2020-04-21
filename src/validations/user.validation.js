@@ -24,6 +24,8 @@ const getUsersValidation = {
     isDisabled: Joi.boolean(),
     createdBy: Joi.string(),
     updatedBy: Joi.string(),
+    createdAt: Joi.string().pattern(new RegExp('^[\\d+]{13}:[\\d+]{13}$')),
+    updatedAt: Joi.string().pattern(new RegExp('^[\\d+]{13}:[\\d+]{13}$')),
     role: Joi.string(),
     sortBy: Joi.string(),
     limit: Joi.number().integer(),

@@ -21,6 +21,9 @@ const filterKeys = (query, pickKeys) => {
   allKeys.forEach(key => {
     if (key === 'isDisabled') {
       regexedFilter[key] = filteredObj[key];
+    } else if (key === 'createdAt' || key === 'updatedAt') {
+      const splitDates = filteredObj[key].split(':');
+      regexedFilter[key] = { $gte: splitDates[0], $lte: splitDates[1] };
     } else {
       regexedFilter[key] = new RegExp(filteredObj[key], 'i');
     }
