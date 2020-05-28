@@ -1,8 +1,24 @@
 import httpStatus from 'http-status';
-import { flatten, pick } from 'lodash';
+import { flatten } from 'lodash';
 import AppError from '../utils/AppError';
 import SubDeviceParam from '../models/subDeviceParam.model';
-import { getQueryOptions } from '../utils/service.util';
+import { filterKeys, getQueryOptions } from '../utils/service.util';
+
+const pickKeys = [
+  'id',
+  'deviceId',
+  'subDeviceId',
+  'paramName',
+  'paramValue',
+  'isDisabled',
+  'createdBy',
+  'updatedBy',
+  'createdAt',
+  'updatedAt',
+];
+
+const getSubDeviceParamsCountService = (deviceId, subDeviceId, query) =>
+  SubDeviceParam.countDocuments({ deviceId, subDeviceId, ...filterKeys(query, pickKeys) });
 
 const checkDuplicateSubDeviceParamService = async (deviceId, subDeviceId, paramName, excludeSubDeviceParamId) => {
   const subDeviceParam = await SubDeviceParam.findOne({
@@ -12,7 +28,7 @@ const checkDuplicateSubDeviceParamService = async (deviceId, subDeviceId, paramN
     _id: { $ne: excludeSubDeviceParamId },
   });
   if (subDeviceParam) {
-    throw new AppError(httpStatus.BAD_REQUEST, 'subDeviceParam already registered');
+    throw new AppError(httpStatus.BAD_REQUEST, 'Sub-device-param with this param name already exists');
   }
 };
 
@@ -25,18 +41,7 @@ const createSubDeviceParamService = async (deviceId, subDeviceId, _subDevicePara
 };
 
 const getSubDeviceParamsService = async (deviceId, subDeviceId, query) => {
-  const filter = pick(query, [
-    'id',
-    'deviceId',
-    'subDeviceId',
-    'paramName',
-    'paramValue',
-    'isDisabled',
-    'createdBy',
-    'updatedBy',
-    'createdAt',
-    'updatedAt',
-  ]);
+  const filter = filterKeys(query, pickKeys);
   filter.deviceId = deviceId;
   filter.subDeviceId = subDeviceId;
   const options = getQueryOptions(query);
@@ -115,8 +120,7 @@ const deleteSubDeviceParamBySubDeviceIdService = async (deviceId, subDeviceId) =
 };
 
 const getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService = async subDevices => {
-  let subDeviceParams = [];
-  subDeviceParams = await Promise.all(
+  const subDeviceParams = await Promise.all(
     subDevices.map(subDevice =>
       SubDeviceParam.find({
         deviceId: subDevice.deviceId,
@@ -151,6 +155,7 @@ const updateStatusToOffAndNotifyService = async deviceId => {
 };
 
 module.exports = {
+  getSubDeviceParamsCountService,
   createSubDeviceParamService,
   getSubDeviceParamsService,
   getSubDeviceParamByParamNameService,

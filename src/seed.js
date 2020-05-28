@@ -9,7 +9,7 @@ import SeedSharedDeviceAccessFn from './seed-scripts/sharedDeviceAccess.seed';
 import SeedSocketIdFn from './seed-scripts/socketId.seed';
 import SeedSettingFn from './seed-scripts/setting.seed';
 
-const seedUser = true;
+const seedUser = false;
 const seedDevice = true;
 const seedSubDevice = true;
 const seedSharedDevice = true;

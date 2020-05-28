@@ -1,12 +1,28 @@
 import httpStatus from 'http-status';
-import { pick } from 'lodash';
 import Device from '../models/device.model';
 import AppError from '../utils/AppError';
-import { getQueryOptions } from '../utils/service.util';
+import { filterKeys, getQueryOptions } from '../utils/service.util';
 import { checkAndDeleteAccessIfExists, deleteSharedDeviceAccessByDeviceIdService } from './sharedDeviceAccess.service';
 import { deleteSocketIdByDeviceIdService } from './socketId.service';
 import { deleteSubDevicesByDeviceIdService } from './subDevice.service';
 import { deleteDeviceParamByDeviceIdService } from './deviceParam.service';
+
+const pickKeys = [
+  'id',
+  'deviceId',
+  'name',
+  'type',
+  'variant',
+  'registeredAt',
+  'isDisabled',
+  'deviceOwner',
+  'createdBy',
+  'updatedBy',
+  'createdAt',
+  'updatedAt',
+];
+
+const getDevicesCountService = query => Device.countDocuments(filterKeys(query, pickKeys));
 
 const checkIfEmailIsDeviceOwnerAndFail = async (deviceId, deviceOwner) => {
   const device = await Device.findOne({ deviceId, deviceOwner });
@@ -20,18 +36,7 @@ const createDeviceService = deviceBody => {
 };
 
 const getDevicesService = async query => {
-  const filter = pick(query, [
-    'id',
-    'deviceId',
-    'name',
-    'type',
-    'variant',
-    'registeredAt',
-    'isDisabled',
-    'deviceOwner',
-    'createdBy',
-    'updatedBy',
-  ]);
+  const filter = filterKeys(query, pickKeys);
   const options = getQueryOptions(query);
   return Device.find(filter, null, options);
 };
@@ -163,6 +168,7 @@ const registerDeviceService = async deviceId => {
 };
 
 module.exports = {
+  getDevicesCountService,
   checkIfEmailIsDeviceOwnerAndFail,
   createDeviceService,
   getDevicesService,

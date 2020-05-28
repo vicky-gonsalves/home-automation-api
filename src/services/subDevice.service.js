@@ -1,9 +1,25 @@
 import httpStatus from 'http-status';
-import { pick } from 'lodash';
 import { deleteSubDeviceParamByDeviceIdService, deleteSubDeviceParamBySubDeviceIdService } from './subDeviceParam.service';
 import AppError from '../utils/AppError';
 import SubDevice from '../models/subDevice.model';
-import { getQueryOptions } from '../utils/service.util';
+import { filterKeys, getQueryOptions } from '../utils/service.util';
+
+const pickKeys = [
+  'id',
+  'subDeviceId',
+  'name',
+  'type',
+  'registeredAt',
+  'isDisabled',
+  'subDeviceOwner',
+  'createdBy',
+  'updatedBy',
+  'createdAt',
+  'updatedAt',
+];
+
+const getSubDevicesCountService = (deviceId, query) =>
+  SubDevice.countDocuments({ deviceId, ...filterKeys(query, pickKeys) });
 
 const createSubDeviceService = async (deviceId, _subDeviceBody) => {
   const subDeviceBody = _subDeviceBody;
@@ -12,17 +28,7 @@ const createSubDeviceService = async (deviceId, _subDeviceBody) => {
 };
 
 const getSubDevicesService = async (deviceId, query) => {
-  const filter = pick(query, [
-    'id',
-    'subDeviceId',
-    'name',
-    'type',
-    'registeredAt',
-    'isDisabled',
-    'subDeviceOwner',
-    'createdBy',
-    'updatedBy',
-  ]);
+  const filter = filterKeys(query, pickKeys);
   filter.deviceId = deviceId;
   const options = getQueryOptions(query);
   return SubDevice.find(filter, null, options);
@@ -109,6 +115,7 @@ const getActiveSubDeviceByDeviceIdAndSubDeviceIdForMultiStatusChangeService = as
 };
 
 module.exports = {
+  getSubDevicesCountService,
   createSubDeviceService,
   getSubDevicesService,
   getSubDeviceByOnlySubDeviceIdService,

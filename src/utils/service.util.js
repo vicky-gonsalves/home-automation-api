@@ -21,10 +21,11 @@ const filterKeys = (query, pickKeys) => {
   allKeys.forEach(key => {
     if (key === 'isDisabled') {
       regexedFilter[key] = filteredObj[key];
-    } else if (key === 'createdAt' || key === 'updatedAt') {
+    } else if (key === 'createdAt' || key === 'updatedAt' || key === 'registeredAt') {
       const splitDates = filteredObj[key].split(':');
       regexedFilter[key] = { $gte: splitDates[0], $lte: splitDates[1] };
     } else {
+      // eslint-disable-next-line security/detect-non-literal-regexp
       regexedFilter[key] = new RegExp(filteredObj[key], 'i');
     }
   });

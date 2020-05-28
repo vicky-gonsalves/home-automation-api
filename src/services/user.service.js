@@ -16,6 +16,7 @@ import {
   updateSharedDeviceAccessEmailService,
 } from './sharedDeviceAccess.service';
 import { updateDeviceParamCreatedByService, updateDeviceParamUpdatedByService } from './deviceParam.service';
+import passGenerator from 'secure-random-password';
 
 const pickKeys = ['name', 'email', 'role', 'isDisabled', 'createdAt', 'updatedAt'];
 
@@ -28,7 +29,13 @@ const checkDuplicateEmailService = async (email, excludeUserId) => {
   }
 };
 
-const createUserService = async userBody => {
+const createUserService = async _userBody => {
+  const userBody = _userBody;
+  const { digits, upper, randomPassword } = passGenerator;
+  userBody.password = randomPassword({ length: 8, characters: [upper, digits] });
+  // TODO send password
+  // eslint-disable-next-line no-console
+  // console.log(password);
   await checkDuplicateEmailService(userBody.email);
   return User.create(userBody);
 };

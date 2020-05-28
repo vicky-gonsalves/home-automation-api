@@ -31,8 +31,7 @@ const createSharedDeviceAccess = catchAsync(async (req, res) => {
 
 const getSharedDeviceAccesses = catchAsync(async (req, res) => {
   const sharedDeviceAccesses = await getSharedDeviceAccessesService(req.query);
-  const response = sharedDeviceAccesses.map(sharedDeviceAccess => sharedDeviceAccess.transform());
-  res.send(response);
+  res.send(sharedDeviceAccesses[0]);
 });
 
 const getSharedDeviceAccess = catchAsync(async (req, res) => {

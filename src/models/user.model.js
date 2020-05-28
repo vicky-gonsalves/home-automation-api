@@ -91,6 +91,13 @@ userSchema.pre('save', async function(next) {
   next();
 });
 
+userSchema.pre('save', function(next) {
+  if (this.isModified('updatedAt') && this._updatedBy) {
+    this.updatedBy = this._updatedBy;
+  }
+  return next();
+});
+
 const User = mongoose.model('User', userSchema);
 
 export default User;

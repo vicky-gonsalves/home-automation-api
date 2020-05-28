@@ -16,6 +16,7 @@ import {
   getActiveSubDeviceParamByParamNameService,
   getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService,
   getSubDeviceParamByParamNameService,
+  getSubDeviceParamsCountService,
   getSubDeviceParamsService,
   updateMultiStatusService,
   updateStatusToOffAndNotifyService,
@@ -31,7 +32,7 @@ import { deviceVariant } from '../config/device';
 import { getDeviceParamByParamNameService } from '../services/deviceParam.service';
 
 const sendSubDeviceParamSocketNotification = async (device, event, subDeviceParam, sendOnlyToDevice = false) => {
-  let socketIds = [];
+  let socketIds;
   const deviceSocketIds = await getSocketIdsByDeviceIdService(device.deviceId);
   if (sendOnlyToDevice) {
     socketIds = [...deviceSocketIds];
@@ -78,9 +79,10 @@ const createSubDeviceParam = catchAsync(async (req, res) => {
 });
 
 const getSubDeviceParams = catchAsync(async (req, res) => {
-  const subDeviceParams = await getSubDeviceParamsService(req.params.deviceId, req.params.subDeviceId, req.query);
-  const response = subDeviceParams.map(subDeviceParam => subDeviceParam.transform());
-  res.send(response);
+  const count = await getSubDeviceParamsCountService(req.params.deviceId, req.params.subDeviceId, req.query);
+  const _subDeviceParams = await getSubDeviceParamsService(req.params.deviceId, req.params.subDeviceId, req.query);
+  const subDeviceParams = _subDeviceParams.map(subDeviceParam => subDeviceParam.transform());
+  res.send({ subDeviceParams, count });
 });
 
 const getSubDeviceParam = catchAsync(async (req, res) => {

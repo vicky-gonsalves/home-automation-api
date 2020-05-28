@@ -24,10 +24,11 @@ const getUsers = catchAsync(async (req, res) => {
 
 const getUser = catchAsync(async (req, res) => {
   const user = await getUserByIdService(req.params.userId);
-  res.send(user.transform());
+  res.send(user.transform(true));
 });
 
 const updateUser = catchAsync(async (req, res) => {
+  req.body._updatedBy = req.user.email;
   const user = await updateUserService(req.params.userId, req.body);
   res.send(user.transform());
 });

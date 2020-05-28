@@ -44,7 +44,7 @@ describe('User routes', () => {
       newUser = {
         name: faker.name.findName(),
         email: faker.internet.email().toLowerCase(),
-        password: 'password1',
+        // password: 'password1',
         role: 'user',
       };
     });
@@ -174,22 +174,27 @@ describe('User routes', () => {
         .send()
         .expect(httpStatus.OK);
 
-      expect(res.body).toBeInstanceOf(Array);
-      expect(res.body).toHaveLength(3);
-      expect(res.body[0]).toHaveProperty('id');
-      expect(res.body[0]).toHaveProperty('name');
-      expect(res.body[0]).toHaveProperty('email');
-      expect(res.body[0]).toHaveProperty('role');
+      expect(res.body).toBeInstanceOf(Object);
+      expect(res.body.users).toBeDefined();
+      expect(res.body.count).toBeDefined();
+      expect(res.body.users).toBeInstanceOf(Array);
+      expect(res.body.users).toHaveLength(3);
+      expect(res.body.count).toBe(3);
 
-      expect(res.body[1]).toHaveProperty('id');
-      expect(res.body[1]).toHaveProperty('name');
-      expect(res.body[1]).toHaveProperty('email');
-      expect(res.body[1]).toHaveProperty('role');
+      expect(res.body.users[0]).toHaveProperty('id');
+      expect(res.body.users[0]).toHaveProperty('name');
+      expect(res.body.users[0]).toHaveProperty('email');
+      expect(res.body.users[0]).toHaveProperty('role');
 
-      expect(res.body[2]).toHaveProperty('id');
-      expect(res.body[2]).toHaveProperty('name');
-      expect(res.body[2]).toHaveProperty('email');
-      expect(res.body[2]).toHaveProperty('role');
+      expect(res.body.users[1]).toHaveProperty('id');
+      expect(res.body.users[1]).toHaveProperty('name');
+      expect(res.body.users[1]).toHaveProperty('email');
+      expect(res.body.users[1]).toHaveProperty('role');
+
+      expect(res.body.users[2]).toHaveProperty('id');
+      expect(res.body.users[2]).toHaveProperty('name');
+      expect(res.body.users[2]).toHaveProperty('email');
+      expect(res.body.users[2]).toHaveProperty('role');
     });
 
     it('should return 401 if access token is missing', async () => {
@@ -221,8 +226,13 @@ describe('User routes', () => {
         .send()
         .expect(httpStatus.OK);
 
-      expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBeDefined();
+      expect(res.body).toBeInstanceOf(Object);
+      expect(res.body.users).toBeDefined();
+      expect(res.body.count).toBeDefined();
+      expect(res.body.users).toBeInstanceOf(Array);
+      expect(res.body.count).toBe(1);
+      expect(res.body.users).toHaveLength(1);
+      expect(res.body.users[0].id).toBeDefined();
     });
 
     it('should correctly apply filter on role field', async () => {
@@ -235,9 +245,14 @@ describe('User routes', () => {
         .send()
         .expect(httpStatus.OK);
 
-      expect(res.body).toHaveLength(2);
-      expect(res.body[0].id).toBeDefined();
-      expect(res.body[1].id).toBeDefined();
+      expect(res.body).toBeInstanceOf(Object);
+      expect(res.body.users).toBeDefined();
+      expect(res.body.count).toBeDefined();
+      expect(res.body.users).toBeInstanceOf(Array);
+      expect(res.body.count).toBe(2);
+      expect(res.body.users).toHaveLength(2);
+      expect(res.body.users[0].id).toBeDefined();
+      expect(res.body.users[1].id).toBeDefined();
     });
 
     it('should correctly sort returned array if descending sort param is specified', async () => {
@@ -250,10 +265,15 @@ describe('User routes', () => {
         .send()
         .expect(httpStatus.OK);
 
-      expect(res.body).toHaveLength(3);
-      expect(res.body[0].id).toBeDefined();
-      expect(res.body[1].id).toBeDefined();
-      expect(res.body[2].id).toBeDefined();
+      expect(res.body).toBeInstanceOf(Object);
+      expect(res.body.users).toBeDefined();
+      expect(res.body.count).toBeDefined();
+      expect(res.body.users).toBeInstanceOf(Array);
+      expect(res.body.count).toBe(3);
+      expect(res.body.users).toHaveLength(3);
+      expect(res.body.users[0].id).toBeDefined();
+      expect(res.body.users[1].id).toBeDefined();
+      expect(res.body.users[2].id).toBeDefined();
     });
 
     it('should correctly sort returned array if ascending sort param is specified', async () => {
@@ -266,10 +286,15 @@ describe('User routes', () => {
         .send()
         .expect(httpStatus.OK);
 
-      expect(res.body).toHaveLength(3);
-      expect(res.body[0].id).toBeDefined();
-      expect(res.body[1].id).toBeDefined();
-      expect(res.body[2].id).toBeDefined();
+      expect(res.body).toBeInstanceOf(Object);
+      expect(res.body.users).toBeDefined();
+      expect(res.body.count).toBeDefined();
+      expect(res.body.users).toBeInstanceOf(Array);
+      expect(res.body.count).toBe(3);
+      expect(res.body.users).toHaveLength(3);
+      expect(res.body.users[0].id).toBeDefined();
+      expect(res.body.users[1].id).toBeDefined();
+      expect(res.body.users[2].id).toBeDefined();
     });
 
     it('should limit returned array if limit param is specified', async () => {
@@ -282,9 +307,14 @@ describe('User routes', () => {
         .send()
         .expect(httpStatus.OK);
 
-      expect(res.body).toHaveLength(2);
-      expect(res.body[0].id).toBeDefined();
-      expect(res.body[1].id).toBeDefined();
+      expect(res.body).toBeInstanceOf(Object);
+      expect(res.body.users).toBeDefined();
+      expect(res.body.count).toBeDefined();
+      expect(res.body.users).toBeInstanceOf(Array);
+      expect(res.body.count).toBe(3);
+      expect(res.body.users).toHaveLength(2);
+      expect(res.body.users[0].id).toBeDefined();
+      expect(res.body.users[1].id).toBeDefined();
     });
 
     it('should return the correct page if page and limit params are specified', async () => {
@@ -293,12 +323,18 @@ describe('User routes', () => {
       const res = await request(app)
         .get('/v1/users')
         .set('Authorization', `Bearer ${adminAccessToken}`)
-        .query({ page: 2, limit: 2 })
+        .query({ page: 1, limit: 2 })
         .send()
         .expect(httpStatus.OK);
 
-      expect(res.body).toHaveLength(1);
-      expect(res.body[0].id).toBeDefined();
+      expect(res.body).toBeInstanceOf(Object);
+      expect(res.body.users).toBeDefined();
+      expect(res.body.count).toBeDefined();
+      expect(res.body.users).toBeInstanceOf(Array);
+      expect(res.body.count).toBe(3);
+      expect(res.body.users).toHaveLength(2);
+      expect(res.body.users[0].id).toBeDefined();
+      expect(res.body.users[1].id).toBeDefined();
     });
   });
 
@@ -313,12 +349,10 @@ describe('User routes', () => {
         .expect(httpStatus.OK);
 
       expect(res.body).not.toHaveProperty('password');
-      expect(res.body).toEqual({
-        id: userOne._id.toHexString(),
-        email: userOne.email,
-        name: userOne.name,
-        role: userOne.role,
-      });
+      expect(res.body.id).toBe(userOne._id.toHexString());
+      expect(res.body.email).toBe(userOne.email);
+      expect(res.body.name).toBe(userOne.name);
+      expect(res.body.role).toBe(userOne.role);
     });
 
     it('should return 401 error if access token is missing', async () => {
@@ -596,7 +630,7 @@ describe('User routes', () => {
       const updateBody = {
         name: faker.name.findName(),
         email: faker.internet.email().toLowerCase(),
-        password: 'newPassword1',
+        // password: 'newPassword1',
       };
 
       const res = await request(app)
@@ -623,7 +657,7 @@ describe('User routes', () => {
       const updateBody = {
         name: faker.name.findName(),
         email: faker.internet.email().toLowerCase(),
-        password: 'newPassword1',
+        // password: 'newPassword1',
       };
 
       await insertUsers([userOne]);
@@ -731,7 +765,7 @@ describe('User routes', () => {
       const updateBody = {
         name: faker.name.findName(),
         email: faker.internet.email().toLowerCase(),
-        password: 'newPassword1',
+        // password: 'newPassword1',
       };
 
       await insertUsers([userOne, admin]);

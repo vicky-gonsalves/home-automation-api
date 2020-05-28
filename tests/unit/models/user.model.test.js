@@ -10,6 +10,8 @@ describe('User model', () => {
         email: faker.internet.email().toLowerCase(),
         password: 'password1',
         role: 'user',
+        createdBy: 'user@user.com',
+        updatedBy: 'user@user.com',
       };
     });
 
@@ -39,6 +41,16 @@ describe('User model', () => {
 
     it('should throw a validation error if role is unknown', async () => {
       newUser.role = 'invalid';
+      await expect(new User(newUser).validate()).rejects.toThrow();
+    });
+
+    it('should throw a validation error if createdBy is invalid', async () => {
+      newUser.createdBy = 'invalid';
+      await expect(new User(newUser).validate()).rejects.toThrow();
+    });
+
+    it('should throw a validation error if updatedBy is invalid', async () => {
+      newUser.updatedBy = 'invalid';
       await expect(new User(newUser).validate()).rejects.toThrow();
     });
   });

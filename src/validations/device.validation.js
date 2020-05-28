@@ -21,12 +21,16 @@ const createDeviceValidation = {
 
 const getDevicesValidation = {
   query: Joi.object().keys({
-    deviceId: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
-    name: Joi.string().pattern(new RegExp('^[A-Za-z_\\s\\d]{1,20}$')),
+    deviceId: Joi.string(),
+    name: Joi.string(),
     type: Joi.string().valid(...deviceType),
     variant: Joi.string().valid(...deviceVariant),
-    registeredAt: Joi.date().iso(),
-    deviceOwner: Joi.string().email(),
+    deviceOwner: Joi.string(),
+    createdBy: Joi.string(),
+    updatedBy: Joi.string(),
+    registeredAt: Joi.string().pattern(new RegExp('^[\\d+]{13}:[\\d+]{13}$')),
+    createdAt: Joi.string().pattern(new RegExp('^[\\d+]{13}:[\\d+]{13}$')),
+    updatedAt: Joi.string().pattern(new RegExp('^[\\d+]{13}:[\\d+]{13}$')),
     isDisabled: Joi.boolean(),
     sortBy: Joi.string(),
     limit: Joi.number().integer(),

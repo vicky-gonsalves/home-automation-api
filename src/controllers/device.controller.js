@@ -4,6 +4,7 @@ import {
   deleteDeviceService,
   getDeviceByDeviceIdService,
   getDevicesByDeviceOwnerService,
+  getDevicesCountService,
   getDevicesService,
   updateDeviceService,
 } from '../services/device.service';
@@ -35,9 +36,10 @@ const createDevice = catchAsync(async (req, res) => {
 });
 
 const getDevices = catchAsync(async (req, res) => {
-  const devices = await getDevicesService(req.query);
-  const response = devices.map(device => device.transform());
-  res.send(response);
+  const _devices = await getDevicesService(req.query);
+  const count = await getDevicesCountService(req.query);
+  const devices = _devices.map(device => device.transform(true));
+  res.send({ devices, count });
 });
 
 const getDevice = catchAsync(async (req, res) => {

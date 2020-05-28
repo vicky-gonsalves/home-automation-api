@@ -1,14 +1,14 @@
 import Joi from '@hapi/joi';
-import { objectIdValidation, passwordValidation } from './custom.validation';
+import { objectIdValidation } from './custom.validation';
 
 const createUserValidation = {
   body: Joi.object().keys({
     email: Joi.string()
       .required()
       .email(),
-    password: Joi.string()
-      .required()
-      .custom(passwordValidation),
+    // password: Joi.string()
+    //   .required()
+    //   .custom(passwordValidation),
     isDisabled: Joi.boolean(),
     name: Joi.string().required(),
     role: Joi.string()
@@ -46,8 +46,9 @@ const updateUserValidation = {
   body: Joi.object()
     .keys({
       email: Joi.string().email(),
-      password: Joi.string().custom(passwordValidation),
+      // password: Joi.string().custom(passwordValidation),
       name: Joi.string(),
+      role: Joi.string().valid('user', 'admin'),
       isDisabled: Joi.boolean(),
     })
     .min(1),

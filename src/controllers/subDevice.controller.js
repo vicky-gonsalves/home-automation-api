@@ -5,6 +5,7 @@ import {
   deleteSubDeviceService,
   getActiveSubDevicesByDeviceIdAndSortService,
   getSubDeviceBySubDeviceIdService,
+  getSubDevicesCountService,
   getSubDevicesService,
   updateSubDeviceService,
 } from '../services/subDevice.service';
@@ -84,9 +85,10 @@ const createSubDevice = catchAsync(async (req, res) => {
 });
 
 const getSubDevices = catchAsync(async (req, res) => {
-  const subDevices = await getSubDevicesService(req.params.deviceId, req.query);
-  const response = subDevices.map(subDevice => subDevice.transform());
-  res.send(response);
+  const count = await getSubDevicesCountService(req.params.deviceId, req.query);
+  const _subDevices = await getSubDevicesService(req.params.deviceId, req.query);
+  const subDevices = _subDevices.map(subDevice => subDevice.transform());
+  res.send({ subDevices, count });
 });
 
 const getSubDevice = catchAsync(async (req, res) => {

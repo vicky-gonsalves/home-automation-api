@@ -15,9 +15,10 @@ const createSharedDeviceAccessValidation = {
 
 const getSharedDeviceAccessesValidation = {
   query: Joi.object().keys({
+    name: Joi.string(),
     deviceId: Joi.string().pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
-    email: Joi.string().email(),
-    sharedBy: Joi.string().email(),
+    email: Joi.string(),
+    sharedBy: Joi.string(),
     isDisabled: Joi.boolean(),
     sortBy: Joi.string(),
     limit: Joi.number().integer(),
