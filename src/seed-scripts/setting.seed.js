@@ -26,6 +26,13 @@ const settings = [
     paramValue: 70,
   },
   {
+    type: 'device',
+    idType: 'deviceId',
+    bindedTo: 'tank000000000001',
+    paramName: 'waterLevelToStop',
+    paramValue: 100,
+  },
+  {
     type: 'subDevice',
     idType: 'subDeviceId',
     parent: 'bedroom000000001',

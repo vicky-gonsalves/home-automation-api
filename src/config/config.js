@@ -48,7 +48,10 @@ const envVarsSchema = Joi.object()
       .description('days after which refresh tokens expire'),
     DEFAULT_TANK_WATER_LEVEL_TO_START: Joi.number()
       .default(70) // percent
-      .description('days after which refresh tokens expire'),
+      .description('default water level to start motor'),
+    DEFAULT_TANK_WATER_LEVEL_TO_STOP: Joi.number()
+      .default(100) // percent
+      .description('default water level to stop motor'),
   })
   .unknown();
 
@@ -93,5 +96,6 @@ module.exports = {
   defaultSettings: {
     defaultSubDeviceAutoShutDownTime: envVars.DEFAULT_SUB_DEVICE_AUTOSHUTDOWN_TIME,
     defaultTankWaterLevelToStart: envVars.DEFAULT_TANK_WATER_LEVEL_TO_START,
+    defaultTankWaterLevelToStop: envVars.DEFAULT_TANK_WATER_LEVEL_TO_STOP,
   },
 };

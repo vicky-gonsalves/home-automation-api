@@ -90,6 +90,20 @@ const createTankSettingService = async subDevice => {
       )
     );
   }
+
+  // create waterLevelToStop setting
+  const waterLevelToStopExists = await checkIfSettingExists(subDevice.deviceId, 'waterLevelToStop');
+  if (!waterLevelToStopExists) {
+    payload.push(
+      createDeviceSettingPayload(
+        subDevice.deviceId,
+        'waterLevelToStop',
+        defaultSettings.defaultTankWaterLevelToStop,
+        subDevice.createdBy
+      )
+    );
+  }
+
   if (payload && payload.length) {
     return createSettings(payload);
   }
