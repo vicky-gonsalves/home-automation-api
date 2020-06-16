@@ -14,13 +14,14 @@ import { checkAccessIfExists, getSharedDeviceAccessByDeviceIdService } from '../
 import catchAsync from '../utils/catchAsync';
 import httpStatus from 'http-status';
 import { createLogService } from '../services/log.service';
+import { forIn, groupBy } from 'lodash';
 
 const generateDeviceLog = async (device, params, body) => {
   return `${device.name} ${params.paramName} updated to ${body.paramValue}`;
 };
 
 const sendDeviceParamSocketNotification = async (device, event, deviceParam, sendOnlyToDevice = false) => {
-  let socketIds = [];
+  let socketIds;
   const deviceSocketIds = await getSocketIdsByDeviceIdService(device.deviceId);
   if (sendOnlyToDevice) {
     socketIds = [...deviceSocketIds];
@@ -93,11 +94,15 @@ const updateDeviceParamValue = catchAsync(async (req, res) => {
 });
 
 const getAllDeviceParamsOfDevice = async (socketId, device) => {
-  let data;
-  let deviceParams = [];
-  deviceParams = await getActiveDeviceParamsByDeviceIdsService([device.deviceId]);
+  let data = {};
+  const deviceParams = await getActiveDeviceParamsByDeviceIdsService([device.deviceId]);
   if (deviceParams.length) {
-    data = deviceParams;
+    const paramsGrp = groupBy(deviceParams, 'paramName');
+    forIn(paramsGrp, (_val, _key) => {
+      _val.forEach(v => {
+        data[_key] = v.paramValue;
+      });
+    });
   } else {
     data = { error: 'no device params' };
   }
