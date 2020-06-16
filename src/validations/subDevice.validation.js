@@ -1,5 +1,6 @@
 import Joi from '@hapi/joi';
 import { subDeviceType } from '../config/device';
+import NotificationService from '../services/notification.service';
 
 const createSubDeviceValidation = {
   params: Joi.object().keys({
@@ -79,10 +80,33 @@ const deleteSubDeviceValidation = {
   }),
 };
 
+const validateGetSubDeviceSocket = async (socket, listener) => {
+  const schema = Joi.object({
+    id: Joi.string().required(),
+    deviceId: Joi.string()
+      .required()
+      .pattern(new RegExp('^[A-Za-z_\\d]{10,20}$')),
+  });
+
+  const validate = schema.validate({
+    id: socket.id,
+    deviceId: socket && socket.device && socket.device.deviceId ? socket.device.deviceId : null,
+  });
+
+  if (validate.error) {
+    NotificationService.sendMessage([{ socketId: socket.id }], 'ERROR_SUB_DEVICE_GET', {
+      error: validate.error.details[0].message,
+    });
+  } else {
+    await listener(socket.id, socket.device);
+  }
+};
+
 module.exports = {
   createSubDeviceValidation,
   getSubDevicesValidation,
   getSubDeviceValidation,
   updateSubDeviceValidation,
   deleteSubDeviceValidation,
+  validateGetSubDeviceSocket,
 };

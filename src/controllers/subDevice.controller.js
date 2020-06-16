@@ -186,10 +186,22 @@ const deleteSubDevice = catchAsync(async (req, res) => {
   res.status(httpStatus.NO_CONTENT).send();
 });
 
+const getAllSubDeviceOfDevice = async (socketId, device) => {
+  let data;
+  const subDevices = await getActiveSubDevicesByDeviceIdAndSortService(device.deviceId);
+  if (subDevices.length) {
+    data = subDevices;
+  } else {
+    data = { error: 'no sub device' };
+  }
+  NotificationService.sendMessage([{ socketId }], 'GET_ALL_SUB_DEVICE', data);
+};
+
 module.exports = {
   createSubDevice,
   getSubDevices,
   getSubDevice,
   updateSubDevice,
   deleteSubDevice,
+  getAllSubDeviceOfDevice,
 };

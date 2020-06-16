@@ -8,9 +8,12 @@ import {
   validatePutSubDeviceParamsSocket,
 } from '../../validations/subDeviceParam.validation';
 import { validateGetDeviceParamsSocket, validatePutDeviceParamsSocket } from '../../validations/deviceParam.validation';
+import { validateGetSubDeviceSocket } from '../../validations/subDevice.validation';
+import { getAllSubDeviceOfDevice } from '../../controllers/subDevice.controller';
 
 const deviceParamGetEvents = [{ name: 'deviceParam/getAll', listener: getAllDeviceParamsOfDevice }];
 const deviceParamPutEvents = [{ name: 'deviceParam/update', listener: updateDeviceParamsToSocketUsers }];
+const subDeviceGetEvents = [{ name: 'subDevice/getAll', listener: getAllSubDeviceOfDevice }];
 const subDeviceParamGetEvents = [{ name: 'subDeviceParam/getAll', listener: getAllSubDeviceParamsOfDevice }];
 const subDeviceParamPutEvents = [{ name: 'subDeviceParam/update', listener: updateSubDeviceParamsToSocketUsers }];
 
@@ -18,6 +21,10 @@ const reRouteMessages = socket => {
   subDeviceParamGetEvents.forEach(event => {
     const { listener, name } = event;
     socket.on(name, () => validateGetSubDeviceParamsSocket(socket, listener));
+  });
+  subDeviceGetEvents.forEach(event => {
+    const { listener, name } = event;
+    socket.on(name, () => validateGetSubDeviceSocket(socket, listener));
   });
   subDeviceParamPutEvents.forEach(event => {
     const { listener, name } = event;
