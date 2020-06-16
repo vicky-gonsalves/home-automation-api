@@ -27,6 +27,9 @@ const createSettings = settings => Setting.create(settings);
 const getActiveSettingsByDeviceIdsService = deviceIds =>
   Setting.find({ type: 'device', idType: 'deviceId', bindedTo: { $in: deviceIds }, isDisabled: false });
 
+const getActiveSettingsByDeviceIdService = deviceId =>
+  Setting.find({ type: 'device', idType: 'deviceId', bindedTo: deviceId, isDisabled: false });
+
 const checkIfSettingExists = (deviceId, paramName) =>
   Setting.findOne({ type: 'device', idType: 'deviceId', bindedTo: deviceId, paramName });
 
@@ -229,4 +232,5 @@ module.exports = {
   deleteSubDeviceSettingService,
   updateNonPreferredSubDeviceSettingService,
   updateSubDeviceSettingService,
+  getActiveSettingsByDeviceIdService,
 };

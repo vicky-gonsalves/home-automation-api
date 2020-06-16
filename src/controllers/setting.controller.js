@@ -1,4 +1,4 @@
-import { updateSettingService } from '../services/setting.service';
+import { getActiveSettingsByDeviceIdService, updateSettingService } from '../services/setting.service';
 import { checkAccessIfExists, getSharedDeviceAccessByDeviceIdService } from '../services/sharedDeviceAccess.service';
 import { getSocketIdsByDeviceIdService, getSocketIdsByEmailsService } from '../services/socketId.service';
 import NotificationService from '../services/notification.service';
@@ -6,6 +6,7 @@ import { idType } from '../config/setting';
 import { getDeviceByDeviceIdService } from '../services/device.service';
 import { getSubDeviceByOnlySubDeviceIdService } from '../services/subDevice.service';
 import catchAsync from '../utils/catchAsync';
+import { forIn, groupBy } from 'lodash';
 
 const sendSettingNotification = async (device, event, setting) => {
   const deviceSocketIds = await getSocketIdsByDeviceIdService(device.deviceId);
@@ -58,7 +59,29 @@ const updateMultiSetting = catchAsync(async (req, res) => {
   res.send(settings);
 });
 
+const getAllDeviceSettingsOfDevice = async (socketId, device) => {
+  let data = {};
+  const subDeviceSettings = await getActiveSettingsByDeviceIdService(device.deviceId);
+  if (subDeviceSettings.length) {
+    const _data = groupBy(subDeviceSettings, 'bindedTo');
+    forIn(_data, (value, key) => {
+      const paramsGrp = groupBy(value, 'paramName');
+      const paramVal = {};
+      forIn(paramsGrp, (_val, _key) => {
+        _val.forEach(v => {
+          paramVal[_key] = v.paramValue;
+        });
+      });
+      data[key] = paramVal;
+    });
+  } else {
+    data = { error: 'no device setting' };
+  }
+  NotificationService.sendMessage([{ socketId }], 'GET_ALL_DEVICE_SETTINGS', data);
+};
+
 module.exports = {
   updateSingleSetting,
   updateMultiSetting,
+  getAllDeviceSettingsOfDevice,
 };
