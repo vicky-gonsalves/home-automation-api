@@ -30,6 +30,7 @@ import { getSocketIdsByDeviceIdService, getSocketIdsByEmailsService } from '../s
 import { createLogService } from '../services/log.service';
 import { deviceVariant } from '../config/device';
 import { getDeviceParamByParamNameService } from '../services/deviceParam.service';
+import { forIn, groupBy } from 'lodash';
 
 const sendSubDeviceParamSocketNotification = async (device, event, subDeviceParam, sendOnlyToDevice = false) => {
   let socketIds;
@@ -172,13 +173,23 @@ const deleteSubDeviceParam = catchAsync(async (req, res) => {
 });
 
 const getAllSubDeviceParamsOfDevice = async (socketId, device) => {
-  let data;
+  let data = {};
   let subDeviceParams = [];
   const subDevices = await getActiveSubDevicesByDeviceIdService([device.deviceId]);
   if (subDevices && subDevices.length) {
     subDeviceParams = await getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService(subDevices);
     if (subDeviceParams.length) {
-      data = subDeviceParams;
+      const _data = groupBy(subDeviceParams, 'subDeviceId');
+      forIn(_data, (value, key) => {
+        const paramsGrp = groupBy(value, 'paramName');
+        const paramVal = {};
+        forIn(paramsGrp, (_val, _key) => {
+          _val.forEach(v => {
+            paramVal[_key] = v.paramValue;
+          });
+        });
+        data[key] = paramVal;
+      });
     } else {
       data = { error: 'no sub device params' };
     }
