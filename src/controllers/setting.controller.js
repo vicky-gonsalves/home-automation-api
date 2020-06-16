@@ -64,7 +64,7 @@ const getAllDeviceSettingsOfDevice = async (socketId, device) => {
   const subDeviceSettings = await getActiveSettingsByDeviceIdService(device.deviceId);
   if (subDeviceSettings.length) {
     const _data = groupBy(subDeviceSettings, 'bindedTo');
-    forIn(_data, (value, key) => {
+    forIn(_data, value => {
       const paramsGrp = groupBy(value, 'paramName');
       const paramVal = {};
       forIn(paramsGrp, (_val, _key) => {
@@ -72,7 +72,7 @@ const getAllDeviceSettingsOfDevice = async (socketId, device) => {
           paramVal[_key] = v.paramValue;
         });
       });
-      data[key] = paramVal;
+      data = paramVal;
     });
   } else {
     data = { error: 'no device setting' };
