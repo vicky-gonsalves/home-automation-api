@@ -33,6 +33,13 @@ const settings = [
     paramValue: 100,
   },
   {
+    type: 'device',
+    idType: 'deviceId',
+    bindedTo: 'tank000000000001',
+    paramName: 'coolDownTime',
+    paramValue: 30,
+  },
+  {
     type: 'subDevice',
     idType: 'subDeviceId',
     parent: 'bedroom000000001',
