@@ -234,7 +234,7 @@ const updateSubDeviceParamsToSocketUsers = async (socketDevice, __updateData) =>
     false,
     _updateData.updatedBody.updatedBy
   );
-  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAMS_UPDATED', updatedSubDeviceParam);
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_UPDATED', updatedSubDeviceParam);
 };
 
 const updateUpdatedAt = async device => {
