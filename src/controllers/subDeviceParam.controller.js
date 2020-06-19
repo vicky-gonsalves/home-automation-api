@@ -133,23 +133,31 @@ const updateSubDeviceParamValue = catchAsync(async (req, res) => {
   if (req.user.role !== 'admin' && req.user.email !== device.deviceOwner) {
     await checkAccessIfExists(device.deviceId, req.user.email);
   }
-  const subDeviceParam = await updateSubDeviceParamService(
-    req.params.deviceId,
-    req.params.subDeviceId,
-    req.params.paramName,
-    req.body
-  );
-  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_UPDATED', subDeviceParam, false);
-  await createLogService(
-    device,
-    req.params.subDeviceId,
-    `${req.params.paramName}_UPDATED`,
-    await generateSubDeviceLog(device, subDevice, req.params, req.body),
-    false,
-    false,
-    req.user.email
-  );
-  res.send(subDeviceParam.transform());
+  const updateParam = async (deviceId, subDeviceId, paramName, body) => {
+    const subDeviceParam = await updateSubDeviceParamService(deviceId, subDeviceId, paramName, body);
+    await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_UPDATED', subDeviceParam, false);
+    await createLogService(
+      device,
+      subDeviceId,
+      `${paramName}_UPDATED`,
+      await generateSubDeviceLog(device, subDevice, req.params, body),
+      false,
+      false,
+      req.user.email
+    );
+    return subDeviceParam;
+  };
+  if (req.params.paramName === 'status') {
+    const subDeviceMode = await getSubDeviceParamByParamNameService(req.params.deviceId, req.params.subDeviceId, 'mode');
+    if (subDeviceMode.paramValue !== 'manual') {
+      await updateParam(req.params.deviceId, req.params.subDeviceId, 'mode', {
+        paramValue: 'manual',
+        _updatedBy: req.user.email,
+      });
+    }
+  }
+  const updatedParam = await updateParam(req.params.deviceId, req.params.subDeviceId, req.params.paramName, req.body);
+  res.send(updatedParam.transform());
 });
 
 const updateMultiSubDeviceParamValue = catchAsync(async (req, res) => {
