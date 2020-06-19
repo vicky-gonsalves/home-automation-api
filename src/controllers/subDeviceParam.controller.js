@@ -32,18 +32,35 @@ import { deviceVariant } from '../config/device';
 import { getDeviceParamByParamNameService } from '../services/deviceParam.service';
 import { forIn, groupBy } from 'lodash';
 
-const sendSubDeviceParamSocketNotification = async (device, event, subDeviceParam, sendOnlyToDevice = false) => {
+const sendSubDeviceParamSocketNotification = async (
+  device,
+  event,
+  subDeviceParam,
+  sendOnlyToDevice = false,
+  sendOnlyToUsers = false
+) => {
   let socketIds;
-  const deviceSocketIds = await getSocketIdsByDeviceIdService(device.deviceId);
-  if (sendOnlyToDevice) {
+  let deviceSocketIds;
+  if (!sendOnlyToUsers) {
+    deviceSocketIds = await getSocketIdsByDeviceIdService(device.deviceId);
+  }
+  if (sendOnlyToDevice && !sendOnlyToUsers) {
     socketIds = [...deviceSocketIds];
   } else {
+    let emails;
     const deviceAccees = await getSharedDeviceAccessByDeviceIdService(device.deviceId);
-    const emails = [device.deviceOwner, ...deviceAccees.map(access => access.email)];
-    socketIds = [
-      ...deviceSocketIds, // send to device
-      ...(await getSocketIdsByEmailsService(emails)), // send to users
-    ];
+    if (!sendOnlyToUsers) {
+      emails = [device.deviceOwner, ...deviceAccees.map(access => access.email)];
+      socketIds = [
+        ...deviceSocketIds, // send to device
+        ...(await getSocketIdsByEmailsService(emails)), // send to users
+      ];
+    } else {
+      emails = [device.deviceOwner, ...deviceAccees.map(access => access.email)];
+      socketIds = [
+        ...(await getSocketIdsByEmailsService(emails)), // send to users
+      ];
+    }
   }
   if (socketIds.length) {
     NotificationService.sendMessage(socketIds, event, subDeviceParam);
@@ -75,7 +92,7 @@ const createSubDeviceParam = catchAsync(async (req, res) => {
   const device = await getDeviceByDeviceIdService(req.params.deviceId);
   await getSubDeviceBySubDeviceIdService(req.params.deviceId, req.params.subDeviceId);
   const subDeviceParam = await createSubDeviceParamService(req.params.deviceId, req.params.subDeviceId, req.body);
-  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_CREATED', subDeviceParam);
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_CREATED', subDeviceParam, false);
   res.status(httpStatus.CREATED).send(subDeviceParam.transform());
 });
 
@@ -105,7 +122,7 @@ const updateSubDeviceParam = catchAsync(async (req, res) => {
     req.params.paramName,
     req.body
   );
-  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_UPDATED', subDeviceParam);
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_UPDATED', subDeviceParam, false);
   res.send(subDeviceParam.transform());
 });
 
@@ -122,7 +139,7 @@ const updateSubDeviceParamValue = catchAsync(async (req, res) => {
     req.params.paramName,
     req.body
   );
-  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_UPDATED', subDeviceParam);
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_UPDATED', subDeviceParam, false);
   await createLogService(
     device,
     req.params.subDeviceId,
@@ -147,7 +164,7 @@ const updateMultiSubDeviceParamValue = catchAsync(async (req, res) => {
       return updateMultiStatusService(req.params.deviceId, subDevice.subDeviceId, req.body.paramValue, req.user.email);
     })
   );
-  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_MULTI_PARAM_UPDATED', subDeviceParams);
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_MULTI_PARAM_UPDATED', subDeviceParams, false);
   await createLogService(
     device,
     null,
@@ -167,7 +184,7 @@ const deleteSubDeviceParam = catchAsync(async (req, res) => {
     req.params.subDeviceId,
     req.params.paramName
   );
-  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_DELETED', subDeviceParam);
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_DELETED', subDeviceParam, false);
   await deleteSubDeviceParamService(req.params.deviceId, req.params.subDeviceId, req.params.paramName);
   res.status(httpStatus.NO_CONTENT).send();
 });
@@ -234,18 +251,18 @@ const updateSubDeviceParamsToSocketUsers = async (socketDevice, __updateData) =>
     false,
     _updateData.updatedBody.updatedBy
   );
-  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_UPDATED', updatedSubDeviceParam);
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_UPDATED', updatedSubDeviceParam, false, true);
 };
 
 const updateUpdatedAt = async device => {
   const updatedParams = await updateUpdatedAtAndNotifyService(device.deviceId);
-  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_MULTI_PARAM_UPDATED', updatedParams);
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_MULTI_PARAM_UPDATED', updatedParams, false);
   await createLogService(device, null, `DEVICE_ONLINE`, `Device back online`, true, false, `device@${device.deviceId}.com`);
 };
 
 const updateStatusToOff = async device => {
   const updatedParams = await updateStatusToOffAndNotifyService(device.deviceId);
-  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_MULTI_PARAM_UPDATED', updatedParams);
+  await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_MULTI_PARAM_UPDATED', updatedParams, false);
   await createLogService(
     device,
     null,
