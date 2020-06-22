@@ -20,18 +20,35 @@ const generateDeviceLog = async (device, params, body) => {
   return `${device.name} ${params.paramName} updated to ${body.paramValue}`;
 };
 
-const sendDeviceParamSocketNotification = async (device, event, deviceParam, sendOnlyToDevice = false) => {
+const sendDeviceParamSocketNotification = async (
+  device,
+  event,
+  deviceParam,
+  sendOnlyToDevice = false,
+  sendOnlyToUsers = false
+) => {
   let socketIds;
-  const deviceSocketIds = await getSocketIdsByDeviceIdService(device.deviceId);
-  if (sendOnlyToDevice) {
+  let deviceSocketIds;
+  if (!sendOnlyToUsers) {
+    deviceSocketIds = await getSocketIdsByDeviceIdService(device.deviceId);
+  }
+  if (sendOnlyToDevice && !sendOnlyToUsers) {
     socketIds = [...deviceSocketIds];
   } else {
+    let emails;
     const deviceAccees = await getSharedDeviceAccessByDeviceIdService(device.deviceId);
-    const emails = [device.deviceOwner, ...deviceAccees.map(access => access.email)];
-    socketIds = [
-      ...deviceSocketIds, // send to device
-      ...(await getSocketIdsByEmailsService(emails)), // send to users
-    ];
+    if (!sendOnlyToUsers) {
+      emails = [device.deviceOwner, ...deviceAccees.map(access => access.email)];
+      socketIds = [
+        ...deviceSocketIds, // send to device
+        ...(await getSocketIdsByEmailsService(emails)), // send to users
+      ];
+    } else {
+      emails = [device.deviceOwner, ...deviceAccees.map(access => access.email)];
+      socketIds = [
+        ...(await getSocketIdsByEmailsService(emails)), // send to users
+      ];
+    }
   }
   if (socketIds.length) {
     NotificationService.sendMessage(socketIds, event, deviceParam);
@@ -42,7 +59,7 @@ const createDeviceParam = catchAsync(async (req, res) => {
   req.body.createdBy = req.user.email;
   const device = await getDeviceByDeviceIdService(req.params.deviceId);
   const deviceParam = await createDeviceParamService(req.params.deviceId, req.body);
-  await sendDeviceParamSocketNotification(device, 'DEVICE_PARAM_CREATED', deviceParam);
+  await sendDeviceParamSocketNotification(device, 'DEVICE_PARAM_CREATED', deviceParam, false);
   res.status(httpStatus.CREATED).send(deviceParam.transform());
 });
 
@@ -61,14 +78,14 @@ const updateDeviceParam = catchAsync(async (req, res) => {
   req.body._updatedBy = req.user.email;
   const device = await getDeviceByDeviceIdService(req.params.deviceId);
   const deviceParam = await updateDeviceParamService(req.params.deviceId, req.params.paramName, req.body);
-  await sendDeviceParamSocketNotification(device, 'DEVICE_PARAM_UPDATED', deviceParam);
+  await sendDeviceParamSocketNotification(device, 'DEVICE_PARAM_UPDATED', deviceParam, false);
   res.send(deviceParam.transform());
 });
 
 const deleteDeviceParam = catchAsync(async (req, res) => {
   const device = await getDeviceByDeviceIdService(req.params.deviceId);
   const deviceParam = await getDeviceParamByParamNameService(req.params.deviceId, req.params.paramName);
-  await sendDeviceParamSocketNotification(device, 'DEVICE_PARAM_DELETED', deviceParam);
+  await sendDeviceParamSocketNotification(device, 'DEVICE_PARAM_DELETED', deviceParam, false);
   await deleteDeviceParamService(req.params.deviceId, req.params.paramName);
   res.status(httpStatus.NO_CONTENT).send();
 });
@@ -80,7 +97,7 @@ const updateDeviceParamValue = catchAsync(async (req, res) => {
     await checkAccessIfExists(device.deviceId, req.user.email);
   }
   const deviceParam = await updateDeviceParamService(req.params.deviceId, req.params.paramName, req.body);
-  await sendDeviceParamSocketNotification(device, 'DEVICE_PARAM_UPDATED', deviceParam);
+  await sendDeviceParamSocketNotification(device, 'DEVICE_PARAM_UPDATED', deviceParam, false);
   await createLogService(
     device,
     null,
@@ -135,7 +152,7 @@ const updateDeviceParamsToSocketUsers = async (socketDevice, __updateData) => {
     true,
     _updateData.updatedBody.updatedBy
   );
-  await sendDeviceParamSocketNotification(device, 'DEVICE_PARAM_UPDATED', updatedSubDeviceParam);
+  await sendDeviceParamSocketNotification(device, 'DEVICE_PARAM_UPDATED', updatedSubDeviceParam, false, true);
 };
 
 module.exports = {
