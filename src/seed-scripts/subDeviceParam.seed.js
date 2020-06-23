@@ -38,6 +38,22 @@ const subDeviceParams = [
     updatedBy: config.defaultAdmin.email,
   },
   {
+    deviceId: 'tank000000000001',
+    subDeviceId: 'sub_tank000000000001',
+    paramName: 'condition',
+    paramValue: 'hot',
+    createdBy: config.defaultAdmin.email,
+    updatedBy: config.defaultAdmin.email,
+  },
+  {
+    deviceId: 'tank000000000001',
+    subDeviceId: 'sub_tank000000000002',
+    paramName: 'condition',
+    paramValue: 'cool',
+    createdBy: config.defaultAdmin.email,
+    updatedBy: config.defaultAdmin.email,
+  },
+  {
     deviceId: 'bedroom000000001',
     subDeviceId: 'sub_bedroom000000001',
     paramName: 'status',
