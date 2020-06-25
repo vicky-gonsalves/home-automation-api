@@ -230,7 +230,7 @@ const getAllSubDeviceParamsOfDevice = async (socketId, device) => {
                   await generateSubDeviceLog(device, subDevice, { paramName: motor.paramName }, { paramValue: 'cool' }),
                   true,
                   true,
-                  `device@${device.deviceId}.com`
+                  `server@raspberrypi.com`
                 );
               }
             });
