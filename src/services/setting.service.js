@@ -219,6 +219,16 @@ const deleteSubDeviceSettingService = async (parent, subDeviceId) => {
   return Promise.all(settings.map(_setting => _setting.remove()));
 };
 
+const getDeviceCoolDownTime = async device => {
+  return Setting.findOne({
+    isDisabled: false,
+    type: 'device',
+    idType: 'deviceId',
+    bindedTo: device.deviceId,
+    paramName: 'coolDownTime',
+  });
+};
+
 module.exports = {
   createTankSettingService,
   createSmartSwitchSettingService,
@@ -233,4 +243,5 @@ module.exports = {
   updateNonPreferredSubDeviceSettingService,
   updateSubDeviceSettingService,
   getActiveSettingsByDeviceIdService,
+  getDeviceCoolDownTime,
 };

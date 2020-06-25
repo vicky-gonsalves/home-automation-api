@@ -30,7 +30,9 @@ import { getSocketIdsByDeviceIdService, getSocketIdsByEmailsService } from '../s
 import { createLogService } from '../services/log.service';
 import { deviceVariant } from '../config/device';
 import { getDeviceParamByParamNameService } from '../services/deviceParam.service';
-import { forIn, groupBy } from 'lodash';
+import { forIn, groupBy, filter } from 'lodash';
+import { getDeviceCoolDownTime } from '../services/setting.service';
+import moment from 'moment';
 
 const sendSubDeviceParamSocketNotification = async (
   device,
@@ -204,6 +206,24 @@ const getAllSubDeviceParamsOfDevice = async (socketId, device) => {
   if (subDevices && subDevices.length) {
     subDeviceParams = await getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService(subDevices);
     if (subDeviceParams.length) {
+      const time = moment();
+      let coolDownTime;
+      if (device.variant === deviceVariant[0]) {
+        const hotMotors = filter(subDeviceParams, { paramName: 'condition', paramValue: 'hot' });
+        if (hotMotors.length) {
+          coolDownTime = await getDeviceCoolDownTime(device);
+          if (coolDownTime) {
+            hotMotors.forEach(async motor => {
+              const hotEndTime = moment(motor.updatedAt).add(coolDownTime.paramValue, 'minutes');
+              if (time >= hotEndTime) {
+                await Object.assign(motor, { paramValue: 'cool' });
+                await motor.save();
+              }
+            });
+          }
+        }
+        subDeviceParams = await getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService(subDevices); // refresh
+      }
       const _data = groupBy(subDeviceParams, 'subDeviceId');
       forIn(_data, (value, key) => {
         const paramsGrp = groupBy(value, 'paramName');
@@ -214,6 +234,10 @@ const getAllSubDeviceParamsOfDevice = async (socketId, device) => {
           });
         });
         data[key] = paramVal;
+        if (data[key].condition === 'hot') {
+          const hotEndTime = moment(value.updatedAt).add(coolDownTime.paramValue, 'minutes') - time;
+          data[key].coolDownIn = hotEndTime / 1000;
+        }
       });
     } else {
       data = { error: 'no sub device params' };
