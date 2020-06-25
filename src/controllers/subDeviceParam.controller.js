@@ -212,17 +212,7 @@ const getAllSubDeviceParamsOfDevice = async (socketId, device) => {
         const hotMotors = filter(subDeviceParams, { paramName: 'condition', paramValue: 'hot' });
         if (hotMotors.length) {
           coolDownTime = await getDeviceCoolDownTime(device);
-          if (coolDownTime) {
-            hotMotors.forEach(async motor => {
-              const hotEndTime = moment(motor.updatedAt).add(coolDownTime.paramValue, 'minutes');
-              if (time >= hotEndTime) {
-                await Object.assign(motor, { paramValue: 'cool' });
-                await motor.save();
-              }
-            });
-          }
         }
-        subDeviceParams = await getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService(subDevices); // refresh
       }
       const _data = groupBy(subDeviceParams, 'subDeviceId');
       forIn(_data, (value, key) => {
@@ -234,7 +224,7 @@ const getAllSubDeviceParamsOfDevice = async (socketId, device) => {
           });
         });
         data[key] = paramVal;
-        if (data[key].condition === 'hot') {
+        if (data[key].condition === 'hot' && coolDownTime) {
           const hotEndTime = moment(value.updatedAt).add(coolDownTime.paramValue, 'minutes') - time;
           data[key].coolDownIn = hotEndTime / 1000;
         }
