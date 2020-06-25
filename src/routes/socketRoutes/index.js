@@ -12,7 +12,10 @@ import { validateGetSubDeviceSocket } from '../../validations/subDevice.validati
 import { getAllSubDeviceOfDevice } from '../../controllers/subDevice.controller';
 import { validateGetDeviceSettingsSocket } from '../../validations/setting.validation';
 import { getAllDeviceSettingsOfDevice } from '../../controllers/setting.controller';
+import { validateGetSystemParamsSocket } from '../../validations/system.validation';
+import { getSystemParams } from '../../controllers/system.controller';
 
+const systemGetEvents = [{ name: 'systemParam/getAll', listener: getSystemParams }];
 const deviceParamGetEvents = [{ name: 'deviceParam/getAll', listener: getAllDeviceParamsOfDevice }];
 const deviceSettingGetEvents = [{ name: 'deviceSetting/getAll', listener: getAllDeviceSettingsOfDevice }];
 const deviceParamPutEvents = [{ name: 'deviceParam/update', listener: updateDeviceParamsToSocketUsers }];
@@ -21,6 +24,10 @@ const subDeviceParamGetEvents = [{ name: 'subDeviceParam/getAll', listener: getA
 const subDeviceParamPutEvents = [{ name: 'subDeviceParam/update', listener: updateSubDeviceParamsToSocketUsers }];
 
 const reRouteMessages = socket => {
+  systemGetEvents.forEach(event => {
+    const { listener, name } = event;
+    socket.on(name, () => validateGetSystemParamsSocket(socket, listener));
+  });
   subDeviceParamGetEvents.forEach(event => {
     const { listener, name } = event;
     socket.on(name, () => validateGetSubDeviceParamsSocket(socket, listener));
