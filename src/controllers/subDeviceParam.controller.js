@@ -248,9 +248,13 @@ const getAllSubDeviceParamsOfDevice = async (socketId, device) => {
           });
         });
         data[key] = paramVal;
-        if (data[key].condition === 'hot' && coolDownTime) {
-          const hotEndTime = moment(value.updatedAt).add(coolDownTime.paramValue, 'minutes') - time;
-          data[key].coolDownIn = hotEndTime / 1000;
+        if (device.variant === deviceVariant[0] && coolDownTime) {
+          if (data[key].condition === 'hot') {
+            const hotEndTime = moment(value.updatedAt).add(coolDownTime.paramValue, 'minutes') - time;
+            data[key].coolDownIn = hotEndTime / 1000;
+          } else {
+            data[key].coolDownIn = 0;
+          }
         }
       });
     } else {
