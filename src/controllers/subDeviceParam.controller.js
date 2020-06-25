@@ -250,13 +250,14 @@ const updateSubDeviceParamsToSocketUsers = async (socketDevice, __updateData) =>
     _updateData.paramName,
     _updateData.updatedBody
   );
+  const isDevLog = _updateData.updatedBody.devLog;
   await createLogService(
     device,
     subDevice.subDeviceId,
     `${_updateData.paramName}_UPDATED`,
     await generateSubDeviceLog(device, subDevice, { paramName: _updateData.paramName }, _updateData.updatedBody),
     true,
-    false,
+    isDevLog,
     _updateData.updatedBody.updatedBy
   );
   await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_UPDATED', updatedSubDeviceParam, false, true);
