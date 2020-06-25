@@ -212,7 +212,31 @@ const getAllSubDeviceParamsOfDevice = async (socketId, device) => {
         const hotMotors = filter(subDeviceParams, { paramName: 'condition', paramValue: 'hot' });
         if (hotMotors.length) {
           coolDownTime = await getDeviceCoolDownTime(device);
+          if (coolDownTime) {
+            hotMotors.forEach(async motor => {
+              const hotEndTime = moment(motor.updatedAt).add(coolDownTime.paramValue, 'minutes');
+              if (time >= hotEndTime) {
+                await Object.assign(motor, { paramValue: 'cool' });
+                await motor.save();
+                await sendSubDeviceParamSocketNotification(device, 'SUB_DEVICE_PARAM_UPDATED', motor, false, true);
+                const subDevice = await getActiveSubDeviceByDeviceIdAndSubDeviceIdService(
+                  device.deviceId,
+                  motor.subDeviceId
+                );
+                await createLogService(
+                  device,
+                  subDevice.subDeviceId,
+                  `${motor.paramName}_UPDATED`,
+                  await generateSubDeviceLog(device, subDevice, { paramName: motor.paramName }, { paramValue: 'cool' }),
+                  true,
+                  true,
+                  `device@${device.deviceId}.com`
+                );
+              }
+            });
+          }
         }
+        subDeviceParams = await getActiveSubDeviceParamsByDeviceIdAndSubDeviceIdService(subDevices); // refresh
       }
       const _data = groupBy(subDeviceParams, 'subDeviceId');
       forIn(_data, (value, key) => {
