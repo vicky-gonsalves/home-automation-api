@@ -30,7 +30,7 @@ import { getSocketIdsByDeviceIdService, getSocketIdsByEmailsService } from '../s
 import { createLogService } from '../services/log.service';
 import { deviceVariant } from '../config/device';
 import { getDeviceParamByParamNameService } from '../services/deviceParam.service';
-import { forIn, groupBy, filter } from 'lodash';
+import { forIn, groupBy, filter, find } from 'lodash';
 import { getDeviceCoolDownTime } from '../services/setting.service';
 import moment from 'moment';
 
@@ -250,8 +250,9 @@ const getAllSubDeviceParamsOfDevice = async (socketId, device) => {
         data[key] = paramVal;
         if (device.variant === deviceVariant[0] && coolDownTime) {
           if (data[key].condition === 'hot') {
-            const hotEndTime = moment(value.updatedAt).add(coolDownTime.paramValue, 'minutes') - time;
-            data[key].coolDownIn = hotEndTime / 1000;
+            const hotMotor = find(value, { paramName: 'condition', paramValue: 'hot' });
+            const hotEndTime = moment(hotMotor.updatedAt).add(coolDownTime.paramValue, 'minutes') - time;
+            data[key].coolDownIn = Math.round(hotEndTime / 1000);
           } else {
             data[key].coolDownIn = 0;
           }
